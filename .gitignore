@@ -1,0 +1,34 @@
+# Credentials & auth
+.credentials.json
+mcp-needs-auth-cache.json
+
+# Conversation history & sessions
+history.jsonl
+sessions/
+sessions-index.json
+
+# Ephemeral / machine-specific
+cache/
+debug/
+telemetry/
+statsig/
+stats-cache.json
+file-history/
+paste-cache/
+shell-snapshots/
+backups/
+plans/
+tasks/
+todos/
+ide/
+plugins/
+
+# Project session logs (large .jsonl files and session subdirs)
+# Keep memory/ dirs but ignore session data
+projects/*/*.jsonl
+projects/*/sessions-index.json
+projects/*/[0-9a-f]*
+
+# Keep memory and MEMORY.md
+!projects/*/memory/
+!projects/*/memory/**
