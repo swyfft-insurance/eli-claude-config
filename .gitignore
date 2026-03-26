@@ -27,6 +27,7 @@ plugins/
 # Keep memory/ dirs but ignore session data
 projects/*/*.jsonl
 projects/*/sessions-index.json
+projects/*/plan.md
 projects/*/[0-9a-f]*
 
 # Keep memory and MEMORY.md
