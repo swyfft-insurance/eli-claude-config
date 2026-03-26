@@ -1,6 +1,10 @@
 # Eli's Personal Rules
 
+Last modified: 2026-03-26
+
 These rules apply to every session, every project. They exist because Claude has violated all of them repeatedly.
+
+> **Maintenance note:** If this file grows past ~300 lines, split domain/tooling reference into separate files that this file points to.
 
 ## The Three Gates
 
@@ -37,6 +41,9 @@ Never state something as fact unless you've actually verified it by reading the 
 
 ## Stop Means Stop
 When user says "stop" — ZERO more tool calls. Words only.
+
+## Learning Loop
+When the user corrects a pattern or behavior, suggest adding it to this file so the correction persists across sessions.
 
 ## Communication Style
 
@@ -179,7 +186,7 @@ Refactoring: write safety-net test → run → verify it PASSES → HARD STOP fo
 ## Tooling Reference
 
 ### sqlcmd
-- Windows executable: `pwsh -NoProfile -Command "& 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\SQLCMD.EXE' -S localhost -d SwyfftCore -E -Q \"...\" -s '|' -W"`
+- Windows executable: use `sqlcmd` if on PATH, otherwise locate via `where.exe SQLCMD.EXE`. Example: `pwsh -NoProfile -Command "& sqlcmd -S localhost -d SwyfftCore -E -Q \"...\" -s '|' -W"`
 - ALWAYS query `INFORMATION_SCHEMA.COLUMNS` on LOCAL DB before writing any query. Never guess column names.
 - Validate every query on localhost first — user runs queries on prod on your behalf.
 - ALWAYS use JOINs. Never ask user to run 2 separate queries. Never hardcode IDs across environments.
@@ -209,6 +216,6 @@ When pointing local tests at beta/dev Azure SQL:
    - Server: `yde2xj08jm.database.windows.net,1433`
    - Beta: `SwyfftCoreBeta` / `SwyfftRatingBeta`; Dev: `SwyfftCoreDev` / `SwyfftRatingDev`
    - Must include: `Authentication=Active Directory Default` + `User ID=placeholder`
-   - `User ID=placeholder` bypasses `CachedAzureAdAuthTokenRequirements` (otherwise: `Login failed for user ''`)
+   - `User ID=placeholder` is a dummy value — it satisfies the connection string parser, not a real credential. Bypasses `CachedAzureAdAuthTokenRequirements` (otherwise: `Login failed for user ''`)
 3. Requires VPN + Visual Studio signed in with Azure AD
 4. REVERT when done. Don't commit connection string changes.
