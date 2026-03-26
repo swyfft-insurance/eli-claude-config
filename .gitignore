@@ -23,13 +23,7 @@ todos/
 ide/
 plugins/
 
-# Project session logs (large .jsonl files and session subdirs)
-# Keep memory/ dirs but ignore session data
-projects/*/*.jsonl
-projects/*/sessions-index.json
-projects/*/plan.md
-projects/*/[0-9a-f]*
-
-# Keep memory and MEMORY.md
-!projects/*/memory/
-!projects/*/memory/**
+# Project data (session logs, plans, memory)
+# All behavioral rules are now in CLAUDE.md (always loaded)
+projects/
+settings.local.json
