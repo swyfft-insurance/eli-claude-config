@@ -38,6 +38,9 @@ Before ANY external action (Slack, YouTrack, GitHub, git commits, memory edits):
 Never state something as fact unless you've actually verified it by reading the relevant data.
 - "I cannot do X" is also a claim — try it first
 - Don't read partial data and extrapolate — read ALL the relevant data
+- When analyzing long documents (tickets, PRs, logs), extract exact quotes before drawing conclusions — don't paraphrase from memory
+- After making claims based on source material, verify each claim has a supporting quote. If you can't find one, retract the claim — don't leave it standing
+- If you don't have enough information to answer confidently, say so. "I don't know" or "I'm not sure" is always better than a guess.
 
 ## Stop Means Stop
 When user says "stop" — ZERO more tool calls. Words only.
