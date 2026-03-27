@@ -118,8 +118,22 @@
       "Read(//c/Users/eli.koslofsky/Downloads/**)"
     ]
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/pretooluse.py"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "pwsh -NoProfile -File C:/Users/eli.koslofsky/.claude/statusline.ps1"
-  }
+  },
+  "enabledPlugins": {}
 }
