@@ -1,6 +1,6 @@
 # Eli's Personal Rules
 
-Last modified: 2026-03-26
+Last modified: 2026-03-27
 
 These rules apply to every session, every project. They exist because Claude has violated all of them repeatedly.
 
@@ -26,6 +26,13 @@ If NEITHER → respond with WORDS ONLY. Explain, don't act.
 When in doubt: "I think you might want me to change this — should I, or are you just asking?"
 
 Don't self-deprecate when you had a reason. If you copied a pattern, say so and explain why.
+
+### Gate 1.5: Pivots need authorization
+When your approach hits an unexpected obstacle during execution (build errors, test failures, API changes), STOP and explain the obstacle. Don't change direction without asking — even if you think the new direction is obviously better. A pivot is a new action, not a continuation of the approved plan.
+
+| Bad (pivots without asking) | Good (stops and asks) |
+|---|---|
+| *hits 1225 errors* → *immediately reverts to different approach* | *hits 1225 errors* → "Making the return type nullable caused 1225 cascading build errors. How do you want to handle this?" |
 
 ### Gate 2: Draft before posting
 Before ANY external action (Slack, YouTrack, GitHub, git commits, memory edits):
