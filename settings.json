@@ -118,20 +118,6 @@
       "Read(//c/Users/eli.koslofsky/Downloads/**)"
     ]
   },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "ExitPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -NoProfile -File ~/.claude/hooks/remind-read-memory.ps1",
-            "statusMessage": "Reminding to read memory..."
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "pwsh -NoProfile -File C:/Users/eli.koslofsky/.claude/statusline.ps1"
