@@ -121,7 +121,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Write",
+        "matcher": "Bash|Write|Edit|EnterPlanMode|ExitPlanMode|mcp__slack__.*|mcp__YouTrackNative__.*",
         "hooks": [
           {
             "type": "command",
