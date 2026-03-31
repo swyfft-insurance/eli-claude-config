@@ -27,3 +27,4 @@ plugins/
 # All behavioral rules are now in CLAUDE.md (always loaded)
 projects/
 settings.local.json
+image-cache/

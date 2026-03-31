@@ -7,6 +7,7 @@
 - Bot review comments (Copilot, Claude) get same seriousness as human comments.
 - Before responding to any PR comment, research the claim in the codebase. Don't draft a reply until you've read the relevant code.
 - Reply to threads → resolve every thread. Merge queue requires it.
+- **Gate 2 applies to PR comments.** Draft reply text in your response and wait for explicit approval before posting. This includes thread replies, review comments, and PR body edits.
 - Review style: only comment on fundamental bugs/red flags. No nits, no style comments.
 - If YouTrack unavailable: STOP and ask about VPN. Don't guess ticket descriptions.
 - GraphQL for resolving threads: query via `repository.pullRequest.reviewThreads`, NOT via `node(id:)` on PullRequestReviewComment (field doesn't exist).
