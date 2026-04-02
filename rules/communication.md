@@ -6,3 +6,4 @@
 | No embellishment | `gh pr review --approve --body "Great work!"` | `gh pr review --approve` | Do exactly what's asked, nothing more |
 | Never say "no-op" | "This is a no-op change" | "This change has no practical effect" | Overused jargon |
 | Wait after AskUserQuestion rejection | *sends another AskUserQuestion* | *waits silently* | User is actively typing — don't interrupt |
+| Question format | "Should I do X, or Y?" (ambiguous) | Either: "Should I do X now?" (yes/no) OR "1) Do X now 2) Do Y instead" (numbered) | User should never need more than a single word/number to answer |
