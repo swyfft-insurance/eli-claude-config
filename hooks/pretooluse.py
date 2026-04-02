@@ -73,6 +73,7 @@ TOOL_RULES = [
     (r"^mcp__YouTrackNative__(create_issue|update_issue|add_issue_comment)$", "youtrack.md"),
     (r"^EnterPlanMode$", "plan-mode.md"),
     (r"^ExitPlanMode$", "coding-standards.md"),
+    (r"^AskUserQuestion$", "communication.md"),
 ]
 
 # File path patterns for Edit/Write → rules file mappings

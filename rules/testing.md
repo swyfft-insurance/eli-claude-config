@@ -35,3 +35,6 @@ Refactoring: write safety-net test → run → verify it PASSES → HARD STOP fo
 - When the bug crashes inside a real service (not at the boundary), use an integration test to reproduce — unit tests with mocked dependencies can't hit the real crash path.
 - Before planning a test, research the test infrastructure: which base class, what setup patterns exist, what test data/addresses are available. Don't guess.
 - Use real data from the failing environment (DB queries, logs) to set up the test scenario. Don't invent synthetic data when you have the actual values.
+- Prefer `[Theory]` with `[MemberData]` over `[Fact]` when testing multiple scenarios of the same behavior.
+- Use the real closed set types (e.g., `AnswerYesNo`, `LimitedWaterDamage`) as theory parameters — never hardcode string values that a closed set represents.
+- Use `GetAllValues().ToTheoryData()` to generate theory data from closed sets.
