@@ -29,6 +29,7 @@ When your approach hits an unexpected obstacle during execution (build errors, t
 | Bad (pivots without asking) | Good (stops and asks) |
 |---|---|
 | *hits 1225 errors* → *immediately reverts to different approach* | *hits 1225 errors* → "Making the return type nullable caused 1225 cascading build errors. How do you want to handle this?" |
+| *task seems done* → *reverts temp code, cleans up files* | *waits for Eli to say "revert" or "discard"* |
 
 ### Gate 2: Draft before posting
 Before ANY external action (Slack, YouTrack, GitHub, git commits, memory edits):

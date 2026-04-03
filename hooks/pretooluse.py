@@ -115,7 +115,6 @@ def main():
 
     elif tool_name in ("Write", "Edit"):
         file_path = tool_input.get("file_path", "")
-        messages.extend(check_write_warnings(file_path))
         # Check file path matches for rules injection
         for pattern, rules_file in FILE_RULES:
             if re.search(pattern, file_path):
@@ -132,12 +131,6 @@ def main():
 def check_bash_warnings(cmd):
     """Return list of warning messages for known Bash footguns."""
     warnings = []
-
-    if re.search(r"sed\s+-i", cmd):
-        warnings.append(
-            "REMINDER: sed -i destroys CRLF line endings on Windows. "
-            "Use the Edit tool instead."
-        )
 
     if re.search(r"\|\s*tee\s", cmd):
         warnings.append(
@@ -185,20 +178,6 @@ def check_bash_warnings(cmd):
         warnings.append(
             "WARNING: Before pushing, run git branch -vv first. "
             "Tracking must show origin/<your-branch>."
-        )
-
-    return warnings
-
-
-def check_write_warnings(file_path):
-    """Return list of warning messages for Write/Edit footguns."""
-    warnings = []
-
-    if re.search(r"\.cs$", file_path, re.IGNORECASE):
-        warnings.append(
-            "WARNING: Write destroys CRLF line endings on .cs files. "
-            "Use the Edit tool for existing files. "
-            "If this is a NEW file, fix CRLF afterwards."
         )
 
     return warnings
