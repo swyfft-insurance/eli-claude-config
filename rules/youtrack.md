@@ -8,5 +8,7 @@
 - API returns `.youtrack.cloud:443` URLs — always convert to `swyfft.myjetbrains.com/youtrack/` for user-facing links.
 - Use `youtrack-write-ticket` skill before writing ticket content.
 - search_issues returns INTERNAL IDs (2-XXXXX). Call get_issue to get idReadable (SW-XXXXX).
+- When a ticket contains a SolarWinds log search URL, extract and use those exact search terms. Don't paraphrase or invent your own query.
+  - **What happened:** Paraphrased "did not match" as "mismatch", got zero results, and confidently claimed the bug was fixed when it wasn't.
 - Closing as not applicable / won't fix: set Stage to "Done", then set Release Stage to "NA". Moving to Done auto-sets Release Stage to "Production", so you must explicitly override it to "NA" afterward.
   - **What happened:** Set Stage to Done without overriding Release Stage on SW-48843, making it look like we released code to prod.

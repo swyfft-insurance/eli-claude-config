@@ -3,7 +3,7 @@
 ## sqlcmd
 - Windows executable: use `sqlcmd` if on PATH, otherwise locate via `where.exe SQLCMD.EXE`. Example: `pwsh -NoProfile -Command "& sqlcmd -S localhost -d SwyfftCore -E -Q \"...\" -s '|' -W"`
 - ALWAYS query `INFORMATION_SCHEMA.COLUMNS` on LOCAL DB before writing any query. Never guess column names.
-- Validate every query on localhost first — user runs queries on prod on your behalf.
+- Validate every query on localhost first — user runs queries on dev/beta/prod on your behalf.
 - ALWAYS use JOINs. Never ask user to run 2 separate queries. Never hardcode IDs across environments.
 - `ByPerilRaterTypeId` is numeric (e.g., 10203001), not a string.
 
