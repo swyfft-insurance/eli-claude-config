@@ -135,5 +135,6 @@
     "type": "command",
     "command": "pwsh -NoProfile -File C:/Users/eli.koslofsky/.claude/statusline.ps1"
   },
+  "autoMemoryEnabled": false,
   "enabledPlugins": {}
 }

@@ -1,5 +1,9 @@
 # Testing Reference
 
+## Test Scope
+- Match test scope to change scope. Changed one test file? Run that test. Changed production code? Run the tests that cover it. Don't default to running the full suite.
+- The user will run CI themselves if needed.
+
 ## xUnit v3 MTP
 - `dotnet test -- --list-tests` is BROKEN — use native runner: `"./Project/bin/Debug/net10.0/Project.exe" -list full`
 - Trait filter: `-- --filter-trait "TestGroup=GroupName"` (NOT `--filter-class`)
