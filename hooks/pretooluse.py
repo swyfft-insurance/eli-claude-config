@@ -97,6 +97,16 @@ def main():
 
     messages = []
 
+    # BLOCK: SolarWinds MCP tools — must use /search-logs skill instead.
+    if re.search(r"^mcp__solarwinds__", tool_name):
+        print(
+            "BLOCKED: Do not call SolarWinds MCP tools directly. "
+            "Use the /search-logs skill, which calls ~/.claude/scripts/Search-SolarWinds.ps1. "
+            "The MCP tool has known issues with date ranges and Invoke-RestMethod.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     # Check tool name matches (MCP tools, EnterPlanMode, ExitPlanMode)
     for pattern, rules_file in TOOL_RULES:
         if re.search(pattern, tool_name):
@@ -106,6 +116,16 @@ def main():
 
     if tool_name == "Bash":
         cmd = tool_input.get("command", "")
+
+        # BLOCK: Direct SolarWinds API calls — must use /search-logs skill instead.
+        # Allow calls from the Search-SolarWinds.ps1 script itself.
+        if re.search(r"api\.na-01\.cloud\.solarwinds\.com", cmd) and not re.search(r"Search-SolarWinds", cmd):
+            print(
+                "BLOCKED: Do not call the SolarWinds API directly. "
+                "Use the /search-logs skill, which calls ~/.claude/scripts/Search-SolarWinds.ps1.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
         # BLOCK: dotnet test must always capture output with Tee-Object, --output Detailed, and --report-trx.
         if re.search(r"dotnet\s+test", cmd):

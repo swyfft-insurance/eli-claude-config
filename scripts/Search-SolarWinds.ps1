@@ -120,7 +120,7 @@ while ($currentDay -le $end) {
             Write-Warning "Hit 50-page limit for $dayLabel, stopping pagination for this day."
             break
         }
-    } while ($skipToken -and $logs -and $logs.Count -gt 0)
+    } while ($skipToken)
 
     if ($dayLogs -gt 0) {
         Write-Host "$dayLabel : $dayLogs logs" -ForegroundColor Green
