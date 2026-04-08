@@ -20,5 +20,19 @@ gh api graphql -f query='query { repository(owner:"swyfft-insurance",name:"swyff
 gh api graphql -f query='mutation { resolveReviewThread(input:{threadId:"THREAD_ID"}) { thread { isResolved } } }'
 ```
 
+## ByPeril Quote Audit Diagnostic Test
+
+For reproducing SolarWinds audit mismatches against specific quotes in beta/dev:
+
+1. Point `Swyfft.Common/appsettings.json` at beta (see `beta-db.md` Scenario 2)
+2. Set the env var and run (env var must be exported so dotnet test inherits it):
+   ```bash
+   export EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS="GUID1,GUID2,GUID3"
+   dotnet test --project "Swyfft.Services.Excel.IntegrationTests" -- --filter-class "*ByPerilQuoteAuditDiagnosticTests*"
+   ```
+4. REVERT appsettings.json when done
+
+The test loads each quote from the DB, runs the Excel rater, and compares `AnnualPremium + AnnualFeesTotal` against `FinalTotalPremium` — same comparison as the production audit service.
+
 ## Manual Testing Prompts
 When prompting user for manual QA: use AskUserQuestion tool, provide SPECIFIC test data (addresses, names, values), one action per prompt, give concrete response options, keep prompts flowing. Never use Playwright when plan says "manual test with prompts."

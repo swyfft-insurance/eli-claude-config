@@ -60,9 +60,14 @@ Use `fields: "idReadable,summary,customFields(name,value(name))"` on both to get
 
 ### Step 2: YouTrack activity timestamps (run after Step 1)
 
-For EVERY ticket returned in Step 1, call `get_issue_activities` with `categories: "CustomFieldCategory"` and `reverse: true`, `limit: 10`.
+For EVERY ticket returned in Step 1, query YouTrack activities via REST API:
+```bash
+YOUTRACK_TOKEN=$(powershell -NoProfile -Command "[System.Environment]::GetEnvironmentVariable('YOUTRACK_API_TOKEN', 'User')")
+curl -s -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+  "https://swyfft.myjetbrains.com/youtrack/api/issues/SW-XXXXX/activities?fields=id,timestamp,author(login,name),added(name),removed(name),field(name)&categories=CustomFieldCategory&\$top=20"
+```
 
-This gives you the precise timestamps of when each ticket changed stage (e.g., moved to Develop, moved to Ready for Test). You NEED these timestamps to correctly attribute work to yesterday vs today. Convert all timestamps from ms-since-epoch UTC to US Eastern time.
+The YouTrack MCP has no `get_issue_activities` tool — you must use the REST API directly. This returns field change activities with ms-since-epoch timestamps. You NEED these timestamps to correctly attribute work to yesterday vs today. Convert all timestamps from ms-since-epoch UTC to US Eastern time.
 
 ### Step 3: PR details (run after Step 1, parallel with Step 2)
 

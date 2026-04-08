@@ -61,7 +61,8 @@ BASH_RULES = [
     (r"git\s+(push|commit|checkout|branch|merge|rebase|reset|cherry-pick)", "git-safety.md"),
     (r"gh\s+pr\s+(create|edit|review|comment|merge)", "github-prs.md"),
     (r"gh\s+api.*pulls.*/comments|gh\s+api\s+graphql.*review", "github-prs.md"),
-    (r"dotnet\s+test", "testing.md"),
+    (r"dotnet\s+test", "testing-execution.md"),
+    (r"[Ss]eed", "seeding.md"),
     (r"sqlcmd", "tooling.md"),
     (r"DumpRater|ReadExcel|ReadNamedRanges", "tooling.md"),
     (r"yde2xj08jm", "beta-db.md"),
@@ -105,6 +106,24 @@ def main():
 
     if tool_name == "Bash":
         cmd = tool_input.get("command", "")
+
+        # BLOCK: dotnet test must always capture output with Tee-Object.
+        if re.search(r"dotnet\s+test", cmd) and not re.search(r"Tee-Object", cmd):
+            rules_path = os.path.join(RULES_DIR, "testing-execution.md")
+            rules_content = ""
+            try:
+                with open(rules_path) as f:
+                    rules_content = f.read()
+            except FileNotFoundError:
+                pass
+            print(
+                "BLOCKED: dotnet test must capture output with Tee-Object. "
+                "Re-read the rules below and retry.\n\n"
+                f"=== RULES: testing-execution.md ===\n{rules_content}",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         messages.extend(check_bash_warnings(cmd))
         # Check bash command matches for rules injection
         for pattern, rules_file in BASH_RULES:
