@@ -107,22 +107,30 @@ def main():
     if tool_name == "Bash":
         cmd = tool_input.get("command", "")
 
-        # BLOCK: dotnet test must always capture output with Tee-Object.
-        if re.search(r"dotnet\s+test", cmd) and not re.search(r"Tee-Object", cmd):
-            rules_path = os.path.join(RULES_DIR, "testing-execution.md")
-            rules_content = ""
-            try:
-                with open(rules_path) as f:
-                    rules_content = f.read()
-            except FileNotFoundError:
-                pass
-            print(
-                "BLOCKED: dotnet test must capture output with Tee-Object. "
-                "Re-read the rules below and retry.\n\n"
-                f"=== RULES: testing-execution.md ===\n{rules_content}",
-                file=sys.stderr,
-            )
-            sys.exit(2)
+        # BLOCK: dotnet test must always capture output with Tee-Object, --output Detailed, and --report-trx.
+        if re.search(r"dotnet\s+test", cmd):
+            missing = []
+            if not re.search(r"Tee-Object", cmd):
+                missing.append("Tee-Object")
+            if not re.search(r"--output\s+Detailed", cmd):
+                missing.append("--output Detailed")
+            if not re.search(r"--report-trx", cmd):
+                missing.append("--report-trx")
+            if missing:
+                rules_path = os.path.join(RULES_DIR, "testing-execution.md")
+                rules_content = ""
+                try:
+                    with open(rules_path) as f:
+                        rules_content = f.read()
+                except FileNotFoundError:
+                    pass
+                print(
+                    f"BLOCKED: dotnet test is missing: {', '.join(missing)}. "
+                    "Re-read the rules below and retry.\n\n"
+                    f"=== RULES: testing-execution.md ===\n{rules_content}",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
 
         messages.extend(check_bash_warnings(cmd))
         # Check bash command matches for rules injection
