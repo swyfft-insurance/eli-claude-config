@@ -59,8 +59,8 @@ def inject_rules(filename):
 # Bash command → rules file mappings
 BASH_RULES = [
     (r"git\s+(push|commit|checkout|branch|merge|rebase|reset|cherry-pick)", "git-safety.md"),
-    (r"gh\s+pr\s+(create|edit|review|comment|merge)", "github-prs.md"),
-    (r"gh\s+api.*pulls.*/comments|gh\s+api\s+graphql.*review", "github-prs.md"),
+    (r"gh\s+pr\s+(create|edit)", "pr-creation.md"),
+    (r"gh\s+pr\s+review", "pr-theirs-review.md"),
     (r"dotnet\s+test", "testing-execution.md"),
     (r"[Ss]eed", "seeding.md"),
     (r"sqlcmd", "tooling.md"),
@@ -151,6 +151,16 @@ def main():
                     file=sys.stderr,
                 )
                 sys.exit(2)
+
+        # BLOCK: Raw PR comment reply/resolve calls — must use /pr-feedback skill.
+        if re.search(r"gh\s+api.*pulls.*/comments.*replies|resolveReviewThread", cmd) \
+           and not re.search(r"pr-feedback", cmd):
+            print(
+                "BLOCKED: Do not reply to or resolve PR comments directly. "
+                "Use the /pr-feedback skill, which enforces research-then-draft-then-approve workflow.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
         messages.extend(check_bash_warnings(cmd))
         # Check bash command matches for rules injection

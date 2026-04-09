@@ -65,7 +65,9 @@ A PreToolUse hook injects the right rules when it detects matching commands, but
 | Coding Standards | `coding-standards.md` | modifying access modifiers or adding usings |
 | Slack | `slack.md` | sending any Slack message |
 | YouTrack | `youtrack.md` | creating, updating, or reading YouTrack issues |
-| GitHub PRs | `github-prs.md` | creating PRs, responding to PR comments, or resolving threads |
+| PR Creation | `pr-creation.md` | creating a PR |
+| PR Review (theirs) | `pr-theirs-review.md` | reviewing someone else's PR |
+| PR Feedback (mine) | `pr-mine-address-feedback.md` | replying to or resolving PR comments on my PR |
 | Plan Mode | `plan-mode.md` | entering plan mode |
 | Tool Access | `tool-access.md` | a tool call fails or seems unavailable |
 | Standup | `standup.md` | generating any standup update |
