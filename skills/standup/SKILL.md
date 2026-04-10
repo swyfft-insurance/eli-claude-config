@@ -49,8 +49,10 @@ The JSON contains:
 
 Group work items by date into EXACTLY two sections:
 
-1. **Last working day** (`lastWorkingDayName`) — items where `date == lastWorkingDay`
-2. **Today** (`todayName`) — items where `date == today`
+1. **Last working day** — items where `date == lastWorkingDay`
+2. **Today** — items where `date == today`
+
+**Section header labels:** If `lastWorkingDay` is the calendar day before `today`, use "Yesterday" and "Today". Otherwise (e.g., after a weekend or holiday), use the day names from `lastWorkingDayName` and `todayName`.
 
 For each item, create a bullet combining the ticket + PR + what happened. Use `ticketDetails` to look up ticket summaries for tickets referenced by PRs.
 
@@ -69,7 +71,7 @@ Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). Create the 
 
 ### Slack format
 
-- `*LastWorkingDayName*` and `*Today*` as section headers (Slack bold)
+- Section headers in Slack bold (`*...*`), using the label chosen above ("Yesterday"/"Today" or the day names)
 - Each bullet: ticket as Markdown link `[SW-XXXXX](youtrack_url)`, ticket summary in quotes, action, PR as link `[PR #XXXX](pr_url)`
 - Concise — one line per bullet
 
