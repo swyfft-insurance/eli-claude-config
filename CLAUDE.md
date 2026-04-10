@@ -74,7 +74,7 @@ A PreToolUse hook injects the right rules when it detects matching commands, but
 | Domain Reference | `swyfft-domain.md` | working with HomeownerStateConfig, carrier names, or PR descriptions |
 | Test Execution | `testing-execution.md` | running tests (filters, output capture, scope) |
 | Test Writing | `testing.md` | writing tests, TDD, investigation |
-| Seeding | `seeding.md` | running seed scripts |
+| Seeding | `seeding.md` | seeding (BLOCKED — use `/seed` skill instead) |
 | Tooling Reference | `tooling.md` | using sqlcmd, rater dumps, GraphQL for PR threads, or manual QA |
 | Beta/Dev Database | `beta-db.md` | connecting to any Azure SQL beta/dev database |
 | Meta (architecture) | `meta.md` | modifying any rules file, CLAUDE.md, or memory |

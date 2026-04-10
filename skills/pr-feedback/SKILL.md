@@ -13,29 +13,39 @@ Provide the PR number (e.g., `/pr-feedback 19821`). If not provided, ask for it.
 
 ## Steps
 
-### 1. Fetch unresolved threads
+### 1. Fetch feedback
 
 ```bash
 python ~/.claude/scripts/pr-feedback.py fetch <PR#>
 ```
 
-Set timeout to 30000ms. The script outputs JSON with all unresolved review threads, including thread IDs, comment IDs, authors, file paths, line numbers, and comment bodies.
+Set timeout to 30000ms. The script outputs JSON with:
+- `unresolvedThreads`: Inline review threads (attached to specific lines)
+- `reviews`: Top-level review comments (review body text, not attached to lines)
 
-### 2. Display the comments
+### 2. Display the feedback
 
-Print each unresolved thread clearly:
+**Inline threads:**
 
 ```
 Thread 1: <file>:<line> (@<author>)
 > <quoted comment body>
-
-Thread 2: <file>:<line> (@<author>)
-> <quoted comment body>
 ```
 
-### 3. Process each thread
+**Top-level reviews:**
 
-For EACH unresolved thread, follow this sequence **in order**. Do not skip steps.
+```
+Review: @<author> (<state>)
+> <quoted review body>
+```
+
+### 3. Triage
+
+Only address **actionable** points — things that require a code change, an explanation, or a decision. Skip positive observations, summaries, and "looks good" comments. Present the actionable items to the user.
+
+### 4. Process inline threads
+
+For EACH unresolved inline thread with actionable feedback, follow this sequence **in order**. Do not skip steps.
 
 #### a. Research
 
@@ -79,9 +89,21 @@ After the reply is posted:
 python ~/.claude/scripts/pr-feedback.py resolve <thread-graphql-id>
 ```
 
-### 4. Repeat
+### 5. Process top-level reviews
 
-Move to the next unresolved thread. Repeat steps 3a-3e for each one.
+For top-level reviews with actionable points, follow the same research → draft → approve → post flow. Only address the actionable points — quote each one individually and reply.
+
+To post a reply to a top-level review:
+
+```bash
+python ~/.claude/scripts/pr-feedback.py review-reply <PR#> "<approved reply body>"
+```
+
+This posts an issue comment on the PR conversation tab.
+
+### 6. Repeat
+
+Move to the next actionable item. Repeat until all are addressed.
 
 ## Important
 
@@ -89,3 +111,4 @@ Move to the next unresolved thread. Repeat steps 3a-3e for each one.
 - **Never post without approval.** Gate 2 applies to every reply and every resolve action.
 - If a comment identifies a legitimate issue, **fix the code** before replying. Then mention the fix in your reply.
 - If you disagree with a comment, explain why with evidence from the code — don't just dismiss it.
+- **Only address actionable points.** Positive observations, summaries, and acknowledgements don't need replies.

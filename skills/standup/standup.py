@@ -93,7 +93,7 @@ def yt_get(path, token):
 def gh_json(*args):
     cmd = ["gh"] + list(args)
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
     except FileNotFoundError:
         die("gh CLI not found on PATH")
     if r.returncode != 0:

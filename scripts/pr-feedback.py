@@ -25,6 +25,7 @@ def gh(*args, input_data=None):
         cmd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         input=input_data,
         timeout=30,
     )
@@ -41,7 +42,7 @@ def gh(*args, input_data=None):
 
 
 def fetch(pr_number):
-    """Fetch all review threads with comments for a PR."""
+    """Fetch all review threads and top-level review comments for a PR."""
     query = """
     query($owner: String!, $repo: String!, $pr: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -68,6 +69,16 @@ def fetch(pr_number):
                   position
                 }
               }
+            }
+          }
+          reviews(first: 50) {
+            nodes {
+              id
+              databaseId
+              author { login }
+              body
+              state
+              createdAt
             }
           }
         }
@@ -108,12 +119,29 @@ def fetch(pr_number):
             "comments": comments,
         })
 
+    # Top-level review comments (review body text, not attached to specific lines)
+    reviews = []
+    for review in pr_data["reviews"]["nodes"]:
+        body = (review.get("body") or "").strip()
+        if not body:
+            continue
+        reviews.append({
+            "id": review["id"],
+            "databaseId": review["databaseId"],
+            "author": review["author"]["login"] if review["author"] else "unknown",
+            "body": body,
+            "state": review["state"],
+            "createdAt": review["createdAt"],
+        })
+
     result = {
         "pr": pr_number,
         "url": pr_data["url"],
         "title": pr_data["title"],
         "unresolvedThreads": threads,
         "totalUnresolved": len(threads),
+        "reviews": reviews,
+        "totalReviews": len(reviews),
     }
 
     print(json.dumps(result, indent=2))
@@ -144,9 +172,23 @@ def resolve(thread_id):
     }))
 
 
+def review_reply(pr_number, body):
+    """Post an issue comment on the PR conversation tab (for replying to top-level reviews)."""
+    result = gh(
+        "api",
+        f"repos/{OWNER}/{REPO}/issues/{pr_number}/comments",
+        "-f", f"body={body}",
+    )
+    print(json.dumps({
+        "success": True,
+        "prNumber": pr_number,
+        "commentId": result.get("id"),
+    }))
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: pr-feedback.py <fetch|reply|resolve> [args...]", file=sys.stderr)
+        print("Usage: pr-feedback.py <fetch|reply|resolve|review-reply> [args...]", file=sys.stderr)
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -168,6 +210,12 @@ def main():
             print("Usage: pr-feedback.py resolve <thread-id>", file=sys.stderr)
             sys.exit(1)
         resolve(sys.argv[2])
+
+    elif cmd == "review-reply":
+        if len(sys.argv) != 4:
+            print("Usage: pr-feedback.py review-reply <PR#> <body>", file=sys.stderr)
+            sys.exit(1)
+        review_reply(int(sys.argv[2]), sys.argv[3])
 
     else:
         print(f"Unknown command: {cmd}", file=sys.stderr)

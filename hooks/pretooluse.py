@@ -62,7 +62,7 @@ BASH_RULES = [
     (r"gh\s+pr\s+(create|edit)", "pr-creation.md"),
     (r"gh\s+pr\s+review", "pr-theirs-review.md"),
     (r"dotnet\s+test", "testing-execution.md"),
-    (r"[Ss]eed", "seeding.md"),
+    # Seed is now blocked below — use /seed skill instead.
     (r"sqlcmd", "tooling.md"),
     (r"DumpRater|ReadExcel|ReadNamedRanges", "tooling.md"),
     (r"yde2xj08jm", "beta-db.md"),
@@ -127,8 +127,29 @@ def main():
             )
             sys.exit(2)
 
-        # BLOCK: dotnet test must always capture output with Tee-Object, --output Detailed, and --report-trx.
-        if re.search(r"dotnet\s+test", cmd):
+        # BLOCK: Seed scripts must go through /seed skill.
+        if re.search(r"Seed-(Elements|Database)-Local\.ps1", cmd):
+            print(
+                "BLOCKED: Do not run seed scripts directly. "
+                "Use the /seed skill, which determines the correct script, "
+                "clears seeding history when needed, and avoids wasting time on the wrong seed.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        # BLOCK: Excel integration tests must use --filter-trait "TestGroup=ByPerilTests".
+        # Commercial tests take forever and Eli never runs them locally.
+        if re.search(r"dotnet\s+test", cmd) and re.search(r"Excel\.IntegrationTests", cmd) and not re.search(r'filter-trait\s+["\']?TestGroup=ByPerilTests', cmd):
+            print(
+                "BLOCKED: Excel integration tests must include --filter-trait \"TestGroup=ByPerilTests\". "
+                "Running without this filter includes commercial tests which take an eternity. "
+                "If you truly need all tests, ask the user to confirm.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        # BLOCK: dotnet test (or native test runner exe) must always capture output with Tee-Object, --output Detailed, and --report-trx.
+        if re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe", cmd):
             missing = []
             if not re.search(r"Tee-Object", cmd):
                 missing.append("Tee-Object")
