@@ -128,11 +128,13 @@ def main():
             sys.exit(2)
 
         # BLOCK: Seed scripts must go through /seed skill.
-        if re.search(r"Seed-(Elements|Database)-Local\.ps1", cmd):
+        # The skill appends "# via-seed-skill" to bypass this block.
+        if re.search(r"Seed-(Elements|Database)-Local\.ps1", cmd) and "# via-seed-skill" not in cmd:
             print(
-                "BLOCKED: Do not run seed scripts directly. "
-                "Use the /seed skill, which determines the correct script, "
-                "clears seeding history when needed, and avoids wasting time on the wrong seed.",
+                "BLOCKED: Do NOT run seed scripts without the /seed skill. "
+                "You MUST use /seed — it determines the correct script, "
+                "clears seeding history when needed, and prevents wasting 5+ minutes "
+                "on the wrong seed. Do NOT attempt to bypass this block.",
                 file=sys.stderr,
             )
             sys.exit(2)

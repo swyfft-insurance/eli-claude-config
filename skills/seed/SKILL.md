@@ -36,15 +36,17 @@ pwsh -NoProfile -Command "& sqlcmd -S localhost -d SwyfftRating -E -Q \"DELETE F
 
 ## Step 3: Run the seed script
 
+**IMPORTANT:** Append `# via-seed-skill` to bypass the pretooluse hook block.
+
 For elements:
 ```bash
-pwsh -NoProfile -File "Seed-Elements-Local.ps1"
+pwsh -NoProfile -File "Seed-Elements-Local.ps1" # via-seed-skill
 ```
 Timeout: 300000ms (~5 min).
 
 For full database:
 ```bash
-pwsh -NoProfile -File "Seed-Database-Local.ps1"
+pwsh -NoProfile -File "Seed-Database-Local.ps1" # via-seed-skill
 ```
 Timeout: 600000ms (~10 min).
 
