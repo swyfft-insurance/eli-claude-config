@@ -10,12 +10,7 @@
 - ByPeril Excel tests: ALWAYS use `-- --filter-trait "TestGroup=ByPerilTests"`. Unfiltered = 900+ tests (45 min).
 
 ## PreBind Captured Assert Tests
-"Run pre-bind captured assert tests" = build `Swyfft.slnx` first, then 3 projects with `--no-build` in parallel:
-```
-dotnet test --no-build --project "Swyfft.Services.UnitTests" -- --filter-trait "TestGroup=PreBindResidentialCapturedAssertTests"
-dotnet test --no-build --project "Swyfft.Services.IntegrationTests" -- --filter-trait "TestGroup=PreBindResidentialCapturedAssertTests"
-dotnet test --no-build --project "Swyfft.Seeding.IntegrationTests" -- --filter-trait "TestGroup=PreBindResidentialCapturedAssertTests"
-```
+See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance.
 
 ## Test Output
 - Capture with pwsh Tee-Object (NOT bash tee): `pwsh -NoProfile -Command "dotnet test ... -- --output Detailed --report-trx --report-trx-filename {project}-{filter}.trx 2>&1 | Tee-Object -FilePath 'C:\Users\eli.koslofsky\AppData\Local\Temp\swyfft-tests\{project}-{filter}.txt'"`
@@ -25,3 +20,6 @@ dotnet test --no-build --project "Swyfft.Seeding.IntegrationTests" -- --filter-t
 - Never `| tail -N` that discards error details. If tests fail, you already have the output — don't re-run.
 - Single test suite: normal `dotnet test` (let it build). Multiple suites: build first, then `--no-build` in parallel.
 - Never paper over test failures with ElementTestValues overrides or `SkipEachElementOptionTest = true`.
+
+## Seeding Before Tests
+See `Swyfft.Seeding/CLAUDE.md` for which seed script to run and what each does step-by-step.

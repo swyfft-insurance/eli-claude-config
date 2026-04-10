@@ -93,6 +93,8 @@ python ~/.claude/scripts/pr-feedback.py resolve <thread-graphql-id>
 
 For top-level reviews with actionable points, follow the same research → draft → approve → post flow. Only address the actionable points — quote each one individually and reply.
 
+**Tag the reviewer** at the top of the reply so it's clear which review you're responding to (e.g., `Responding to @ehrenw's review:`).
+
 To post a reply to a top-level review:
 
 ```bash
