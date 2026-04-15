@@ -65,7 +65,8 @@ BASH_RULES = [
     # Seed is now blocked below — use /seed skill instead.
     (r"sqlcmd", "tooling.md"),
     (r"DumpRater|ReadExcel|ReadNamedRanges", "tooling.md"),
-    (r"yde2xj08jm", "beta-db.md"),
+    (r"yde2xj08jm", "beta-prod-db.md"),
+    (r"swyfftsqleastus2", "beta-prod-db.md"),
 ]
 
 # Tool name → rules file mappings (for MCP tools and other non-Bash tools)
