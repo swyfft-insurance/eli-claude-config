@@ -11,6 +11,7 @@ Prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy
 3. The user runs it against dev/beta/prod-copy on your behalf
 - Never connect directly to remote databases via sqlcmd
 - ALWAYS use JOINs. Never ask user to run 2 separate queries. Never hardcode IDs across environments.
+- **Multi-SELECT scripts: WAIT.** Multi-SELECT scripts are fine when a JOIN genuinely won't work (disjoint result shapes, different row counts, etc.) — but the user copy-pastes one result set at a time. After the first result set arrives, **STOP. Do not reason, do not search code, do not call tools.** Acknowledge receipt, then explicitly wait for the remaining result sets. Default to a JOIN whenever plausible; reach for multi-SELECT only when joining would contort the query.
 
 ### Prod-Copy Database
 
