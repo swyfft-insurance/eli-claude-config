@@ -10,10 +10,10 @@
     Full-text search query (e.g., "29bd85f2-f907-4ac2-bbcb-d11277329bf1 ThrowIfExcelError").
 
 .PARAMETER StartDate
-    Start date (yyyy-MM-dd). Defaults to yesterday.
+    Start date. Accepts yyyy-MM-dd (full day from 00:00) or yyyy-MM-ddTHH:mm:ssZ (sub-day boundary). Defaults to yesterday.
 
 .PARAMETER EndDate
-    End date (yyyy-MM-dd). Defaults to today.
+    End date. Accepts yyyy-MM-dd (full day to 23:59:59) or yyyy-MM-ddTHH:mm:ssZ (sub-day boundary). Defaults to today.
 
 .PARAMETER PageSize
     Number of logs per API page. Default 100.
@@ -52,7 +52,9 @@ if (-not $OutputFile) {
     $outDir = Join-Path $env:TEMP 'swyfft-logs'
     if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
     $safeName = ($Filter -replace '[^a-zA-Z0-9\-]', '_').Substring(0, [Math]::Min(50, $Filter.Length))
-    $OutputFile = Join-Path $outDir "solarwinds-$safeName-$StartDate-to-$EndDate.txt"
+    $safeStartDate = $StartDate -replace '[:\s]', '_'
+    $safeEndDate = $EndDate -replace '[:\s]', '_'
+    $OutputFile = Join-Path $outDir "solarwinds-$safeName-$safeStartDate-to-$safeEndDate.txt"
 }
 $outFileDir = Split-Path $OutputFile -Parent
 if (-not (Test-Path $outFileDir)) { New-Item -ItemType Directory -Path $outFileDir -Force | Out-Null }
@@ -71,10 +73,12 @@ $totalLogs = 0
 "Run at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -FilePath $OutputFile -Append -Encoding utf8
 "" | Out-File -FilePath $OutputFile -Append -Encoding utf8
 
-$currentDay = $start
-while ($currentDay -le $end) {
-    $dayStart = $currentDay.ToString('yyyy-MM-ddT00:00:00Z')
-    $dayEnd = $currentDay.ToString('yyyy-MM-ddT23:59:59Z')
+$currentDay = $start.Date
+while ($currentDay -le $end.Date) {
+    # Clamp the first day's start to the parsed StartDate (allows sub-day ranges like "T21:07:44Z")
+    # Clamp the last day's end to the parsed EndDate.
+    $dayStart = if ($currentDay -eq $start.Date) { $start.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") } else { $currentDay.ToString('yyyy-MM-ddT00:00:00Z') }
+    $dayEnd   = if ($currentDay -eq $end.Date)   { $end.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")   } else { $currentDay.ToString('yyyy-MM-ddT23:59:59Z') }
     $dayLabel = $currentDay.ToString('yyyy-MM-dd')
 
     $dayLogs = 0
