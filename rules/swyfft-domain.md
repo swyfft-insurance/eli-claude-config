@@ -17,3 +17,15 @@
 
 ## Carrier Name Mappings
 - Ark = Hadron (legacy name). Class named `Hsic` for FL/LA E&S.
+
+## Branch-to-Environment Mapping
+
+`development` → dev, `beta` → beta, `master` → **production**.
+
+To determine when a PR deployed to prod, check when its commits arrived on `origin/master` (NOT the merge date of the feature PR into `development`):
+
+```
+git log origin/master --format="%h %ai %s" --ancestry-path <commit>^..origin/master | head -5
+```
+
+The first merge commit after `<commit>` on `origin/master` (typically a beta→master PR) is the approximate prod deploy timestamp. Don't say "deploy timing uncertain" — derive it.

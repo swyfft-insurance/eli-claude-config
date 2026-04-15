@@ -1,5 +1,9 @@
 # Beta/Dev Database Access
 
+## Data Availability
+
+Prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy numbers, element states) that existed before the most recent Monday copy is in beta. Don't plan workarounds to extract prod data manually when the record predates last Monday — just point appsettings at beta.
+
 ## Scenario 1: Ad-hoc Queries Against Remote Databases
 
 1. ALWAYS draft and validate the query on localhost first

@@ -49,6 +49,9 @@ Never state something as fact unless you've actually verified it by reading the 
 ## Stop Means Stop
 When user says "stop" — ZERO more tool calls. Words only.
 
+## Question Format
+IMPORTANT: Questions must be answerable in a single word/number. Either: yes/no ("Should I do X now?") OR numbered options ("1) Do X 2) Do Y"). Never ambiguous either/or.
+
 ## Learning Loop
 When the user corrects a pattern or behavior, read `~/.claude/rules/meta.md` to understand where the correction belongs before making any changes. Never default to memory.
 
