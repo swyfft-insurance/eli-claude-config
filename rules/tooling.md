@@ -22,17 +22,9 @@ gh api graphql -f query='mutation { resolveReviewThread(input:{threadId:"THREAD_
 
 ## ByPeril Quote Audit Diagnostic Test
 
-For reproducing SolarWinds audit mismatches against specific quotes in beta/dev:
+Use the `byperil-audit-diagnostic` skill. It checks appsettings.json is pointed at beta/dev/prod-copy (not localhost, not prod), checks the `[Trait(TestGroup, ByPerilTests)]` attribute is present, then invokes `~/.claude/scripts/Run-ByPerilAuditDiagnostic.ps1 -QuoteIds "<csv>"`.
 
-1. Point `Swyfft.Common/appsettings.json` at beta (see `beta-prod-db.md` Scenario 2)
-2. Set the env var and run (env var must be exported so dotnet test inherits it):
-   ```bash
-   export EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS="GUID1,GUID2,GUID3"
-   dotnet test --project "Swyfft.Services.Excel.IntegrationTests" -- --filter-class "*ByPerilQuoteAuditDiagnosticTests*"
-   ```
-4. REVERT appsettings.json when done
-
-The test loads each quote from the DB, runs the Excel rater, and compares `AnnualPremium + AnnualFeesTotal` against `FinalTotalPremium` — same comparison as the production audit service.
+The test loads each quote from the DB, runs the Excel rater, and compares `AnnualPremium + AnnualFeesTotal` against `FinalTotalPremium` — same comparison as production audit service. REVERT appsettings.json when done.
 
 ## Manual Testing Prompts
 When prompting user for manual QA: use AskUserQuestion tool, provide SPECIFIC test data (addresses, names, values), one action per prompt, give concrete response options, keep prompts flowing. Never use Playwright when plan says "manual test with prompts."
