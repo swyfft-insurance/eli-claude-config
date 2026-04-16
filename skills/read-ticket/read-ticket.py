@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch a YouTrack ticket with description, comments, custom fields, and images."""
+"""Fetch a YouTrack ticket with description, comments, custom fields, and all attachments."""
 
 import sys
 import os
@@ -108,31 +108,33 @@ def extract_custom_fields(raw_fields):
     return out
 
 
-def download_images(attachments, images_dir, token):
-    """Download image attachments, returning {filename: local_path} map."""
-    downloaded = {}
+def download_all_attachments(attachments, images_dir, attachments_dir, token):
+    """Download all attachments, returning (images, other_attachments) maps."""
+    images = {}
+    other = {}
     seen_names = set()
     for att in attachments:
         mime = att.get("mimeType", "")
-        if not mime.startswith("image/"):
-            continue
-        name = att.get("name", "unknown.png")
-        dest = images_dir / name
+        is_image = mime.startswith("image/")
+        dest_dir = images_dir if is_image else attachments_dir
+        target_map = images if is_image else other
+        name = att.get("name", "unknown")
+        dest = dest_dir / name
         # Deduplicate filenames
         if name in seen_names:
             stem = dest.stem
             suffix = dest.suffix
             i = 2
             while dest.exists():
-                dest = images_dir / f"{stem}_{i}{suffix}"
+                dest = dest_dir / f"{stem}_{i}{suffix}"
                 i += 1
         seen_names.add(name)
         try:
             download_file(att["url"], str(dest), token)
-            downloaded[name] = str(dest)
+            target_map[name] = str(dest)
         except Exception as e:
-            downloaded[name] = f"DOWNLOAD_FAILED: {e}"
-    return downloaded
+            target_map[name] = f"DOWNLOAD_FAILED: {e}"
+    return images, other
 
 
 def resolve_images(text, image_map):
@@ -169,6 +171,8 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     images_dir = output_dir / "images"
     images_dir.mkdir(exist_ok=True)
+    attachments_dir = output_dir / "attachments"
+    attachments_dir.mkdir(exist_ok=True)
 
     # --- Fetch issue ---
     issue_fields = ",".join([
@@ -211,11 +215,13 @@ def main():
         if aid and aid not in seen_ids:
             seen_ids.add(aid)
             unique_attachments.append(att)
-    downloaded = download_images(unique_attachments, images_dir, token)
+    downloaded_images, downloaded_attachments = download_all_attachments(
+        unique_attachments, images_dir, attachments_dir, token,
+    )
 
     # --- Build output ---
     description_raw = issue.get("description", "")
-    description_resolved = resolve_images(description_raw, downloaded)
+    description_resolved = resolve_images(description_raw, downloaded_images)
 
     output = {
         "id": issue.get("idReadable", issue_id),
@@ -229,8 +235,10 @@ def main():
         "links": [],
         "description": description_resolved,
         "comments": [],
-        "images": downloaded,
+        "images": downloaded_images,
         "imagesDir": str(images_dir),
+        "attachments": downloaded_attachments,
+        "attachmentsDir": str(attachments_dir),
     }
 
     # Links
@@ -251,7 +259,7 @@ def main():
         output["comments"].append({
             "author": extract_user(c.get("author")),
             "created": format_timestamp(c.get("created")),
-            "text": resolve_images(comment_text, downloaded),
+            "text": resolve_images(comment_text, downloaded_images),
         })
 
     # Write JSON to file
