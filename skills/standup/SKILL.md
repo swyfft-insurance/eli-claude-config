@@ -59,7 +59,15 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
 **Rules:**
 - Merges are NOT separate bullets. If a PR was opened on the last working day and merged, just mention it was merged in the same bullet.
 - `pr_feedback_addressed` = "addressed PR feedback on #XXXX" — don't over-explain.
-- `stage_change` where `to` is "Develop" = "picked up" or "started developing". Where `to` is "Review" = "moved to review".
+- `stage_change`: these `to` values represent real work:
+  - `to` = "Develop" → "picked up" or "started developing"
+  - `to` = "Review" → "finished coding"
+  - `to` = "Blocked" → "blocked" (read ticket comments to explain why)
+  - `to` = "Done" → resolved (read ticket comments to explain why — won't fix, duplicate, not applicable, etc.)
+  - All other values (Backlog, Ready for Dev, Ready for Test, Test, Tested, Failed Test) → skip. Ticket housekeeping, not coding.
+  - Same-day collapse: if a ticket has BOTH a Develop and Review transition on the same day, that means the whole ticket was completed in one day. Emit ONE bullet — don't narrate both transitions as separate bullets.
+  - Example: SW-49790 moves to Develop and Review on Wednesday → "SW-49790 — picked up and finished the Hadron LA EachElementOption test failure, opened PR 19974"
+  - Counter-example (wrong): two separate bullets, one for "picked up" and one for "finished coding"
 - `active_ticket` = what you're working on today.
 - `pr_in_review` = mention it's still in review, note approvals from `reviews`.
 - If a ticket appears in both a PR item and a stage_change, combine into one bullet.
@@ -78,7 +86,7 @@ Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). Create the 
 ### Spoken format
 
 - Plain text, no links or formatting
-- Each bullet: ticket number + one short phrase about what happened and status
+- No ticket numbers — nobody knows what SW-49541 means out loud. Describe the actual work in plain English.
 - Don't explain what the ticket IS, just what you DID
 
 ## Step 4: Post (Slack only)

@@ -6,7 +6,7 @@ Refactoring: write safety-net test → run → verify it PASSES → HARD STOP fo
 
 ## Investigation & TDD
 - Don't claim root cause is "confirmed" or "proven" until the TDD test reproduces it. Until then, it's a hypothesis — label it as such.
-- When the bug crashes inside a real service (not at the boundary), use an integration test to reproduce — unit tests with mocked dependencies can't hit the real crash path.
+- When the bug manifests inside a real service (not at the boundary), use an integration test to reproduce — unit tests with mocked dependencies can't hit the real code path.
 - Before planning a test, research the test infrastructure: which base class, what setup patterns exist, what test data/addresses are available. Don't guess.
 - Use real data from the failing environment (DB queries, logs) to set up the test scenario. Don't invent synthetic data when you have the actual values.
 - Prefer `[Theory]` with `[MemberData]` over `[Fact]` when testing multiple scenarios of the same behavior.

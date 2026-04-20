@@ -81,4 +81,5 @@ A PreToolUse hook injects the right rules when it detects matching commands, but
 | Captured Asserts | `captured-asserts.md` | running or regenerating captured assert tests |
 | Tooling Reference | `tooling.md` | using sqlcmd, rater dumps, GraphQL for PR threads, or manual QA |
 | Beta/Prod-Copy Database | `beta-prod-db.md` | connecting to any Azure SQL beta, dev, or prod-copy database |
+| Investigation | `investigation.md` | investigating any bug or test failure |
 | Meta (architecture) | `meta.md` | modifying any rules file, CLAUDE.md, or memory |
