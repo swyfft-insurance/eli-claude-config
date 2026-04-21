@@ -11,6 +11,12 @@ Every plan file must begin with this block after the title and type:
 
 > **Execute steps in order. Never skip ahead, reorder, or deviate. If you encounter anything that prevents adherence to this plan, HARD STOP — explain the blocker and wait for instructions.**
 
+## IMPORTANT: Step 0 — Create a Branch
+
+**Every plan, every time, no exceptions.** The first step in every plan, before any step that writes code:
+1. Check if the current branch is appropriate for this ticket. `development`, `beta`, and `master` are never appropriate. A branch for a different ticket is never appropriate.
+2. If not, create a new branch with `/create-branch` and push it.
+
 ## Plan Types
 
 Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.

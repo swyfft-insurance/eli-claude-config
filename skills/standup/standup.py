@@ -395,6 +395,13 @@ def build_youtrack_items(issues, lwd, today):
             if not added_names:
                 continue
 
+            to_value = added_names[0]
+
+            # Only these stage transitions represent real work.
+            # All others (Ready for Test, Backlog, etc.) are housekeeping.
+            if to_value not in ("Develop", "Review", "Blocked", "Done"):
+                continue
+
             items.append({
                 "date": act_date.isoformat(),
                 "type": "stage_change",
@@ -402,7 +409,7 @@ def build_youtrack_items(issues, lwd, today):
                 "ticketSummary": summary,
                 "ticketUrl": yt_url(iid),
                 "from": removed_names[0] if removed_names else None,
-                "to": added_names[0],
+                "to": to_value,
             })
 
         # Active tickets → today
