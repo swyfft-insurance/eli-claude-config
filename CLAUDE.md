@@ -84,4 +84,5 @@ A PreToolUse hook injects the right rules when it detects matching commands, but
 | Tooling Reference | `tooling.md` | using sqlcmd, rater dumps, GraphQL for PR threads, or manual QA |
 | Beta/Prod-Copy Database | `beta-prod-db.md` | connecting to any Azure SQL beta, dev, or prod-copy database |
 | Investigation | `investigation.md` | investigating any bug or test failure |
+| Merge Conflicts | `merge-conflicts.md` | resolving any merge conflict (BLOCKED — one file at a time only) |
 | Meta (architecture) | `meta.md` | modifying any rules file, CLAUDE.md, or memory |

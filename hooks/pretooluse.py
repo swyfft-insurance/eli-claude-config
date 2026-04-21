@@ -176,6 +176,25 @@ def main():
                 )
                 sys.exit(2)
 
+        # BLOCK: Bulk merge conflict resolution — must resolve one file at a time.
+        # The /resolve-conflicts skill appends "# via-resolve-conflicts-skill" to bypass.
+        if re.search(r"git\s+checkout\s+--(ours|theirs)", cmd) and "# via-resolve-conflicts-skill" not in cmd:
+            # Count file paths after --ours/--theirs (split on whitespace, count quoted or unquoted paths)
+            # Simple heuristic: if the command has more than one file path, block it.
+            parts = re.split(r"git\s+checkout\s+--(?:ours|theirs)\s+", cmd, maxsplit=1)
+            if len(parts) > 1:
+                file_args = parts[1].strip()
+                # Count files: split by unquoted whitespace or by closing quote + whitespace
+                file_count = len(re.findall(r'"[^"]+"|\'[^\']+\'|\S+', file_args))
+                if file_count > 1:
+                    print(
+                        "BLOCKED: Do not bulk-resolve merge conflicts. "
+                        "Resolve one file at a time — read the conflict markers, understand both sides, "
+                        "then resolve. See ~/.claude/rules/merge-conflicts.md.",
+                        file=sys.stderr,
+                    )
+                    sys.exit(2)
+
         # BLOCK: Raw PR comment reply/resolve calls — must use /pr-feedback skill.
         if re.search(r"gh\s+api.*pulls.*/comments.*replies|resolveReviewThread", cmd) \
            and not re.search(r"pr-feedback", cmd):
