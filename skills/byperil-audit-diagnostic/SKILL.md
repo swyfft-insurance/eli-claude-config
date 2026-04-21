@@ -35,16 +35,6 @@ Read `Swyfft.Common/appsettings.json` and check the `SwyfftCore` connection stri
 If not OK, tell the user to point appsettings at prod-copy or beta per
 `~/.claude/rules/beta-prod-db.md` Scenario 2, and stop.
 
-### 2. `[Trait(TestGroup, ByPerilTests)]` is on the diagnostic class
-
-Read `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilQuoteAuditDiagnosticTests.cs`
-and verify the trait attribute is on the class declaration.
-
-If missing: the `dotnet test` pre-tool hook requires `TestGroup=ByPerilTests` to keep
-runs scoped. Check whether PR #19915 has merged (it adds the trait permanently). If
-merged, pull latest. If not, add the trait locally as a temporary measure and note
-it so it gets reverted with `appsettings.json` when investigation ends.
-
 ## Run
 
 After preflight passes:
@@ -60,8 +50,8 @@ The script:
 - Normalizes the ID list (splits on comma/semicolon/whitespace, dedupes, validates GUID format)
 - Sets `EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS` and `GITHUB_ACTIONS=true` (bypasses the
   `GlobalPersistentCounter` write to `dbo.TestGlobalIds` so read-only DBs work)
-- Tees output to `$env:TEMP\swyfft-tests\<OutputName>.txt`
-- Writes a TRX report to `build/Debug/net10.0/TestResults/<OutputName>.trx`
+- Calls `Run-DotnetTest.ps1` with `-FilterClass '*ByPerilQuoteAuditDiagnosticTests'`
+- Output uses deterministic naming: `{branch}_{project}_{filters}_{suffix}_{timestamp}.txt`
 
 ## After the Run
 

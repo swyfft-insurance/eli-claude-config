@@ -140,18 +140,41 @@ def main():
             )
             sys.exit(2)
 
-        # BLOCK: Excel integration tests must use --filter-trait "TestGroup=ByPerilTests".
-        # Commercial tests take forever and Eli never runs them locally.
-        if re.search(r"dotnet\s+test", cmd) and re.search(r"Excel\.IntegrationTests", cmd) and not re.search(r'filter-trait\s+["\']?TestGroup=ByPerilTests', cmd):
+        # BLOCK: All test execution must go through Run-DotnetTest.ps1.
+        # Scripts call it internally via pwsh -File, so "dotnet test" never appears
+        # in their bash command. Raw "dotnet test" commands are always blocked.
+        if re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe", cmd) \
+           and not re.search(r"# via-run-dotnet-test", cmd):
             print(
-                "BLOCKED: Excel integration tests must include --filter-trait \"TestGroup=ByPerilTests\". "
+                "BLOCKED: Do not run dotnet test directly. "
+                "Use Run-DotnetTest.ps1 which enforces deterministic output file naming, "
+                "Tee-Object, --output Detailed, and --report-trx.\n\n"
+                "Example:\n"
+                "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-DotnetTest.ps1\" "
+                "-Project \"Swyfft.Services.Excel.IntegrationTests\" "
+                "-FilterTrait \"TestGroup=ByPerilTests\"\n\n"
+                "For prebind captured asserts: /prebind-captured-asserts skill\n"
+                "For audit diagnostics: /byperil-audit-diagnostic skill",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        # BELT-AND-SUSPENDERS: Excel integration tests must scope to ByPeril tests.
+        # Unfiltered runs include commercial tests (45+ min). Allows --filter-trait ByPerilTests
+        # OR the specific ByPerilQuoteAuditDiagnosticTests class (which lost its ByPerilTests trait in PR #20002).
+        if re.search(r"dotnet\s+test", cmd) and re.search(r"Excel\.IntegrationTests", cmd) \
+           and not re.search(r'filter-trait\s+["\']?TestGroup=ByPerilTests', cmd) \
+           and not re.search(r"ByPerilQuoteAuditDiagnosticTests", cmd):
+            print(
+                "BLOCKED: Excel integration tests must include --filter-trait \"TestGroup=ByPerilTests\" "
+                "or target ByPerilQuoteAuditDiagnosticTests specifically. "
                 "Running without this filter includes commercial tests which take an eternity. "
                 "If you truly need all tests, ask the user to confirm.",
                 file=sys.stderr,
             )
             sys.exit(2)
 
-        # BLOCK: dotnet test (or native test runner exe) must always capture output with Tee-Object, --output Detailed, and --report-trx.
+        # BELT-AND-SUSPENDERS: dotnet test must capture output with Tee-Object, --output Detailed, and --report-trx.
         if re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe", cmd):
             missing = []
             if not re.search(r"Tee-Object", cmd):

@@ -12,13 +12,44 @@
 ## PreBind Captured Assert Tests
 See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance.
 
-## Test Output
-- Capture with pwsh Tee-Object (NOT bash tee): `pwsh -NoProfile -Command "dotnet test ... -- --output Detailed --report-trx --report-trx-filename {project}-{filter}.trx 2>&1 | Tee-Object -FilePath 'C:\Users\eli.koslofsky\AppData\Local\Temp\swyfft-tests\{project}-{filter}.txt'"`
-- ALWAYS include `-- --output Detailed` so passing test logs are captured (not just failures).
-- ALWAYS include `-- --report-trx --report-trx-filename {project}-{filter}.trx` — the TRX file captures every test name, outcome, and ITestOutputHelper output (element values, PASS/FAIL per index) even for passing tests. The TRX file is written to `{project}/bin/Debug/net10.0/TestResults/`.
-- Create folder first if needed. Use WINDOWS paths. Name must include project + filter.
+## Test Output — Run-DotnetTest.ps1
+
+**All test execution must go through `~/.claude/scripts/Run-DotnetTest.ps1`.** The pretooluse hook blocks raw `dotnet test` commands.
+
+The script enforces: Tee-Object, `--output Detailed`, `--report-trx`, and deterministic filenames.
+
+### Filename format
+```
+{branch}_{project}_{filters}_{timestamp}.txt
+```
+
+Example:
+```
+feature-ek-20260421_SW-49862_consolidate_Swyfft.Services.Excel.IntegrationTests_filter-trait-TestGroup=ByPerilTests_20260421-1430.txt
+```
+
+On development:
+```
+development_Swyfft.Services.UnitTests_filter-class-QuoteServiceTests_20260421-1500.txt
+```
+
+### How to call
+
+```bash
+pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
+  -Project "Swyfft.Services.Excel.IntegrationTests" \
+  -FilterTrait "TestGroup=ByPerilTests"
+```
+
+Parameters: `-Project` (required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`, `-ExtraArgs`.
+
+### Existing skills that use the script
+- `/prebind-captured-asserts` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
+- `/byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
+
+### Other rules
 - Never `| tail -N` that discards error details. If tests fail, you already have the output — don't re-run.
-- Single test suite: normal `dotnet test` (let it build). Multiple suites: build first, then `--no-build` in parallel.
+- Single test suite: let it build. Multiple suites: build first, then `-NoBuild` in parallel.
 - Never paper over test failures with ElementTestValues overrides or `SkipEachElementOptionTest = true`.
 
 ## Seeding Before Tests
