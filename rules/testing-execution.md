@@ -41,11 +41,15 @@ pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
   -FilterTrait "TestGroup=ByPerilTests"
 ```
 
-Parameters: `-Project` (required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`, `-ExtraArgs`.
+Parameters: `-Project` (required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`.
 
 ### Existing skills that use the script
 - `/prebind-captured-asserts` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
 - `/byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
+
+### Important: `-Project` is for projects, not solutions
+- **Never pass a `.slnx` file to `-Project`.** The script uses `dotnet test --project`, which expects a project path.
+- To run the full CI suite, run each test project individually through the script.
 
 ### Other rules
 - Never `| tail -N` that discards error details. If tests fail, you already have the output — don't re-run.

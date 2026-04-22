@@ -33,9 +33,6 @@
 .PARAMETER Suffix
     Optional suffix appended before the timestamp (e.g., "3-quotes").
 
-.PARAMETER ExtraArgs
-    Additional arguments passed after the -- separator.
-
 .EXAMPLE
     Run-DotnetTest.ps1 -Project "Swyfft.Services.Excel.IntegrationTests" -FilterTrait "TestGroup=ByPerilTests"
 
@@ -57,9 +54,7 @@ param(
 
     [switch]$NoBuild,
 
-    [string]$Suffix,
-
-    [string[]]$ExtraArgs
+    [string]$Suffix
 )
 
 $ErrorActionPreference = 'Stop'
@@ -111,8 +106,6 @@ if ($FilterNamespace) { $testArgs += '--filter-namespace'; $testArgs += $FilterN
 $testArgs += '--output';              $testArgs += 'Detailed'
 $testArgs += '--report-trx'
 $testArgs += '--report-trx-filename'; $testArgs += $trxName
-
-if ($ExtraArgs) { $testArgs += $ExtraArgs }
 
 # --- Run ---
 Write-Host "Branch:  $branch" -ForegroundColor Cyan
