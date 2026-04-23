@@ -68,7 +68,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
   - Same-day collapse: if a ticket has BOTH a Develop and Review transition on the same day, that means the whole ticket was completed in one day. Emit ONE bullet — don't narrate both transitions as separate bullets.
   - Example: SW-49790 moves to Develop and Review on Wednesday → "SW-49790 — picked up and finished the Hadron LA EachElementOption test failure, opened PR 19974"
   - Counter-example (wrong): two separate bullets, one for "picked up" and one for "finished coding"
-- `active_ticket` = what you're working on today.
+- `active_ticket` = ongoing work on a ticket in Develop/Review. Appears for today AND for the last working day if the ticket was already in that stage before the window (i.e., no stage transition into it during the window). Use "continued working on" for last working day, "continuing" for today.
 - `pr_in_review` = mention it's still in review, note approvals from `reviews`.
 - If a ticket appears in both a PR item and a stage_change, combine into one bullet.
 - If no work items exist for a day, say so briefly.

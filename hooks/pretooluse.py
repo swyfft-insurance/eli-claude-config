@@ -233,6 +233,19 @@ def main():
                     )
                     sys.exit(2)
 
+        # BLOCK: Raw git diff calls — must use /diff skill.
+        # The skill appends "# via-diff-skill" to bypass this block.
+        if re.search(r"git\s+diff", cmd) and "# via-diff-skill" not in cmd:
+            print(
+                "BLOCKED: Do not run git diff directly. "
+                "Use the /diff skill with an explicit argument:\n\n"
+                "  /diff local   — uncommitted changes (working tree vs last commit)\n"
+                "  /diff branch  — committed changes vs development\n\n"
+                "You MUST choose one. No default.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # BLOCK: Raw PR comment reply/resolve calls — must use /pr-feedback skill.
         if re.search(r"gh\s+api.*pulls.*/comments.*replies|resolveReviewThread", cmd) \
            and not re.search(r"pr-feedback", cmd):

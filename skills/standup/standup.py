@@ -412,7 +412,9 @@ def build_youtrack_items(issues, lwd, today):
                 "to": to_value,
             })
 
-        # Active tickets → today
+        # Active tickets → today, and also last working day if the ticket
+        # was already in this stage before the window (no stage transition
+        # into Develop/Review during the window means it was active on lwd too)
         if stage in ("Develop", "Review"):
             items.append({
                 "date": today.isoformat(),
@@ -422,6 +424,30 @@ def build_youtrack_items(issues, lwd, today):
                 "ticketUrl": yt_url(iid),
                 "stage": stage,
             })
+
+            # Check if ticket entered this stage during the window
+            entered_during_window = False
+            for act in activities:
+                author = act.get("author", {})
+                login = author.get("login", "") if isinstance(author, dict) else ""
+                ts = ms_to_et(act.get("timestamp"))
+                act_date = to_date(ts)
+                field_name = (act.get("field") or {}).get("name", "")
+                added_names = activity_value_names(act.get("added"))
+                if (field_name == "Stage" and act_date and act_date >= lwd
+                        and added_names and added_names[0] == stage):
+                    entered_during_window = True
+                    break
+
+            if not entered_during_window:
+                items.append({
+                    "date": lwd.isoformat(),
+                    "type": "active_ticket",
+                    "ticket": iid,
+                    "ticketSummary": summary,
+                    "ticketUrl": yt_url(iid),
+                    "stage": stage,
+                })
 
     return items
 
