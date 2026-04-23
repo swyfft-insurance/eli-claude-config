@@ -13,7 +13,10 @@
     must go through this script.
 
 .PARAMETER Project
-    The dotnet test project path or name (passed to --project).
+    A .csproj project path (passed to dotnet test --project). Mutually exclusive with -Solution.
+
+.PARAMETER Solution
+    A .slnx solution file (passed to dotnet test --solution). Mutually exclusive with -Project.
 
 .PARAMETER FilterTrait
     Trait filter (e.g., "TestGroup=ByPerilTests"). Passed as --filter-trait.
@@ -37,6 +40,9 @@
     Run-DotnetTest.ps1 -Project "Swyfft.Services.Excel.IntegrationTests" -FilterTrait "TestGroup=ByPerilTests"
 
 .EXAMPLE
+    Run-DotnetTest.ps1 -Solution "SwyfftCI.slnx" -NoBuild
+
+.EXAMPLE
     Run-DotnetTest.ps1 -Project "Swyfft.Services.UnitTests" -FilterTrait "TestGroup=PreBindResidentialCapturedAssertTests" -NoBuild
 
 .EXAMPLE
@@ -44,8 +50,8 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)]
     [string]$Project,
+    [string]$Solution,
 
     [string]$FilterTrait,
     [string]$FilterClass,
@@ -58,6 +64,20 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# --- Validate params ---
+if ($Project -and $Solution) {
+    throw "-Project and -Solution are mutually exclusive. Pass one or the other."
+}
+if (-not $Project -and -not $Solution) {
+    throw "You must pass either -Project or -Solution."
+}
+if ($Project -and $Project -match '\.slnx?$') {
+    throw "-Project received a solution file ('$Project'). Use -Solution instead."
+}
+if ($Solution -and $Solution -notmatch '\.slnx?$') {
+    throw "-Solution received a non-solution file ('$Solution'). Use -Project instead."
+}
 
 # --- Output directory ---
 $outputDir = Join-Path $env:TEMP 'swyfft-tests'
@@ -72,8 +92,11 @@ $branch = git branch --show-current 2>$null
 if (-not $branch) { $branch = 'detached' }
 $branch = $branch -replace '/', '-'
 
-# Project name (strip path and .csproj extension, keep dots)
-$projectName = ($Project -replace '[\\/]', '/' -split '/')[-1] -replace '\.csproj$', ''
+# Resolve target
+$target = if ($Solution) { $Solution } else { $Project }
+
+# Project/solution name (strip path and extension, keep dots)
+$projectName = ($target -replace '[\\/]', '/' -split '/')[-1] -replace '\.(csproj|slnx?)$', ''
 
 # Filters (strip wildcards — invalid in filenames)
 $filterParts = @()
@@ -94,7 +117,11 @@ $outputFile = Join-Path $outputDir "$baseName.txt"
 $trxName = "$baseName.trx"
 
 # --- Build dotnet test args ---
-$testArgs = @('test', '--project', $Project)
+if ($Solution) {
+    $testArgs = @('test', '--solution', $Solution)
+} else {
+    $testArgs = @('test', '--project', $Project)
+}
 if ($NoBuild) { $testArgs += '--no-build' }
 $testArgs += '--'
 
