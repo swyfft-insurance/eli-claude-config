@@ -5,9 +5,9 @@ $scriptPath = Join-Path $HOME ".claude" "scripts" "Run-DotnetTest.ps1"
 $env:UPDATE_TEST_EXPECTED_RESULTS = "true"
 Write-Host "UPDATE_TEST_EXPECTED_RESULTS=true" -ForegroundColor Yellow
 
-Write-Host "Building Swyfft.slnx..." -ForegroundColor Cyan
-dotnet build Swyfft.slnx
-if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
+$buildScript = Join-Path $HOME ".claude" "scripts" "Build-Solution.ps1"
+& $buildScript
+if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 
 $projects = @(
     "Swyfft.Services.UnitTests",

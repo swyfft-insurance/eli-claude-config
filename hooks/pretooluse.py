@@ -140,6 +140,21 @@ def main():
             )
             sys.exit(2)
 
+        # BLOCK: All builds must go through Build-Solution.ps1.
+        # The script captures ALL error types (CS, IDE, SWYF, etc.) — raw dotnet build + grep misses non-CS errors.
+        if re.search(r"dotnet\s+build", cmd) \
+           and not re.search(r"Build-Solution\.ps1|# via-build-script", cmd):
+            print(
+                "BLOCKED: Do not run dotnet build directly. "
+                "Use Build-Solution.ps1 which captures ALL error types (CS, IDE, SWYF, etc.).\n\n"
+                "Example:\n"
+                "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Build-Solution.ps1\"\n\n"
+                "For a specific solution:\n"
+                "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Build-Solution.ps1\" -Solution \"SwyfftCI.slnx\"",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # BLOCK: All test execution must go through Run-DotnetTest.ps1.
         # Scripts call it internally via pwsh -File, so "dotnet test" never appears
         # in their bash command. Raw "dotnet test" commands are always blocked.
