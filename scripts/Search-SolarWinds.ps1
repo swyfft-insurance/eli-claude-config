@@ -64,6 +64,10 @@ $headers = @{ 'Authorization' = "Bearer $token" }
 
 $start = [DateTime]::Parse($StartDate)
 $end = [DateTime]::Parse($EndDate)
+if ($start -eq $end) {
+    Write-Error "StartDate and EndDate resolve to the same timestamp ($start). Use -EndDate with the next day or a T23:59:59Z suffix."
+    exit 1
+}
 $totalLogs = 0
 
 # Clear output file

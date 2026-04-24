@@ -19,4 +19,4 @@
 
 - Never connect directly to remote databases via sqlcmd.
 - Draft and validate on localhost → present to user → user runs it on dev/beta/prod-copy.
-- See `beta-prod-db.md` for which environment to target and connection details.
+- **Always specify which environment to run against** when presenting a query. Don't leave it to the user to figure out — state "Run this on prod-copy" or "Run this on beta" explicitly. See `beta-prod-db.md` for when to use which environment.
