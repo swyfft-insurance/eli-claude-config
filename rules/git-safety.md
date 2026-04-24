@@ -1,5 +1,7 @@
 # Git Safety
 
+> Gate 2 applies here — see `core-behavior.md`.
+
 - After creating a branch: `git push -u origin <my-branch>` IMMEDIATELY. Never leave tracking on someone else's branch or `origin/development`.
   - **What happened:** Tracking left on Ken's branch → unreviewed code merged to development. Catastrophic.
 - Before ANY push: `git branch -vv`. Tracking must be `origin/<my-branch>`. Anything else = DO NOT PUSH.

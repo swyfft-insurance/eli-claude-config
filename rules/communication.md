@@ -1,5 +1,7 @@
 # Communication Style
 
+> Gates 1, 3 apply here — see `core-behavior.md`.
+
 | Rule | Bad | Good | Why |
 |---|---|---|---|
 | Show means show | "I read the file, here's a summary..." | *prints full content in code block* | Tool output is invisible to user |

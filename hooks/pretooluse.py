@@ -6,7 +6,8 @@ Exit 0 = allow, exit 2 + stderr = block.
 
 Rules injection: when a tool call matches a known pattern, the corresponding
 rules file from ~/.claude/rules/ is read and injected via systemMessage.
-Rules are injected once per session per file (tracked via temp file).
+Rules are injected once per session per file (tracked via temp file),
+except files in ALWAYS_INJECT which bypass dedup and inject every time.
 """
 
 import json
@@ -16,6 +17,9 @@ import sys
 import tempfile
 
 RULES_DIR = os.path.expanduser("~/.claude/rules")
+
+# Files that bypass session dedup — injected every time they match.
+ALWAYS_INJECT = {"core-behavior.md"}
 
 # Session dedup: track which rules files have been injected.
 # Keyed by Claude Code's session ID if available, otherwise by date.
@@ -44,13 +48,14 @@ def mark_injected(filename):
 
 def inject_rules(filename):
     """Read a rules file and return its content, or None if already injected or missing."""
-    if filename in get_injected():
+    if filename not in ALWAYS_INJECT and filename in get_injected():
         return None
     path = os.path.join(RULES_DIR, filename)
     try:
         with open(path) as f:
             content = f.read()
-        mark_injected(filename)
+        if filename not in ALWAYS_INJECT:
+            mark_injected(filename)
         return content
     except FileNotFoundError:
         return None
@@ -61,10 +66,11 @@ BASH_RULES = [
     (r"git\s+(push|commit|checkout|branch|merge|rebase|reset|cherry-pick)", "git-safety.md"),
     (r"gh\s+pr\s+(create|edit)", "pr-creation.md"),
     (r"gh\s+pr\s+review", "pr-theirs-review.md"),
+    (r"gh\s+", "pr-mine-address-feedback.md"),
     (r"dotnet\s+test", "testing-execution.md"),
     # Seed is now blocked below — use /seed skill instead.
     (r"sqlcmd", "db-querying.md"),
-    (r"DumpRater|ReadExcel|ReadNamedRanges", "tooling.md"),
+    (r"git\s+(merge|checkout\s+--(ours|theirs))", "merge-conflicts.md"),
     (r"yde2xj08jm", "beta-prod-db.md"),
     (r"swyfftsqleastus2", "beta-prod-db.md"),
 ]
@@ -74,7 +80,9 @@ TOOL_RULES = [
     (r"^mcp__slack__slack_send_message$", "slack.md"),
     (r"^mcp__YouTrackNative__(create_issue|update_issue|add_issue_comment)$", "youtrack.md"),
     (r"^EnterPlanMode$", "plan-mode.md"),
+    (r"^EnterPlanMode$", "core-behavior.md"),
     (r"^ExitPlanMode$", "coding-standards.md"),
+    (r"^ExitPlanMode$", "core-behavior.md"),
     (r"^AskUserQuestion$", "communication.md"),
 ]
 
@@ -84,6 +92,7 @@ FILE_RULES = [
     (r"\.claude[/\\]rules[/\\]", "meta.md"),
     (r"\.claude[/\\]projects[/\\].*[/\\]memory[/\\]", "meta.md"),
     (r"\.(cs|csproj)$", "coding-standards.md"),
+    (r"\.(cs|csproj|ts|tsx|ps1|sql)$", "core-behavior.md"),
 ]
 
 

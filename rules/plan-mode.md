@@ -1,5 +1,7 @@
 # Plan Mode
 
+> Gate 1.5 applies here — see `core-behavior.md`.
+
 - Don't call ExitPlanMode while actively discussing — wait for conversation to conclude.
 - **ALWAYS FOLLOW THE PLAN.** Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends on a previous step, that's a hard stop — don't proceed until the dependency is satisfied. If you encounter anything that prevents you from adhering to the plan, **HARD STOP** — explain the blocker and wait for instructions. Deviation and disobedience are not allowed.
 - Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.

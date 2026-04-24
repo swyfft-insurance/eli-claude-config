@@ -1,5 +1,7 @@
 # PR Creation
 
+> Gate 2 applies here — see `core-behavior.md`.
+
 - **Read the ticket first**: Before creating a PR, invoke `/read-ticket` to read the YouTrack ticket(s) in the branch name.
 - PR description from TWO sources: the ticket (already read above) + actual diff (`git diff development...HEAD`). Never from memory or plan files.
 - Treat as ONE combined diff, not commit-by-commit. Iterative commits are not logical units.

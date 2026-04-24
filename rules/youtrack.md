@@ -1,5 +1,7 @@
 # YouTrack
 
+> Gate 2 applies here — see `core-behavior.md`.
+
 - Use `create_issue`, never `create_draft_issue`. Drafts cause duplicates.
 - Read ALL custom fields (Carrier, USState, ProductLine, RatingType) — they scope the work.
 - Read tickets FIRST before exploring code. Bug tickets contain error messages with the root cause.

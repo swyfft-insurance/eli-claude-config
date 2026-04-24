@@ -4,7 +4,7 @@ This file describes how Eli's personal Claude rules are structured. Read this be
 
 ## Architecture
 
-- **`~/.claude/CLAUDE.md`** is a POINTER FILE (~80-90 lines). It contains the Three Gates inline and a reference table pointing to rules files. Do NOT add detailed rules directly to CLAUDE.md.
+- **`~/.claude/CLAUDE.md`** is a POINTER FILE. It contains the captain/crew authority preamble and a reference table pointing to rules files. Do NOT add detailed rules directly to CLAUDE.md.
 - **`~/.claude/rules/*.md`** contain the actual detailed rules, one topic per file.
 - **`~/.claude/hooks/pretooluse.py`** injects the relevant rules file at the moment a matching command is detected. Rules are read from disk at runtime — never hardcoded in the hook.
 
@@ -23,7 +23,7 @@ Personal behavioral rules live at the user level. Project coding standards live 
 
 1. **Behavioral correction for an existing category** → Edit the matching `~/.claude/rules/*.md` file.
 2. **New category of rules** → Create a new `~/.claude/rules/<topic>.md` file, add a pointer row to the table in CLAUDE.md, and add trigger patterns to `pretooluse.py` if the rule maps to detectable tool calls.
-3. **Change to the Gates themselves** → Edit CLAUDE.md directly (these stay inline).
+3. **Change to the Gates** → Edit `~/.claude/rules/core-behavior.md`.
 
 ## What NOT to do
 
