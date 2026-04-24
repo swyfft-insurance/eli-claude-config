@@ -63,7 +63,7 @@ BASH_RULES = [
     (r"gh\s+pr\s+review", "pr-theirs-review.md"),
     (r"dotnet\s+test", "testing-execution.md"),
     # Seed is now blocked below — use /seed skill instead.
-    (r"sqlcmd", "tooling.md"),
+    (r"sqlcmd", "db-querying.md"),
     (r"DumpRater|ReadExcel|ReadNamedRanges", "tooling.md"),
     (r"yde2xj08jm", "beta-prod-db.md"),
     (r"swyfftsqleastus2", "beta-prod-db.md"),

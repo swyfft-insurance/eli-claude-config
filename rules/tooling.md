@@ -1,11 +1,7 @@
 # Tooling Reference
 
-## sqlcmd
-- Windows executable: use `sqlcmd` if on PATH, otherwise locate via `where.exe SQLCMD.EXE`. Example: `pwsh -NoProfile -Command "& sqlcmd -S localhost -d SwyfftCore -E -Q \"...\" -s '|' -W"`
-- ALWAYS query `INFORMATION_SCHEMA.COLUMNS` on LOCAL DB before writing any query. Never guess column names.
-- Validate every query on localhost first — user runs queries on dev/beta/prod-copy on your behalf (see `beta-prod-db.md` for the prod-copy server).
-- ALWAYS use JOINs. Never ask user to run 2 separate queries. Never hardcode IDs across environments.
-- `ByPerilRaterTypeId` is numeric (e.g., 10203001), not a string.
+## Database Querying
+See `db-querying.md` for all SQL/sqlcmd rules.
 
 ## Rater File Comparisons
 - `git show` corrupts binary Excel files. Use: stash new → dump old → pop stash → dump new → diff.

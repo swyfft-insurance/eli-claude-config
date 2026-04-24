@@ -81,7 +81,8 @@ A PreToolUse hook injects the right rules when it detects matching commands, but
 | Test Writing | `testing.md` | writing tests, TDD, investigation |
 | Seeding | `seeding.md` | seeding (BLOCKED — use `/seed` skill instead) |
 | Captured Asserts | `captured-asserts.md` | running or regenerating captured assert tests |
-| Tooling Reference | `tooling.md` | using sqlcmd, rater dumps, GraphQL for PR threads, or manual QA |
+| Tooling Reference | `tooling.md` | rater dumps, GraphQL for PR threads, or manual QA |
+| DB Querying | `db-querying.md` | writing or running any SQL query |
 | Beta/Prod-Copy Database | `beta-prod-db.md` | connecting to any Azure SQL beta, dev, or prod-copy database |
 | Investigation | `investigation.md` | investigating any bug or test failure |
 | Merge Conflicts | `merge-conflicts.md` | resolving any merge conflict (BLOCKED — one file at a time only) |

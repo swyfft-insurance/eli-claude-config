@@ -6,12 +6,10 @@ Prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy
 
 ## Scenario 1: Ad-hoc Queries Against Remote Databases
 
-1. ALWAYS draft and validate the query on localhost first
+1. Follow the query construction rules in `db-querying.md` (validate on localhost, use JOINs, no hardcoded IDs)
 2. Present the validated query to the user
 3. The user runs it against dev/beta/prod-copy on your behalf
 - Never connect directly to remote databases via sqlcmd
-- ALWAYS use JOINs. Never ask user to run 2 separate queries. Never hardcode IDs across environments.
-- **Multi-SELECT scripts: WAIT.** Multi-SELECT scripts are fine when a JOIN genuinely won't work (disjoint result shapes, different row counts, etc.) — but the user copy-pastes one result set at a time. After the first result set arrives, **STOP. Do not reason, do not search code, do not call tools.** Acknowledge receipt, then explicitly wait for the remaining result sets. Default to a JOIN whenever plausible; reach for multi-SELECT only when joining would contort the query.
 
 ### Prod-Copy Database
 
