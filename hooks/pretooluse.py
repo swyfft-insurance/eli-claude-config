@@ -214,6 +214,24 @@ def main():
                 )
                 sys.exit(2)
 
+        # BLOCK: git commit --amend — always create new commits.
+        if re.search(r"git\s+commit\s+.*--amend|git\s+commit\s+--amend", cmd):
+            print(
+                "BLOCKED: Do not amend commits. Always create new commits. "
+                "Amending rewrites history and is especially dangerous after pushing.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        # BLOCK: git push --force / --force-with-lease — destructive to remote history.
+        if re.search(r"git\s+push\s+.*--force|git\s+push\s+.*-f\b", cmd):
+            print(
+                "BLOCKED: Do not force-push. This rewrites remote history. "
+                "If you need to fix a commit, create a new commit instead.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # BLOCK: Bulk merge conflict resolution — must resolve one file at a time.
         # The /resolve-conflicts skill appends "# via-resolve-conflicts-skill" to bypass.
         if re.search(r"git\s+checkout\s+--(ours|theirs)", cmd) and "# via-resolve-conflicts-skill" not in cmd:

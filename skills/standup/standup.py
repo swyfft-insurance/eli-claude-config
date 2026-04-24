@@ -327,6 +327,10 @@ def build_pr_items(prs, lwd, today):
 
             feedback_dates_seen = set()
             for commit in commits:
+                # Skip merge commits — they're branch maintenance, not feedback
+                msg = commit.get("messageHeadline", "")
+                if msg.startswith("Merge "):
+                    continue
                 commit_et = iso_to_et(commit.get("committedDate"))
                 commit_date = to_date(commit_et)
                 if not commit_date or commit_date < lwd:
