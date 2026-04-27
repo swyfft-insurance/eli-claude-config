@@ -149,6 +149,24 @@ def main():
             )
             sys.exit(2)
 
+        # BLOCK: UI acceptance tests must go through the /run-ui-acceptance-tests-local skill.
+        # Skill: ~/.claude/skills/run-ui-acceptance-tests-local/SKILL.md
+        if (
+            (re.search(r"dotnet\s+test", cmd) and re.search(r"Swyfft\.Web\.Ui\.AcceptanceTests", cmd))
+            or (re.search(r"Run-DotnetTest\.ps1", cmd) and re.search(r"Swyfft\.Web\.Ui\.AcceptanceTests", cmd))
+            or re.search(r"(pwsh|powershell)[^\n]*Scripts[/\\]TestRunners[/\\](WebUiAcceptanceTests-|CriticalTests-)", cmd)
+            or re.search(r"(&|\.[\\/])[^\n]*Scripts[/\\]TestRunners[/\\](WebUiAcceptanceTests-|CriticalTests-)", cmd)
+        ) and "# via-run-ui-acceptance-tests-local" not in cmd:
+            print(
+                "BLOCKED: Do not run UI acceptance tests directly. "
+                "Use the /run-ui-acceptance-tests-local skill "
+                "(~/.claude/skills/run-ui-acceptance-tests-local/SKILL.md). "
+                "It kills the site, builds the solution, starts the site, "
+                "runs the test, and kills the site again — every time.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # BLOCK: All builds must go through Build-Solution.ps1.
         # The script captures ALL error types (CS, IDE, SWYF, etc.) — raw dotnet build + grep misses non-CS errors.
         if re.search(r"dotnet\s+build", cmd) \

@@ -136,5 +136,8 @@
     "command": "pwsh -NoProfile -File C:/Users/eli.koslofsky/.claude/statusline.ps1"
   },
   "enabledPlugins": {},
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "preferredNotifChannel": "iterm2_with_bell",
+  "fileCheckpointingEnabled": false,
+  "autoUpdatesChannel": "latest"
 }
