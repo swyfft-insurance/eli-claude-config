@@ -36,8 +36,14 @@
 .PARAMETER HealthUrl
     URL polled for health. Default https://localhost:5001.
 
+.PARAMETER NoBuild
+    Skip Step 2 (Build-Solution.ps1). Use when you're confident the build is already current.
+
 .EXAMPLE
     pwsh -NoProfile -File ~/.claude/scripts/Run-WebUiAcceptanceTest.ps1 -FilterMethod "*RoofGeometry*"
+
+.EXAMPLE
+    pwsh -NoProfile -File ~/.claude/scripts/Run-WebUiAcceptanceTest.ps1 -FilterMethod "*RoofGeometry*" -NoBuild
 #>
 param(
     [string]$FilterMethod,
@@ -45,7 +51,8 @@ param(
     [string]$FilterTrait,
     [string]$FilterNamespace,
     [int]$HealthTimeoutSec = 60,
-    [string]$HealthUrl = "https://localhost:5001"
+    [string]$HealthUrl = "https://localhost:5001",
+    [switch]$NoBuild
 )
 
 $ErrorActionPreference = "Stop"
@@ -85,6 +92,17 @@ if (-not (Test-Path $runDotnetTest)) {
     exit 2
 }
 
+# --- Output paths ---
+# Test output is written by Run-DotnetTest.ps1 to %TEMP%\swyfft-tests\ (standard location).
+# Website stdout always goes to the same dir so future agents have one place to look.
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$webOutputDir = Join-Path $env:TEMP "swyfft-tests"
+if (-not (Test-Path $webOutputDir)) {
+    New-Item -ItemType Directory -Path $webOutputDir -Force | Out-Null
+}
+$webOutputFile = Join-Path $webOutputDir "Run-WebUiAcceptanceTest_${timestamp}_website.txt"
+Write-Host "Website stdout will be saved to: $webOutputFile" -ForegroundColor DarkCyan
+
 # --- Helper: kill site ---
 function Stop-Site {
     Write-Host "Stopping Swyfft.Web and bun processes..." -ForegroundColor Yellow
@@ -102,11 +120,15 @@ try {
     Stop-Site
 
     # --- Step 2: Build ---
-    Write-Host "`n=== Step 2: Build Swyfft.slnx ===" -ForegroundColor Cyan
-    & pwsh -NoProfile -File $buildScript -Solution "Swyfft.slnx"
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Build failed with exit code $LASTEXITCODE. Aborting." -ForegroundColor Red
-        exit $LASTEXITCODE
+    if ($NoBuild) {
+        Write-Host "`n=== Step 2: Build (SKIPPED via -NoBuild) ===" -ForegroundColor Cyan
+    } else {
+        Write-Host "`n=== Step 2: Build Swyfft.slnx ===" -ForegroundColor Cyan
+        & pwsh -NoProfile -File $buildScript -Solution "Swyfft.slnx"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Build failed with exit code $LASTEXITCODE. Aborting." -ForegroundColor Red
+            exit $LASTEXITCODE
+        }
     }
 
     # --- Step 3: Start site (background) ---
@@ -138,8 +160,7 @@ try {
 
     if (-not $healthy) {
         Write-Host "ERROR: Website did not become healthy within ${HealthTimeoutSec}s." -ForegroundColor Red
-        Write-Host "--- Web job output ---" -ForegroundColor Yellow
-        Receive-Job -Job $webJob -Keep | Out-Host
+        Write-Host "Web stdout will be saved on cleanup. See: $webOutputFile" -ForegroundColor Yellow
         exit 3
     }
 
@@ -176,13 +197,26 @@ try {
     }
 }
 finally {
-    # --- Step 7: Always kill site ---
-    Write-Host "`n=== Step 7: Kill website (cleanup) ===" -ForegroundColor Cyan
-    Stop-Site
+    # --- Step 7: Always save web stdout, kill site ---
+    Write-Host "`n=== Step 7: Save web stdout + kill website (cleanup) ===" -ForegroundColor Cyan
     if ($webJob) {
+        try {
+            $webOutput = Receive-Job -Job $webJob -Keep -ErrorAction SilentlyContinue
+            if ($webOutput) {
+                $webOutput | Out-File -FilePath $webOutputFile -Encoding utf8
+                Write-Host "Web stdout saved to: $webOutputFile" -ForegroundColor Green
+                Write-Host "--- Last 50 lines ---" -ForegroundColor DarkCyan
+                $webOutput | Select-Object -Last 50 | Out-Host
+            } else {
+                Write-Host "Web job had no output to save." -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "Failed to save web stdout: $_" -ForegroundColor Yellow
+        }
         Stop-Job -Job $webJob -ErrorAction SilentlyContinue
         Remove-Job -Job $webJob -Force -ErrorAction SilentlyContinue
     }
+    Stop-Site
 }
 
 exit $testExitCode
