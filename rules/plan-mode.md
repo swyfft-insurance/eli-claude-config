@@ -19,6 +19,25 @@ Every plan file must begin with this block after the title and type:
 1. Check if the current branch is appropriate for this ticket. `development`, `beta`, and `master` are never appropriate. A branch for a different ticket is never appropriate.
 2. If not, create a new branch with `/create-branch` and push it.
 
+## Step 0.5 — Baseline Captured Asserts (when applicable)
+
+**If the ticket is expected to change captured asserts** (touches `ElementLoader*.cs`, `ConstraintCode.cs`, `HomeownerStateConfig.cs`, `QuoteDefinitions.txt`, or anything captured by `GetDefaultElementsForState` / `GetQuoteDefinitionForQuotePurchase`), do this BEFORE any code changes:
+
+1. Invoke `/seed database`. Full DB reseed is required for the baseline — element-only seed doesn't update `QuoteDefinitions`, state configs, or rater data, so the baseline regen would reflect a stale local DB instead of current development.
+2. Invoke `/prebind-captured-asserts`.
+3. Commit the resulting diff as a baseline catch-up commit:
+   ```
+   {TICKET}: Regenerate {test name} expected results
+
+   Catch-up commit for the {date} {what} that landed in development
+   before this branch. Pure regeneration — no functional changes —
+   kept as a separate commit so the {TICKET} diff stays limited to
+   {ticket scope}.
+   ```
+4. Now start making ticket changes. The ticket's own captured-assert regen at the end can be scoped to whatever the ticket changed (`/seed elements` if you only touched element loaders) — you don't need a full DB reseed again.
+
+If the ticket doesn't touch any of the listed surfaces, skip this step.
+
 ## Plan Types
 
 Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.
@@ -53,11 +72,25 @@ Every plan must declare its type. The type determines the workflow and mandatory
 
 **HARD STOP** — If a build fails, a test fails unexpectedly, or anything doesn't match the plan — stop and explain before pivoting. (This is Gate 1.5, applied to plan execution.)
 
-## Verification Steps
+## Verification Section Structure
 
-Verification steps must be derived from the change, not a generic checklist. For each change, identify:
-1. What behavior changed — write a targeted test if none exists. See `~/.claude/rules/testing.md` for TDD workflow and test writing patterns.
-2. What captured assert tests need regeneration — see `~/.claude/rules/captured-asserts.md`
-3. What existing tests serve as regression checks for unchanged callers — explain why each is relevant
+Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material:
 
-Never list a test suite without explaining why it's relevant to this specific change.
+### Execution sequence (before pushing)
+Numbered steps in order: build → seed (if data changed, see `~/.claude/rules/seeding.md`) → `/prebind-captured-asserts` + diff review → targeted tests via `Run-DotnetTest.ps1` → `/review-pr`. Each `Run-DotnetTest.ps1` line should cross-reference the test artifact it's exercising (defined in the sections below).
+
+### Tests to add or modify
+List each new/extended test file with: filename, base class, and a case table (input → expected). One row per scenario. See `~/.claude/rules/testing.md` for TDD workflow and test-writing patterns.
+
+### Captured asserts to regenerate
+List the expected diffs by file, including which files should have **zero** diff (these are the negative-confirmation guards). The actual `/prebind-captured-asserts` invocation lives in the execution sequence — this section just describes what the diffs should look like. See `~/.claude/rules/captured-asserts.md`.
+
+### Existing tests as regression checks
+Tests that should still pass without edits — list with a one-line "why this is relevant to this change". Never list a test suite without a reason.
+
+### AC coverage map
+Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
+
+## /prebind-captured-asserts is a misnomer
+
+The skill name reflects its origin (PreBind captured asserts), but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/prebind-captured-asserts` in the execution sequence.

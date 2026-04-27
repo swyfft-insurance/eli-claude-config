@@ -1,6 +1,6 @@
 ---
 name: prebind-captured-asserts
-description: Run PreBind Captured Assert tests and regenerate expected results. Use after adding new HomeownerStateConfig versions, quote definitions, elements, or constraint codes.
+description: Run the broad suite of tests Eli wants on most PRs (originally captured-assert-only, now expanded to cover tests relevant to the code Eli typically works on). Default verification step for tickets that touch elements, state configs, generators, constraint codes, quote definitions, or rating-adjacent code. Regenerates expected results when run.
 ---
 
 # PreBind Captured Assert Tests
