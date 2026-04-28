@@ -19,6 +19,12 @@ Every plan file must begin with this block after the title and type:
 1. Check if the current branch is appropriate for this ticket. `development`, `beta`, and `master` are never appropriate. A branch for a different ticket is never appropriate.
 2. If not, create a new branch with `/create-branch` and push it.
 
+## Seeder Overrides — Required for every new not-yet-live state config
+
+Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig`, or `DbbStateConfig` whose production go-live date is in the future, the plan MUST include a corresponding seeder override entry — concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders — for every new config. The planner is responsible for computing dates that satisfy the strict-monotonic ordering rule. Skip this step only when prod go-live is in the past.
+
+See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
+
 ## Step 0.5 — Baseline Captured Asserts (when applicable)
 
 **If the ticket is expected to change captured asserts** (touches `ElementLoader*.cs`, `ConstraintCode.cs`, `HomeownerStateConfig.cs`, `QuoteDefinitions.txt`, or anything captured by `GetDefaultElementsForState` / `GetQuoteDefinitionForQuotePurchase`), do this BEFORE any code changes:

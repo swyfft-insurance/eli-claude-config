@@ -19,7 +19,7 @@ import tempfile
 RULES_DIR = os.path.expanduser("~/.claude/rules")
 
 # Files that bypass session dedup — injected every time they match.
-ALWAYS_INJECT = {"core-behavior.md"}
+ALWAYS_INJECT = {"core-behavior.md", "pre-pr-review.md"}
 
 # Session dedup: track which rules files have been injected.
 # Keyed by Claude Code's session ID if available, otherwise by date.
@@ -86,6 +86,11 @@ TOOL_RULES = [
     (r"^AskUserQuestion$", "communication.md"),
 ]
 
+# Skill name → rules file mappings (for the Skill tool, dispatched by skill parameter)
+SKILL_RULES = [
+    (r"^review-pr$", "pre-pr-review.md"),
+]
+
 # File path patterns for Edit/Write → rules file mappings
 FILE_RULES = [
     (r"\.claude[/\\]CLAUDE\.md$", "meta.md"),
@@ -123,6 +128,15 @@ def main():
             content = inject_rules(rules_file)
             if content:
                 messages.append(f"=== RULES: {rules_file} ===\n{content}")
+
+    # Skill tool: dispatch by skill parameter
+    if tool_name == "Skill":
+        skill_name = tool_input.get("skill", "")
+        for pattern, rules_file in SKILL_RULES:
+            if re.search(pattern, skill_name):
+                content = inject_rules(rules_file)
+                if content:
+                    messages.append(f"=== RULES: {rules_file} ===\n{content}")
 
     if tool_name == "Bash":
         cmd = tool_input.get("command", "")

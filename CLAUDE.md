@@ -14,6 +14,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUs
 | Slack | `slack.md` | sending any Slack message |
 | YouTrack | `youtrack.md` | creating, updating, or reading YouTrack issues |
 | PR Creation | `pr-creation.md` | creating a PR |
+| Pre-PR Review | `pre-pr-review.md` | invoking `/review-pr` or launching any adversarial-review subagent |
 | PR Review (theirs) | `pr-theirs-review.md` | reviewing someone else's PR |
 | PR Feedback (mine) | `pr-mine-address-feedback.md` | replying to or resolving PR comments on my PR |
 | Plan Mode | `plan-mode.md` | entering plan mode |
