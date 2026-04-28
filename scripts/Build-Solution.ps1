@@ -20,6 +20,14 @@ try {
         exit 1
     }
 
+    # Pre-build: line-length check on uncommitted .cs changes.
+    Write-Host "Checking line lengths on uncommitted changes..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File "$HOME/.claude/scripts/Test-LineLength.ps1" -Mode local
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "`nLine-length check failed. Build aborted." -ForegroundColor Red
+        exit 1
+    }
+
     Write-Host "Building $Solution..." -ForegroundColor Cyan
 
     $output = dotnet build $solutionPath 2>&1 | Out-String
