@@ -132,16 +132,28 @@ try {
     }
 
     # --- Step 3: Start site (background) ---
+    # Tee the web job's stdout/stderr to the output file in real time so the log is
+    # accessible while the test runs (and survives if the parent script is killed
+    # before Step 7 — Receive-Job in finally is too late for live debugging).
     Write-Host "`n=== Step 3: Start website (background) ===" -ForegroundColor Cyan
     $webJob = Start-Job -ScriptBlock {
-        param($repo, $script)
+        param($repo, $script, $logFile)
         Set-Location $repo
-        & pwsh -NoProfile -File $script
-    } -ArgumentList $repoRoot, $runWebPath
+        & pwsh -NoProfile -File $script *>&1 | Tee-Object -FilePath $logFile -Append
+    } -ArgumentList $repoRoot, $runWebPath, $webOutputFile
     Write-Host "Started web job: Id=$($webJob.Id)" -ForegroundColor Green
+    Write-Host "Live web log: $webOutputFile" -ForegroundColor DarkCyan
 
     # --- Step 4: Wait for health ---
+    # ASP.NET returns 200 on root the moment Kestrel binds the port, but the React
+    # app is served by Vite (http://localhost:5173) which compiles bundles on first
+    # request. The test browser hits /sign-in, then waits for #email-address — that
+    # selector wait races Vite's first compile and intermittently times out at 30s.
+    # Two-stage check: (4a) ASP.NET listening, then (4b) force Vite to compile the
+    # SPA entry by fetching it directly, with a long timeout for the cold compile.
     Write-Host "`n=== Step 4: Wait for health (up to ${HealthTimeoutSec}s, $HealthUrl) ===" -ForegroundColor Cyan
+
+    # 4a: ASP.NET listening
     $healthy = $false
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     while ($stopwatch.Elapsed.TotalSeconds -lt $HealthTimeoutSec) {
@@ -149,7 +161,7 @@ try {
             $resp = Invoke-WebRequest -Uri $HealthUrl -SkipCertificateCheck -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
             if ($resp.StatusCode -eq 200) {
                 $healthy = $true
-                Write-Host "Website healthy at $HealthUrl ($([int]$stopwatch.Elapsed.TotalSeconds)s)" -ForegroundColor Green
+                Write-Host "ASP.NET healthy at $HealthUrl ($([int]$stopwatch.Elapsed.TotalSeconds)s)" -ForegroundColor Green
                 break
             }
         } catch {
@@ -159,7 +171,35 @@ try {
     }
 
     if (-not $healthy) {
-        Write-Host "ERROR: Website did not become healthy within ${HealthTimeoutSec}s." -ForegroundColor Red
+        Write-Host "ERROR: ASP.NET did not become healthy within ${HealthTimeoutSec}s." -ForegroundColor Red
+        Write-Host "Web stdout will be saved on cleanup. See: $webOutputFile" -ForegroundColor Yellow
+        exit 3
+    }
+
+    # 4b: Warm up Vite by fetching the SPA entry (Views/SinglePageApplication/Index.cshtml
+    # references "/app/Page.tsx"). First request triggers a cold compile in Vite — give
+    # it up to 120s before declaring the warmup failed.
+    Write-Host "Warming up Vite (compiling /app/Page.tsx)..." -ForegroundColor Cyan
+    $viteEntry = "http://localhost:5173/app/Page.tsx"
+    $viteWarm = $false
+    $viteStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $viteTimeout = 120
+    while ($viteStopwatch.Elapsed.TotalSeconds -lt $viteTimeout) {
+        try {
+            $resp = Invoke-WebRequest -Uri $viteEntry -TimeoutSec 90 -UseBasicParsing -ErrorAction Stop
+            if ($resp.StatusCode -eq 200 -and $resp.Content.Length -gt 0) {
+                $viteWarm = $true
+                Write-Host "Vite warmed at $viteEntry ($([int]$viteStopwatch.Elapsed.TotalSeconds)s, $($resp.Content.Length) bytes)" -ForegroundColor Green
+                break
+            }
+        } catch {
+            # Vite still starting / compiling
+        }
+        Start-Sleep -Seconds 3
+    }
+
+    if (-not $viteWarm) {
+        Write-Host "ERROR: Vite did not warm up within ${viteTimeout}s." -ForegroundColor Red
         Write-Host "Web stdout will be saved on cleanup. See: $webOutputFile" -ForegroundColor Yellow
         exit 3
     }
@@ -197,22 +237,18 @@ try {
     }
 }
 finally {
-    # --- Step 7: Always save web stdout, kill site ---
-    Write-Host "`n=== Step 7: Save web stdout + kill website (cleanup) ===" -ForegroundColor Cyan
+    # --- Step 7: Tail live log + kill site ---
+    # The web log is already being written live by Tee-Object inside the job
+    # (see Step 3), so cleanup just tails the file and kills the job + site.
+    Write-Host "`n=== Step 7: Tail web log + kill website (cleanup) ===" -ForegroundColor Cyan
+    if (Test-Path $webOutputFile) {
+        Write-Host "Web log: $webOutputFile" -ForegroundColor Green
+        Write-Host "--- Last 50 lines ---" -ForegroundColor DarkCyan
+        Get-Content -Path $webOutputFile -Tail 50 -ErrorAction SilentlyContinue | Out-Host
+    } else {
+        Write-Host "No web log at $webOutputFile" -ForegroundColor Yellow
+    }
     if ($webJob) {
-        try {
-            $webOutput = Receive-Job -Job $webJob -Keep -ErrorAction SilentlyContinue
-            if ($webOutput) {
-                $webOutput | Out-File -FilePath $webOutputFile -Encoding utf8
-                Write-Host "Web stdout saved to: $webOutputFile" -ForegroundColor Green
-                Write-Host "--- Last 50 lines ---" -ForegroundColor DarkCyan
-                $webOutput | Select-Object -Last 50 | Out-Host
-            } else {
-                Write-Host "Web job had no output to save." -ForegroundColor Yellow
-            }
-        } catch {
-            Write-Host "Failed to save web stdout: $_" -ForegroundColor Yellow
-        }
         Stop-Job -Job $webJob -ErrorAction SilentlyContinue
         Remove-Job -Job $webJob -Force -ErrorAction SilentlyContinue
     }

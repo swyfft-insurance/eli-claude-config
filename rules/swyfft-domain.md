@@ -26,9 +26,10 @@
 
 **Default: always add an override for every new config**. If you're adding a new state config that isn't already live in prod, the dev/beta database has no way to test it without an override — even if the prod go-live is "soon", QA still needs it earlier. Skip the override only when prod go-live is in the past.
 
-## Generator vs Config Versions
-- Generator class version numbers (e.g., `DefaultElementGeneratorByPerilEAndSBenchmarkSpecialtyV6AL`) do NOT correspond to HomeownerStateConfig version numbers (e.g., `ALByPerilEAndSBenchmarkSpecialtyV6`). They are independent numbering schemes.
+## Generator and Lookup vs Config Versions
+- Generator class version numbers (e.g., `DefaultElementGeneratorByPerilEAndSBenchmarkSpecialtyV6AL`) and `ByPerilVersionLookup` carrier class version numbers (e.g., `ByPerilVersionLookup.Homeowner.FL.EAndS.Hiscox.V1`) do NOT correspond to HomeownerStateConfig version numbers (e.g., `ALByPerilEAndSBenchmarkSpecialtyV6`). They are independent numbering schemes.
 - Always check the factory mapping in `HomeownerDefaultElementGeneratorFactory.cs` to find which generator serves which config version.
+- See `Swyfft.Services/Common/CLAUDE.md` for the detailed rule on `ByPerilVersionLookup` (including: when CREATING a new carrier lookup class, always start at V1).
 
 ## Comments and PR Descriptions
 - Describe WHY and WHAT — not the debugging journey.

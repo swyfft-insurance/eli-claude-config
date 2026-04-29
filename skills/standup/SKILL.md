@@ -85,6 +85,11 @@ Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). Create the 
 
 ### Spoken format
 
+**Speech notes, NOT a script.** Eli glances at these while talking — they are not read verbatim. Write fragments, not paragraphs.
+
+- Bulleted list, one bullet per piece of work
+- Sentence fragments / shorthand only — no full prose, no narrative paragraphs
+- Two sections, each headed with the day label followed by a colon (e.g., `Yesterday:` / `Today:`), bullets underneath
 - Plain text, no links or formatting
 - No ticket numbers — nobody knows what SW-49541 means out loud. Describe the actual work in plain English.
 - Don't explain what the ticket IS, just what you DID

@@ -28,6 +28,28 @@ Prefer prod-copy over beta when the query needs *real* prod data and beta might 
 
 Never ask the user to run a query against prod directly — Eli has no write access, and the prod-db hook blocks it anyway. Prod-copy is the right target.
 
+### IMS Prod-Copy Database (on-prem)
+
+IMS is on-prem SQL Server, not Azure. The weekly Monday refresh from prod populates `SwyfftImsStaging`, which serves as the prod-copy. Use it for any query mirroring prod IMS-reading code (storm exclusions, IMS claim lookups, `tblQuotes` / `tblClaims_Claim` / `tblClaimInformation` / `lstClaims_CatastropheCodes`). The Azure Core/Rating prod-copy doesn't have IMS tables.
+
+| Property | Value |
+|---|---|
+| Server | `swyfftimstestdb.swyfft.com` |
+| Authentication | Windows Authentication (Kerberos / AD) |
+| Database | `SwyfftImsStaging` (Monday-refreshed prod copy) |
+| Trust Server Certificate | Yes |
+| Access | **read-only** in practice (refresh target, not the prod write source) |
+
+`SwyfftImsTest` exists on the same server but has been flagged out-of-sync historically — prefer `SwyfftImsStaging`.
+
+**SSMS**: Server `swyfftimstestdb.swyfft.com`, Windows Authentication, Options → Connection Properties → Connect to database → `SwyfftImsStaging`, check Trust Server Certificate.
+
+**sqlcmd (Linux/WSL — needs Kerberos ticket first)**:
+```bash
+kinit eli.koslofsky@CORP.SWYFFT.COM   # VPN required
+sqlcmd -S swyfftimstestdb.swyfft.com -d SwyfftImsStaging -E -C
+```
+
 ## Scenario 2: Pointing Local Tests at Dev / Beta / Prod-Copy
 
 All three environments are **read-only** — any code path that writes to the DB will fail. That's a safety net, not a bug. Use it.
