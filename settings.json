@@ -115,13 +115,14 @@
       "Skill(create-pr)",
       "Skill(run-ui-acceptance-tests)",
       "Skill(update-config)",
-      "Read(//c/Users/eli.koslofsky/Downloads/**)"
+      "Read(//c/Users/eli.koslofsky/Downloads/**)",
+      "PowerShell"
     ]
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Write|Edit|EnterPlanMode|ExitPlanMode|mcp__slack__.*|mcp__YouTrackNative__.*|mcp__solarwinds__.*",
+        "matcher": "Bash|PowerShell|Write|Edit|EnterPlanMode|ExitPlanMode|mcp__slack__.*|mcp__YouTrackNative__.*|mcp__solarwinds__.*",
         "hooks": [
           {
             "type": "command",
@@ -139,5 +140,8 @@
   "autoMemoryEnabled": false,
   "preferredNotifChannel": "iterm2_with_bell",
   "fileCheckpointingEnabled": false,
-  "autoUpdatesChannel": "latest"
+  "autoUpdatesChannel": "latest",
+  "env": {
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+  }
 }

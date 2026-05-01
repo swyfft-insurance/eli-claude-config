@@ -1,5 +1,24 @@
 # Domain Reference: Swyfft Codebase
 
+## Insurance Terminology
+
+- **Quote**: pre-bind price proposal. Has a rating config (e.g., `FL.BSIC.ByPeril.EAndS.V6`).
+- **Policy**: post-bind contract. The result of binding a quote (separate EF entity from `EFQuote`).
+- **Bind** (verb): the act of converting a quote into a policy. Code-level: `*Service.Bind(EFQuote quote) → PolicyNumber` (see `NfipService.Bind`, `Hiscox*Service.Bind`, `VaveServiceBase.Bind`).
+- **Bind** (noun): the binding event. Valid in time-relative usage ("at bind", "pre-bind", "post-bind") and to describe the operation succeeding/failing ("the bind succeeded", "C# bind threw"). Don't use it as a name for the resulting policy or quote.
+
+Eli works pre-bind (quoting). The quote owns the rating config; the policy inherits it. `Swyfft.Services.PostBind` is a separate project covering post-bind automation.
+
+### Code evidence supporting the above
+
+| Claim | Code evidence |
+|---|---|
+| Quote has rating config | `EFHomeownerQuote.QuoteDefinition` (generated nav property) — `EFHomeownerQuoteDefinition` holds the config |
+| Policy is post-bind contract | `EFPolicy` and `EFQuote` are separate entities. `EFQuote.cs:146`: "InsuredEmail is valid until bind, afterwards `tblInsuredLocation.Email` should be used" — explicit lifecycle boundary |
+| Bind is a verb (act of conversion) | `Bind(EFQuote quote)` methods exist on `VaveServiceBase`, `NfipService`, `BritService`, `HiscoxHomeownerService`, `HiscoxFloodService`, `HiscoxDbbService`. `NfipService.Bind` returns `PolicyNumber` — produces a policy |
+| Pre-bind / post-bind are real concepts | Whole project `Swyfft.Services.PostBind`. `PostBindApiController`. `PostBindSettings.cs`: "The account used by post-bind automation processes". `GenerateImsDocument.cs` mentions `PreBindInvoice` doc type |
+| Agents bind quotes (user-facing framing) | UI has a "Bind page" (`EFCommercialQuote.cs:657-659`: "we do not carry over the value... to any input on the Bind page... Once a policy has been bound...") |
+
 ## HomeownerStateConfig
 - Declaration order has FUNCTIONAL SIGNIFICANCE — `GetAllValuesWithSortOrder()` uses reflection.
 - `EnsureConfigOrderWithDatabase` test verifies declaration order matches DB order (by RenewalOn).

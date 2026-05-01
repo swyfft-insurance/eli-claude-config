@@ -138,7 +138,7 @@ def main():
                 if content:
                     messages.append(f"=== RULES: {rules_file} ===\n{content}")
 
-    if tool_name == "Bash":
+    if tool_name in ("Bash", "PowerShell"):
         cmd = tool_input.get("command", "")
 
         # BLOCK: Direct SolarWinds API calls — must use /search-logs skill instead.
