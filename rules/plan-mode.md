@@ -13,6 +13,24 @@ Every plan file must begin with this block after the title and type:
 
 > **Execute steps in order. Never skip ahead, reorder, or deviate. If you encounter anything that prevents adherence to this plan, HARD STOP — explain the blocker and wait for instructions.**
 
+## Subsystem Pre-Reads — Required Before Step 0
+
+Every plan must list the governing `CLAUDE.md` files for the subsystems it
+touches as required pre-reads, **above** Step 0. Match by topic, not by path —
+the relevant doc often lives in a sibling directory (e.g.,
+`Data/{State}/Homeowner/ByPeril/**/*.xlsm` is governed by
+`Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`, not `Data/CLAUDE.md`).
+
+Use the project-root `CLAUDE.md` "Namespace-Specific Documentation" table as
+the index. Format inside the plan:
+
+> **Pre-read (subsystem orientation):**
+> - `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`
+> - `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md`
+
+A plan that omits these gets caught mid-execution by oddities the docs would
+have explained — that's a planner discipline failure.
+
 ## IMPORTANT: Step 0 — Create a Branch
 
 **Every plan, every time, no exceptions.** The first step in every plan, before any step that writes code:
