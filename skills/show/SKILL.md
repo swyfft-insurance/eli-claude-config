@@ -1,37 +1,33 @@
 ---
 name: show
-description: Display a file's full contents. Use when the user asks to see a file, read rules, or view any text content. Prevents the "summarize instead of show" anti-pattern.
+description: Display data in full — files, PR diffs, query results, logs, or any data the user can't see directly. Use when the user asks to see/read/view content. Prevents the "I have the info, here it is" anti-pattern where the agent reads data without printing it.
 ---
 
-# Show File Contents
+# Show
 
-The user wants to SEE a file's contents printed in full. Do NOT summarize, excerpt, or describe — print the ENTIRE file in a fenced code block.
+You read data. The user can't see it. Print it.
 
-## Arguments
+This skill exists because you have an insanely annoying habit of READING data and saying "here it is" / "I have the info" — when the user can't see anything until YOU print it in this conversation.
 
-The user provides a filename or path (e.g., `/show github-prs.md`, `/show ~/.claude/CLAUDE.md`).
+## What to show
 
-## Steps
+The argument names the data the user wants to see.
 
-### 1. Resolve the path
+**If you already have it in context from an earlier tool call, just print what you have. Do NOT re-fetch — that wastes tokens. The user wants to see what YOU see.**
 
-Try these in order until one matches:
+If you don't have it yet, fetch once:
 
-1. **Absolute path**: If the argument starts with `/`, `C:\`, or `~` — use it directly (expand `~` to the home directory)
-2. **Rules file**: If it ends in `.md`, check `~/.claude/rules/{argument}` — if it exists, use that
-3. **Claude config file**: Check `~/.claude/{argument}` — if it exists, use that
-4. **Project file**: Check the current working directory for `{argument}`
-5. **Not found**: Tell the user the file wasn't found and list what you checked
+| Argument | How to fetch (only if not in context) |
+|---|---|
+| Path-like (`/`, `C:\`, `~`, has extension) | Read the file |
+| `.md` filename only | Try `~/.claude/rules/{arg}`, `~/.claude/{arg}`, then CWD |
+| "the code" / "the diff" | `gh pr diff <num>` for the PR under discussion |
+| "the query results" / "the data" | Run the SQL query |
+| "the logs" / "the log entries" | Run the log search |
+| Unclear | Ask which data |
 
-### 2. Read the file
+## Print rules
 
-Use the Read tool to read the resolved path.
-
-### 3. Print the FULL contents
-
-Print the entire file contents inside a fenced code block with appropriate language syntax highlighting (e.g., ```markdown, ```python, ```csharp).
-
-**Rules:**
-- Print EVERYTHING — no truncation, no summarizing, no "here are the key parts"
-- Use the correct language tag for syntax highlighting
-- Do not add commentary before or after unless the user asked a question about the content
+- Fenced code block with the right language tag (```diff, ```csharp, ```sql, ```markdown, etc.)
+- **EVERYTHING.** No truncation, no excerpts, no "here are the key parts."
+- **NO commentary before or after.** No "there it is". No recap. No summary. No findings. Just the code block.

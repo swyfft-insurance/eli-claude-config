@@ -10,6 +10,7 @@
 
 - Only comment on fundamental bugs or red flags. No nits, no style comments.
 - **Inline comments only**: When a comment is about a specific file/line, post it as an inline review comment using `gh api` (not `gh pr review --comment`). Top-level review comments are for general feedback that doesn't target a specific location.
+- **Subagent caps**: If you delegate any part of the review to a subagent, the hard caps in `pre-pr-review.md` apply (time, file-read, trace depth, output, stop-early).
 
 ## Posting the review
 
