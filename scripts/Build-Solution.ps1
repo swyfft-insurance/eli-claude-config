@@ -1,10 +1,11 @@
 param(
-    [string]$Solution = "Swyfft.slnx",
     [switch]$NoBuild,
     [switch]$ErrorsOnly
 )
 
 $ErrorActionPreference = "Continue"
+
+$Solution = "Swyfft.slnx"
 
 $repoRoot = git rev-parse --show-toplevel 2>$null
 if (-not $repoRoot) {

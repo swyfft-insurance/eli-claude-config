@@ -26,6 +26,12 @@ The script builds, then runs all 3 projects concurrently with output saved to `$
 pwsh -NoProfile -File "$HOME/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1"
 ```
 
+Pass `-NoBuild` to skip the build step (the slnx is already built):
+
+```bash
+pwsh -NoProfile -File "$HOME/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1" -NoBuild
+```
+
 Timeout: 600000ms.
 
 ## Step 3: Review the diffs

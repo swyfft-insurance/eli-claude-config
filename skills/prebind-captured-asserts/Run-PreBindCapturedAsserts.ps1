@@ -1,3 +1,7 @@
+param(
+    [switch]$NoBuild
+)
+
 $ErrorActionPreference = 'Stop'
 
 $scriptPath = Join-Path $HOME ".claude" "scripts" "Run-DotnetTest.ps1"
@@ -5,9 +9,13 @@ $scriptPath = Join-Path $HOME ".claude" "scripts" "Run-DotnetTest.ps1"
 $env:UPDATE_TEST_EXPECTED_RESULTS = "true"
 Write-Host "UPDATE_TEST_EXPECTED_RESULTS=true" -ForegroundColor Yellow
 
-$buildScript = Join-Path $HOME ".claude" "scripts" "Build-Solution.ps1"
-& $buildScript
-if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+if ($NoBuild) {
+    Write-Host "Skipping build (-NoBuild)" -ForegroundColor Yellow
+} else {
+    $buildScript = Join-Path $HOME ".claude" "scripts" "Build-Solution.ps1"
+    & $buildScript
+    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+}
 
 $projects = @(
     "Swyfft.Services.UnitTests",

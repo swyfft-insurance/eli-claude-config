@@ -2,6 +2,11 @@
 
 > Gate 2 applies here — see `core-behavior.md`.
 
+- Match implementation detail to ticket type:
+  - **User stories / behavioral features**: WHAT and WHY only — requirement, business reason / constraint, acceptance criteria. No code samples, file paths, class names, internal mechanisms, or named refactors. Implementation details belong in the plan file or PR description; they rot the moment the code changes. Tickets are read by Biz, UW, QA, and devs across teams — none need the implementation surface.
+  - **Bugs**: code pointers help the dev start the investigation — file paths, methods, line numbers, SolarWinds log queries.
+  - **Technical refactors / specific implementation tickets**: code references are warranted — the ticket itself is about the technical change.
+  - **What happened:** Behavioral-feature draft included code samples and implementation mechanics. Flagged as overstepping Agile discipline.
 - Use `create_issue`, never `create_draft_issue`. Drafts cause duplicates.
 - Read ALL custom fields (Carrier, USState, ProductLine, RatingType) — they scope the work.
 - Read tickets FIRST before exploring code. Bug tickets contain error messages with the root cause.

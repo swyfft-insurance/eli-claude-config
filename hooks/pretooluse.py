@@ -141,6 +141,23 @@ def main():
     if tool_name in ("Bash", "PowerShell"):
         cmd = tool_input.get("command", "")
 
+        # BLOCK: pwsh/powershell/.ps1 invocations through Bash — use the PowerShell tool instead.
+        # CLAUDE_CODE_USE_POWERSHELL_TOOL is set, so the PowerShell tool is available.
+        # Append "# via-bash-pwsh" to bypass for the rare case bash semantics are required.
+        if tool_name == "Bash" and "# via-bash-pwsh" not in cmd:
+            pwsh_at_start = re.search(r"^\s*(pwsh|powershell)(\.exe)?\s", cmd)
+            ps1_invocation = re.search(r"^\s*[&.]?\s*['\"]?[^'\"\s]*\.ps1\b", cmd)
+            if pwsh_at_start or ps1_invocation:
+                print(
+                    "BLOCKED: Do not invoke pwsh, powershell, or .ps1 scripts through the Bash tool. "
+                    "Use the PowerShell tool directly — it runs commands in native pwsh on Windows.\n\n"
+                    "Example with the PowerShell tool:\n"
+                    "  command: & \"$HOME/.claude/scripts/Build-Solution.ps1\"\n\n"
+                    "If bash semantics are genuinely required, append \"# via-bash-pwsh\" to the command.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+
         # BLOCK: Direct SolarWinds API calls — must use /search-logs skill instead.
         # Allow calls from the Search-SolarWinds.ps1 script itself.
         if re.search(r"api\.na-01\.cloud\.solarwinds\.com", cmd) and not re.search(r"Search-SolarWinds", cmd):
@@ -190,8 +207,7 @@ def main():
                 "Use Build-Solution.ps1 which captures ALL error types (CS, IDE, SWYF, etc.).\n\n"
                 "Example:\n"
                 "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Build-Solution.ps1\"\n\n"
-                "For a specific solution:\n"
-                "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Build-Solution.ps1\" -Solution \"SwyfftCI.slnx\"",
+                "(builds Swyfft.slnx — the script no longer accepts a -Solution override)",
                 file=sys.stderr,
             )
             sys.exit(2)

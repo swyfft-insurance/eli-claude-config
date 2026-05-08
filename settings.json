@@ -141,6 +141,7 @@
   "preferredNotifChannel": "iterm2_with_bell",
   "fileCheckpointingEnabled": false,
   "autoUpdatesChannel": "latest",
+  "defaultShell": "powershell",
   "env": {
     "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
   }
