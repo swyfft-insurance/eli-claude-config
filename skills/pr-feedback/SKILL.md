@@ -9,7 +9,13 @@ Guides the workflow for responding to reviewer comments on my pull requests. Bot
 
 ## Arguments
 
-Provide the PR number (e.g., `/pr-feedback 19821`). If not provided, ask for it.
+PR number (e.g., `/pr-feedback 19821`). If not provided, default to the PR for the current branch — do NOT ask, just resolve it:
+
+```bash
+gh pr view --json number --jq .number
+```
+
+If that errors (no PR for current branch) or returns multiple, then ask. Otherwise use what it returns silently and move on. Asking "which PR?" when there's exactly one PR for the current branch is noise.
 
 ## Steps
 

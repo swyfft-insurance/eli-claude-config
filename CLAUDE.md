@@ -11,6 +11,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUs
 | Git Safety | `git-safety.md` | any git push, commit, branch, merge, or rebase |
 | Windows / Tooling | `windows-tooling.md` | using sed, tee, mv, printenv, or pwsh with Unix paths |
 | Coding Standards | `coding-standards.md` | modifying access modifiers or adding usings |
+| Code Comments | `code-comments.md` | writing any comment in source code |
 | Slack | `slack.md` | sending any Slack message |
 | YouTrack | `youtrack.md` | creating, updating, or reading YouTrack issues |
 | PR Creation | `pr-creation.md` | creating a PR |
