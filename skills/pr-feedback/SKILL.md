@@ -51,7 +51,7 @@ Only address **actionable** points — things that require a code change, an exp
 
 **Presentation rules:**
 
-- **Decisions belong to the user, not you.** You may recommend an option, but never decide for them. Don't proceed on the "obvious" choice without explicit approval — wait for the user's pick, every entry.
+- **IMPORTANT: Decisions belong to the user, not you.** You may recommend an option, but never decide for them. Don't proceed on the "obvious" choice without explicit approval — wait for the user's pick, every entry. This is a hard requirement, not a suggestion — never skip it.
 - **One identifier per decision.** Every actionable item gets exactly ONE identifier in ONE numbering scheme. Sub-numbering is fine (e.g., `1.1, 1.2` when a parent group has sub-decisions), but pick a scheme and use it consistently. Don't run parallel schemes (e.g., "Bucket C" + "Question 3" + "C2" all pointing to the same thread).
 - **Numbered list, not table.** Tables fall apart once you need code blocks in cells (line breaks become `<br>` hacks, fenced code can't render). Always use a numbered list.
 - **Every entry has the same shape.** Same sub-fields, in the same order, every time:
@@ -151,7 +151,7 @@ Write the reply using **quote-then-reply format**:
 
 For comments with multiple points, quote and reply to each point individually. Never use `#1`, `#2` etc. as labels — GitHub renders those as issue/PR links.
 
-**Show the draft to the user in your response.** Do not proceed until the user approves.
+**IMPORTANT: Show the draft to the user in your response.** Do not proceed until the user approves. This is a hard requirement, not a suggestion — never skip it.
 
 #### c. Wait for approval
 
@@ -177,7 +177,7 @@ python ~/.claude/scripts/pr-feedback.py resolve <thread-graphql-id>
 
 For top-level reviews with actionable points, follow the same research → draft → approve → post flow. Only address the actionable points — quote each one individually and reply.
 
-**Tag the reviewer** at the top of the reply so it's clear which review you're responding to (e.g., `Responding to @ehrenw's review:`).
+**IMPORTANT: Tag the reviewer** at the top of the reply so it's clear which review you're responding to (e.g., `Responding to @ehrenw's review:`). This is a hard requirement, not a suggestion — never skip it.
 
 To post a reply to a top-level review:
 

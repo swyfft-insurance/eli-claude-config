@@ -34,14 +34,16 @@ git -C /c/Users/eli.koslofsky/Documents/GitHub/swyfft_web fetch origin developme
 ```
 
 For each PR, capture (in the main session, cheap):
-- Title, author, base ref, isDraft, current approval state
+- Title, author, base ref, isDraft
 - Ticket IDs parsed from the title (`SW-XXXXX` regex) or "no ticket" if the title has none
 
 This avoids burning an agent turn on metadata.
 
+**Do not capture or report `reviewDecision` / current approval state to Eli in pre-flight.** Approval status is irrelevant to whether or how rigorously to review — see the "Important" section below.
+
 ### 2. Fan out
 
-Send a single message with one `Agent` (`general-purpose`) tool call per PR, in parallel. Use this prompt template — fill in `{NUM}`, `{TITLE}`, `{AUTHOR}`, `{TICKETS}`, and any `{DRAFT_NOTE}` / `{APPROVED_NOTE}` flags:
+Send a single message with one `Agent` (`general-purpose`) tool call per PR, in parallel. Use this prompt template — fill in `{NUM}`, `{TITLE}`, `{AUTHOR}`, `{TICKETS}`, and any `{DRAFT_NOTE}` flag:
 
 ```
 Review PR #{NUM} on swyfft-insurance/swyfft_web for fundamental bugs and red flags only.
@@ -51,7 +53,8 @@ Title: {TITLE}
 Author: {AUTHOR}
 Ticket(s): {TICKETS or "No ticket — cleanup work"}
 {DRAFT_NOTE: "This PR is in DRAFT — call out anything intentionally unfinished rather than buggy."}
-{APPROVED_NOTE: "Already approved by another reviewer; Eli wants my independent review."}
+
+Apply full review rigor regardless of any existing approvals or change-requests on the PR — Eli asked for your independent assessment.
 
 HARD CAPS:
 - 5-minute time budget. Stop and report what you have if approaching limit.
@@ -162,6 +165,7 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 
 ## Important
 
+- **Approval status is irrelevant to the review.** If Eli asked you to review a PR, review it with full rigor regardless of whether it's already approved, has changes requested, or is in draft. Never flag "this is already approved" or "this already has changes requested" back to Eli in pre-flight as if it might change his mind — he picked these PRs knowing the state, and others can miss things he wouldn't. Approval status only matters at the action stage (which verb to use when posting), not at the review stage. Don't pass it into the agent prompt either — the agent reads existing reviews via `gh pr view --json reviews` to avoid duplicating findings, and that's sufficient.
 - **Gate 1.5**: If a finding makes me question whether a PR should be approved at all, STOP and ask Eli. Don't pivot from "clean approve" to "comment-only" on my own.
 - **Gate 2**: Every `gh pr review`, every `gh api ...reviews` POST waits for explicit approval. Acknowledgements aren't approval.
 - **Don't fan out more than ~8 agents at once** — token cost on the user's session is real (`pre-pr-review.md`: "a runaway subagent burns tokens against their session budget").

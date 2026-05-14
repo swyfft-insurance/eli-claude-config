@@ -22,6 +22,25 @@
 - GraphQL for resolving threads: query via `repository.pullRequest.reviewThreads`, NOT via `node(id:)` on PullRequestReviewComment (field doesn't exist).
 - Never use `minimizeComment` — that hides, not resolves.
 
+## Order of operations: push before replying
+
+NEVER post a PR comment reply before the code it describes is on the remote. A reply
+that says "Fixed X" or "Dropped Y" must be backed by a commit already pushed to the PR
+branch — otherwise the reviewer reads the claim, pulls the diff, and sees nothing.
+
+Required order:
+1. Make code changes
+2. Build + run affected tests
+3. Commit (one commit or several — doesn't matter, just must exist locally)
+4. **Push to the PR branch**
+5. Verify push succeeded (`git push` exit code 0, NOT rejected by branch protection)
+6. THEN run `pr-feedback reply ...` for each thread
+7. THEN resolve each thread
+
+If the PR is locked (merge queue, etc.) and the push is rejected, STOP. Do not post
+replies until the branch can accept the push — replies posted against unpushed code
+will mislead the reviewer.
+
 ## GraphQL Commands
 
 ```
