@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(dotnet test:*)",
@@ -116,7 +119,11 @@
       "Skill(run-ui-acceptance-tests)",
       "Skill(update-config)",
       "Read(//c/Users/eli.koslofsky/Downloads/**)",
-      "PowerShell"
+      "PowerShell",
+      "Skill(prebind-captured-asserts)",
+      "Skill(prebind-captured-asserts:*)",
+      "Skill(review-pr)",
+      "Skill(review-pr:*)"
     ]
   },
   "hooks": {
@@ -132,17 +139,15 @@
       }
     ]
   },
+  "defaultShell": "powershell",
   "statusLine": {
     "type": "command",
     "command": "pwsh -NoProfile -File C:/Users/eli.koslofsky/.claude/statusline.ps1"
   },
   "enabledPlugins": {},
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "preferredNotifChannel": "iterm2_with_bell",
-  "fileCheckpointingEnabled": false,
-  "autoUpdatesChannel": "latest",
-  "defaultShell": "powershell",
-  "env": {
-    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
-  }
+  "fileCheckpointingEnabled": false
 }
