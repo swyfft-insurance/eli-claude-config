@@ -123,7 +123,10 @@
       "Skill(prebind-captured-asserts)",
       "Skill(prebind-captured-asserts:*)",
       "Skill(review-pr)",
-      "Skill(review-pr:*)"
+      "Skill(review-pr:*)",
+      "Skill(diff)",
+      "Skill(diff:*)",
+      "Read(//c/Users/eli.koslofsky/**)"
     ]
   },
   "hooks": {

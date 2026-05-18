@@ -9,3 +9,4 @@
   - **What happened:** Duplicate message in group DM with CTO. Embarrassing.
 - Slack uses `mrkdwn`: code blocks need blank line after ```, no markdown tables, test in DM first.
 - **Hyperlink all YouTrack ticket references** using Slack mrkdwn `<https://swyfft.myjetbrains.com/youtrack/issue/SW-XXXXX|SW-XXXXX>`. Plain `SW-XXXXX` text doesn't auto-link in Slack.
+- **Version ambiguity**: when a "V1"/"V2" reference could mean either a state config or a lookup, qualify with the class-prefixed shorthand. See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".

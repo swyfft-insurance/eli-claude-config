@@ -18,6 +18,7 @@
   - NY QBE: Coverage B/D start at V2. Coverage C starts at V1, but the rater handles it.
   ```
 - Reply to threads → resolve every thread. Merge queue requires it.
+- **Version ambiguity in replies**: when a "V1"/"V2" reference could mean either a state config or a lookup, qualify with the class-prefixed shorthand. See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".
 - **Gate 2 applies to PR comments.** Draft reply text in your response and wait for explicit approval before posting. This includes thread replies, review comments, and PR body edits.
 - GraphQL for resolving threads: query via `repository.pullRequest.reviewThreads`, NOT via `node(id:)` on PullRequestReviewComment (field doesn't exist).
 - Never use `minimizeComment` — that hides, not resolves.
