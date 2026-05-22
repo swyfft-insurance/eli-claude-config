@@ -75,7 +75,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
 
 ## Step 3: Write the draft
 
-Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). Create the directory if needed.
+Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). The directory already exists — don't pre-check or `mkdir`, just Write.
 
 ### Slack format
 

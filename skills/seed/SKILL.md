@@ -34,26 +34,29 @@ Run via sqlcmd against localhost:
 pwsh -NoProfile -Command "& sqlcmd -S localhost -d SwyfftRating -E -Q \"DELETE FROM EFSeedingHistories WHERE FileName LIKE '{STATE}\HOMEOWNER\BYPERIL\{RATINGTYPE}\%'\" -W"
 ```
 
-## Step 3: Run the seed script
+## Step 3: Run via the Run-Seed.ps1 wrapper
 
-**IMPORTANT:** Append `# via-seed-skill` to bypass the pretooluse hook block.
+The wrapper captures full output to a deterministic file in `$env:TEMP\swyfft-seed\` and prints the tail + exit code so you can verify completion without re-running. Direct invocation of `Seed-*-Local.ps1` is blocked by the pretooluse hook.
 
 For elements:
 ```bash
-pwsh -NoProfile -File "Seed-Elements-Local.ps1" # via-seed-skill
+pwsh -NoProfile -File "$HOME/.claude/scripts/Run-Seed.ps1" -Mode elements
 ```
 Timeout: 300000ms (~5 min).
 
 For full database:
 ```bash
-pwsh -NoProfile -File "Seed-Database-Local.ps1" # via-seed-skill
+pwsh -NoProfile -File "$HOME/.claude/scripts/Run-Seed.ps1" -Mode database
 ```
 Timeout: 600000ms (~10 min).
 
 ## Step 4: Verify
 
-- Exit code 0 = success. Trust it. Do NOT re-run because you "didn't see all the logs."
-- If it fails, check the output for errors. A `"Seeding started on..."` sentinel in the history table means the seed was interrupted — it will auto-retry on the next run.
+The wrapper exits with the seed script's exit code. That's the authoritative signal:
+- Exit 0 = seed completed. Done.
+- Non-zero = seed failed. Read more of the log (`Get-Content -Path <full log path printed by wrapper> -Tail 200`) and diagnose. Do NOT pattern-match log text to second-guess the exit code — fix the script if its exit code is wrong.
+
+A `Seeding started on...` row in `EFSeedingHistories` without a corresponding completion row means a seed was interrupted; the next seed run will auto-retry.
 
 ## Rules
 

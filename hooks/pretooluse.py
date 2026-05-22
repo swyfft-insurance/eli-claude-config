@@ -168,14 +168,19 @@ def main():
             )
             sys.exit(2)
 
-        # BLOCK: Seed scripts must go through /seed skill.
-        # The skill appends "# via-seed-skill" to bypass this block.
-        if re.search(r"Seed-(Elements|Database)-Local\.ps1", cmd) and "# via-seed-skill" not in cmd:
+        # BLOCK: Seed scripts must go through Run-Seed.ps1 wrapper, which captures
+        # full output to a deterministic file so completion is verifiable. Direct
+        # invocation produces truncated stdout that hides whether the seed actually
+        # completed — repeatedly led the agent to guess by running tests.
+        if re.search(r"Seed-(Elements|Database)-Local\.ps1", cmd) and "Run-Seed.ps1" not in cmd:
             print(
-                "BLOCKED: Do NOT run seed scripts without the /seed skill. "
-                "You MUST use /seed — it determines the correct script, "
-                "clears seeding history when needed, and prevents wasting 5+ minutes "
-                "on the wrong seed. Do NOT attempt to bypass this block.",
+                "BLOCKED: Do NOT invoke Seed-Database-Local.ps1 or Seed-Elements-Local.ps1 directly. "
+                "Use the Run-Seed.ps1 wrapper, which captures full output to a deterministic log file "
+                "and prints the tail + exit code so completion is verifiable:\n\n"
+                "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-Seed.ps1\" -Mode database\n"
+                "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-Seed.ps1\" -Mode elements\n\n"
+                "The /seed skill instructions reflect this. Do NOT bypass this block — it exists "
+                "because direct invocation truncates output and hides failures.",
                 file=sys.stderr,
             )
             sys.exit(2)
