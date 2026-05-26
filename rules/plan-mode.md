@@ -5,6 +5,7 @@
 - Don't call ExitPlanMode while actively discussing — wait for conversation to conclude.
 - **ALWAYS FOLLOW THE PLAN.** Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends on a previous step, that's a hard stop — don't proceed until the dependency is satisfied. If you encounter anything that prevents you from adhering to the plan, **HARD STOP** — explain the blocker and wait for instructions. Deviation and disobedience are not allowed.
 - Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.
+- **Verify script args before writing them in plans.** When a plan invokes a script (`Build-Solution.ps1`, `Run-Seed.ps1`, `Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
 - DB queries and log searches are information-gathering — do them DURING planning, not after.
 
 ## Plan File Preamble

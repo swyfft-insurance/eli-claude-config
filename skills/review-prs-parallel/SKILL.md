@@ -83,12 +83,14 @@ PROCESS:
 
 4. For touched files, read base-branch versions via `git show origin/development:...` and form a mental model of the change.
 
-5. Assess only Critical (logic bugs, data loss, security) and Major (broken contracts, missed edges, regression risk). NO nits, NO style.
+5. Assess only Critical (logic bugs, data loss, security) and Major (broken contracts, missed edges, regression risk) **in the CODE**. NO nits, NO style.
+
+**REVIEW THE CODE AGAINST THE TICKET, NOT THE PR DESCRIPTION.** The ticket is the source of truth for what should be built; the code is what got built. Your scope-match check compares those two. The PR description is NOT under review — its only legitimate use is as a hint about where to look in the code (e.g., "the body says they changed X service" → go read that service). Do not compare the diff to the PR body. Do not flag body inaccuracies, "the body says X but the diff does Y", missing release-notes detail, or stale checkboxes. The author can write whatever they want in the body; we don't grade it. The only conceivable exception is a body that would actively mislead a reviewer into approving something dangerous (e.g., "no behavioral change" hiding a risk-rule deletion) — and even then, the underlying CODE finding is what matters, not the body discrepancy. Default position: zero PR-body findings.
 
 OUTPUT FORMAT (<600 words):
 PR #{NUM} — {one-line summary}
 Ticket understanding: {one sentence per ticket}
-Scope match: {yes / explain mismatch}
+Scope match: {yes / explain mismatch — compare the DIFF to the TICKET, not to the PR body}
 Existing review state: {one sentence — bot findings, unresolved threads, prior approvals}
 Findings:
 - [Critical] {desc with file:line}
@@ -108,10 +110,10 @@ If any agent exceeds **1.5× the 5-minute budget** (i.e., >7.5 min wall-clock), 
 
 ### 4. Synthesize and draft
 
-When all agents complete, summarize in a single table (one row per PR):
+When all agents complete, summarize in a single table (one row per PR). **EVERY row MUST include the author** — this is mandatory, no exceptions, in every presentation to Eli (summary tables, recommendation groupings, follow-up updates, restatements, anywhere a PR is named):
 
-| PR | Title | Ticket(s) | Pre-existing state | Findings | My rec |
-|----|-------|-----------|--------------------|----------|--------|
+| PR | Author | Title | Ticket(s) | Pre-existing state | Findings | My rec |
+|----|--------|-------|-----------|--------------------|----------|--------|
 
 Then group recommendations:
 
@@ -171,3 +173,5 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 - **Don't fan out more than ~8 agents at once** — token cost on the user's session is real (`pre-pr-review.md`: "a runaway subagent burns tokens against their session budget").
 - **Don't include banned phrases in agent prompts.** They license unbounded archaeology and burn time.
 - **No mention of the deferred-tool ToolSearch step** unless the agent will actually need YouTrack MCP. If the PR has no ticket, skip the YouTrack step in the prompt entirely.
+- **We do not review PR descriptions.** Code is reviewed against the TICKET (the source of truth for what should be built), never against the PR body. The body is a navigation hint — useful for figuring out where in the code to look — and nothing more. Drop every "body says X but diff does Y" finding by default. Drop "PR description misrepresents the diff" findings. Drop "missing disclosure" findings. The only exception is an active-misleading body that would cause a reviewer to approve something dangerous — and even then, the finding to surface is the underlying CODE issue, not the body discrepancy. If a subagent flags a body issue, strip it from the synthesis silently. Do not surface it as an "FYI", do not list it in a "notes" section, do not mention it parenthetically. Default: zero PR-body findings ever reach Eli.
+- **ALWAYS name the author when presenting a PR.** Every time. Summary tables get an Author column. Recommendation groupings include the author next to each PR number (e.g., "#20760 (justinswyfft)"). Follow-up restatements include the author. Single-PR mentions include the author. This is non-negotiable — Eli needs the human context every time. If you find yourself listing PR numbers without authors, stop and rewrite the list. Capture authors during pre-flight (already done) and use them in every subsequent reference.

@@ -12,6 +12,20 @@
 - **Inline comments only**: When a comment is about a specific file/line, post it as an inline review comment using `gh api` (not `gh pr review --comment`). Top-level review comments are for general feedback that doesn't target a specific location.
 - **Subagent caps**: If you delegate any part of the review to a subagent, the hard caps in `pre-pr-review.md` apply (time, file-read, trace depth, output, stop-early).
 
+## Presenting PRs to Eli
+
+**ALWAYS name the author when presenting a PR. Every single time. No exceptions.**
+
+Eli needs the human context — who wrote it — every time a PR is mentioned. This applies to:
+
+- Summary tables (Author column is mandatory)
+- Recommendation groupings ("#20760 (justinswyfft)", not just "#20760")
+- Single-PR mentions in prose
+- Follow-up restatements ("the 5 remaining" → list them with authors again)
+- Standup, status updates, anywhere
+
+If you find yourself writing a list of PR numbers with no authors attached, stop and rewrite the list. The author is not optional metadata — it's primary context for Eli's decisions.
+
 ## Posting the review
 
 - **Gate 2 applies.** NEVER approve, request changes, or post comments without drafting your review and getting explicit approval first. Present your findings and recommendation, then wait.
