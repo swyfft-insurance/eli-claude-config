@@ -132,11 +132,31 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Write|Edit|EnterPlanMode|ExitPlanMode|mcp__slack__.*|mcp__YouTrackNative__.*|mcp__solarwinds__.*",
+        "matcher": "Bash|PowerShell|Write|Edit|EnterPlanMode|ExitPlanMode|AskUserQuestion|mcp__slack__.*|mcp__YouTrackNative__.*|mcp__solarwinds__.*",
         "hooks": [
           {
             "type": "command",
             "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/pretooluse.py"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/userpromptsubmit.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/stop.py"
           }
         ]
       }

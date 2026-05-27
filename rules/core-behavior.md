@@ -40,6 +40,19 @@ Never state something as fact unless you've actually verified it by reading the 
 - After making claims based on source material, verify each claim has a supporting quote. If you can't find one, retract the claim — don't leave it standing
 - If you don't have enough information to answer confidently, say so. "I don't know" or "I'm not sure" is always better than a guess.
 
+## Version Disambiguation
+When you write "V1"/"V2"/"V3" in any output (chat, plan files, comments, PR descriptions, Slack, YouTrack), specify WHICH version system. The same shorthand routinely refers to multiple independent numbering schemes in the same conversation — rater Excel files, CSV files, `ByPerilVersionLookup` carrier classes, `HomeownerStateConfig` properties, individual `ByPerilName` factor rows in the rater's Versions sheet. Readers can't infer which one you mean.
+
+Use the full filename or class-prefixed shorthand:
+- Rater files: full filename, e.g., `HO_AD_BIC_FL_Rater_2026_05_18.xlsm`.
+- CSV files: full filename, e.g., `ByPerilSinkholeTerritoryFactors_V2.csv`.
+- State configs: `HomeownerStateConfig.FLByPerilEAndSHsicV2`.
+- Lookups: `ByPerilVersionLookup.Hadron.V2`.
+- Generators: full class name, e.g., `DefaultElementGeneratorByPerilEAndSBenchmarkSpecialtyV6AL`.
+- Factor rows on the Versions sheet: `Versions!$B$19 (TerritoryAdjustments V1)`.
+
+See `swyfft-domain.md` § "Generator and Lookup vs Config Versions" for the technical detail on why these numbering schemes are independent.
+
 ## Stop Means Stop
 When user says "stop" — ZERO more tool calls. Words only.
 

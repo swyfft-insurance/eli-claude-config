@@ -84,7 +84,44 @@ TOOL_RULES = [
     (r"^ExitPlanMode$", "coding-standards.md"),
     (r"^ExitPlanMode$", "core-behavior.md"),
     (r"^AskUserQuestion$", "communication.md"),
+    (r"^AskUserQuestion$", "core-behavior.md"),
 ]
+
+
+def check_askuserquestion_warnings(tool_input):
+    """Warn when AskUserQuestion looks like it's smuggling unauthorized action options.
+
+    Common failure: the assistant proposes two actions it wants to take, then asks the
+    user to "pick which one". That's launders a scope decision the user never authorized.
+    Detect option labels that contain action verbs.
+    """
+    warnings = []
+    action_verb_pattern = re.compile(
+        r"\b(fix|apply|update|add|remove|edit|create|implement|copy|delete|rename|modify|"
+        r"replace|overwrite|migrate|move|push|post|send|upload|drop|insert)\b",
+        re.IGNORECASE,
+    )
+    questions = tool_input.get("questions", []) or []
+    for q in questions:
+        if not isinstance(q, dict):
+            continue
+        options = q.get("options", []) or []
+        action_option_count = 0
+        for opt in options:
+            if not isinstance(opt, dict):
+                continue
+            label = opt.get("label", "") or ""
+            if action_verb_pattern.search(label):
+                action_option_count += 1
+        if action_option_count >= 2:
+            warnings.append(
+                "AskUserQuestion has 2+ options whose labels contain action verbs "
+                "(fix/apply/update/edit/etc.). You may be asking the user to disambiguate "
+                "between actions YOU proposed, instead of answering their question or "
+                "asking a neutral clarification. Re-read core-behavior.md § Gate 1."
+            )
+            break
+    return warnings
 
 # Skill name → rules file mappings (for the Skill tool, dispatched by skill parameter)
 SKILL_RULES = [
@@ -137,6 +174,11 @@ def main():
                 content = inject_rules(rules_file)
                 if content:
                     messages.append(f"=== RULES: {rules_file} ===\n{content}")
+
+    # AskUserQuestion-specific guardrail
+    if tool_name == "AskUserQuestion":
+        for warning in check_askuserquestion_warnings(tool_input):
+            messages.append(f"⚠️ ASKUSERQUESTION WARNING: {warning}")
 
     if tool_name in ("Bash", "PowerShell"):
         cmd = tool_input.get("command", "")
