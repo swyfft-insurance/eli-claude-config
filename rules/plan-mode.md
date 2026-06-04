@@ -54,25 +54,6 @@ Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `Commerci
 
 See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
 
-## Step 0.5 — Baseline Captured Asserts (when applicable)
-
-**If the ticket is expected to change captured asserts** (touches `ElementLoader*.cs`, `ConstraintCode.cs`, `HomeownerStateConfig.cs`, `QuoteDefinitions.txt`, or anything captured by `GetDefaultElementsForState` / `GetQuoteDefinitionForQuotePurchase`), do this BEFORE any code changes:
-
-1. Invoke `/seed database`. Full DB reseed is required for the baseline — element-only seed doesn't update `QuoteDefinitions`, state configs, or rater data, so the baseline regen would reflect a stale local DB instead of current development.
-2. Invoke `/prebind-captured-asserts`.
-3. Commit the resulting diff as a baseline catch-up commit:
-   ```
-   {TICKET}: Regenerate {test name} expected results
-
-   Catch-up commit for the {date} {what} that landed in development
-   before this branch. Pure regeneration — no functional changes —
-   kept as a separate commit so the {TICKET} diff stays limited to
-   {ticket scope}.
-   ```
-4. Now start making ticket changes. The ticket's own captured-assert regen at the end can be scoped to whatever the ticket changed (`/seed elements` if you only touched element loaders) — you don't need a full DB reseed again.
-
-If the ticket doesn't touch any of the listed surfaces, skip this step.
-
 ## Plan Types
 
 Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.
