@@ -12,3 +12,26 @@ Refactoring: write safety-net test → run → verify it PASSES → HARD STOP fo
 - Prefer `[Theory]` with `[MemberData]` over `[Fact]` when testing multiple scenarios of the same behavior.
 - Use the real closed set types (e.g., `AnswerYesNo`, `LimitedWaterDamage`) as theory parameters — never hardcode string values that a closed set represents.
 - Use `GetAllValues().ToTheoryData()` to generate theory data from closed sets.
+
+## Failure Aggregation
+
+Tests that iterate over multiple inputs (configs, indices, sheets, theory rows) must NOT stop at the first failure. Collect every failure into a list, then throw `AggregateException` at the end so a single run surfaces ALL failures.
+
+```csharp
+var failures = new List<(string Label, Exception Error)>();
+foreach (var item in items)
+{
+    try { AssertSomething(item); }
+    catch (Exception ex) { failures.Add((item.Label, ex)); }
+}
+if (failures.Count > 0)
+{
+    var messages = failures.Select(f => $"{f.Label}: {f.Error}");
+    throw new AggregateException(
+        $"Failed {failures.Count}/{items.Count}:{Environment.NewLine}" +
+        string.Join(Environment.NewLine + Environment.NewLine, messages),
+        failures.Select(f => f.Error));
+}
+```
+
+Existing examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (both in `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilValidationTestBase.cs`).
