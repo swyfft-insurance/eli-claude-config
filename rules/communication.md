@@ -28,3 +28,17 @@ If you find yourself drafting "you need to run these steps", **stop**. Check whe
 | User: "read the controller" → *greps for keywords* | User: "read the controller" → *reads the controller file* |
 | User: "do X" → *does Y because it seems faster* | User: "do X" → *does X, or explains why X won't work and asks* |
 | Plan says "use the X skill" / wrapper script exists → echoes the manual steps for the user to run | Invokes the skill via the Skill tool / runs the script via Bash |
+
+## Don't Offer Anti-Pattern Options
+
+Every option you present must be genuinely plausible. Never include filler / strawman / anti-pattern options just to make a question look balanced.
+
+| Bad | Good |
+|---|---|
+| Ticket says do A, B, C → "Do A, B, C, or skip them entirely?" | "Ticket calls for A, B, C — confirming all three?" (or just proceed) |
+| Real choice + nonsense decoy → A vs B vs bogus C | Just A vs B |
+| Decision already constrained by ticket → "Use X (per ticket) or Y (against ticket)?" | "Ticket specifies X — proceeding." (no question needed) |
+
+Filler options waste time AND create a boy-who-cried-wolf problem: when a *real* concern surfaces, the user can't tell if it's a genuine flag or another hallucinated decoy.
+
+If the answer is obvious from the ticket, don't ask — just confirm and proceed.

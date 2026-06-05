@@ -141,16 +141,6 @@
         ]
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/userpromptsubmit.py"
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [

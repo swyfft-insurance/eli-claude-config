@@ -2,11 +2,64 @@
 
 > Gate 1.5 applies here — see `core-behavior.md`.
 
+This file is organized into three parts by lifecycle stage:
+
+- **Part A: How to PLAN** — rules that apply while drafting a plan with the user
+- **Part B: REQUIRED CONTENT in every plan file** — what must appear in the plan itself (the `/create-plan-from-ticket` skill enforces this)
+- **Part C: How to EXECUTE the plan** — rules that apply while working through the plan after it's drafted
+
+---
+
+# Part A — How to PLAN
+
+## Discuss Before Drafting
+
+**This is the most important rule in this file.** Plans are co-designed, not generated. Do NOT dump a long plan file as the first response to "plan this." Long plan dumps look thorough but bury bad assumptions in volume — a wrong decision in 200 lines costs far more to unwind than the same decision caught after a single back-and-forth question.
+
+Default workflow:
+1. Ask the foundational architectural questions in tight clusters (2–3 related at a time). Wait for answers.
+2. Summarize decisions back briefly so misunderstandings get caught before they're baked in.
+3. Draft the plan file only after the design is settled — concise outline first, full prose second.
+
+If the user pushes back on any part of an in-flight plan, STOP and discuss — don't silently re-draft the whole thing.
+
+## No Deferred Decisions
+
+A plan resolves open questions. It does not defer them.
+
+Banned phrases that signal a punted decision:
+- "decide when we get there"
+- "figure out later"
+- "TBD"
+- "we'll see what makes sense"
+- "leave as an exercise"
+
+If you catch yourself writing any of these, STOP and go back to Q&A with the user. The whole point of planning is to resolve every open question BEFORE execution starts — a plan that punts decisions to execution is just a TODO list.
+
+If a decision genuinely cannot be made until something is discovered during execution (e.g., the right filter depends on a method name we haven't picked), either:
+1. Resolve the dependent decision NOW (pick the method name during Q&A), OR
+2. Add an explicit HARD STOP at the discovery point, with the deferred decision called out as the reason for stopping.
+
+No silent punts.
+
+## Q&A Options Must Be Genuine
+
+See `~/.claude/rules/communication.md` § "Don't Offer Anti-Pattern Options" — **especially relevant during planning Q&A**. When asking the user to pick between options, every option must be genuinely plausible. Don't pad questions with strawman options the ticket already rules out. If the ticket says do A, B, C, don't ask "do A, B, C or skip them entirely?" — confirm and proceed (or skip the question if the answer is obvious from the ticket).
+
+Filler options during planning are particularly toxic: they slow the discussion, confuse the user into doubting their own reading of the ticket, and erode trust in subsequent genuine concerns.
+
+## Other planner discipline
+
 - Don't call ExitPlanMode while actively discussing — wait for conversation to conclude.
-- **ALWAYS FOLLOW THE PLAN.** Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends on a previous step, that's a hard stop — don't proceed until the dependency is satisfied. If you encounter anything that prevents you from adhering to the plan, **HARD STOP** — explain the blocker and wait for instructions. Deviation and disobedience are not allowed.
 - Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.
 - **Verify script args before writing them in plans.** When a plan invokes a script (`Build-Solution.ps1`, `Run-Seed.ps1`, `Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
 - DB queries and log searches are information-gathering — do them DURING planning, not after.
+
+---
+
+# Part B — REQUIRED CONTENT in every plan file
+
+The `/create-plan-from-ticket` skill enforces this structure. Manual plan files must match the same shape.
 
 ## Plan File Preamble
 
@@ -38,22 +91,6 @@ have explained — that's a planner discipline failure.
 1. Check if the current branch is appropriate for this ticket. `development`, `beta`, and `master` are never appropriate. A branch for a different ticket is never appropriate.
 2. If not, create a new branch with `/create-branch` and push it.
 
-## Line Length
-
-C# code lines must stay at or below **120 characters** including leading indent. This is a hard rule — wrap longer lines at natural punctuation: after commas, before operators, between method-chain links, or after the opening paren of a method call. Applies to `.cs` files only (production code AND tests). Markdown, `.txt` data files, JSON, YAML, etc. are exempt — prose and config wrap differently than code. No exceptions for "readability" within `.cs` — if the line is over, it gets wrapped.
-
-When a wrapped construct has multiple peer items (e.g., theory data rows, parameter lists, collection initializers), pick ONE wrapping pattern and apply it to ALL peers — don't mix single-line and multi-line entries in the same group. Inconsistent wrapping is the worst of both worlds and will be flagged.
-
-This applies only to lines newly written or modified by the current change. Pre-existing long lines that aren't being touched stay as-is — don't hijack the diff to reformat unrelated code.
-
-**Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. Run this before declaring "code complete" on any plan. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
-
-## Seeder Overrides — Required for every new not-yet-live state config
-
-Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig`, or `DbbStateConfig` whose production go-live date is in the future, the plan MUST include a corresponding seeder override entry — concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders — for every new config. The planner is responsible for computing dates that satisfy the strict-monotonic ordering rule. Skip this step only when prod go-live is in the past.
-
-See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
-
 ## Plan Types
 
 Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.
@@ -84,16 +121,20 @@ Every plan must declare its type. The type determines the workflow and mandatory
 3. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
 4. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
 
-## Reacting to Surprises
+## Seeder Overrides — Required for every new not-yet-live state config
 
-**HARD STOP** — If a build fails, a test fails unexpectedly, or anything doesn't match the plan — stop and explain before pivoting. (This is Gate 1.5, applied to plan execution.)
+Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig`, or `DbbStateConfig` whose production go-live date is in the future, the plan MUST include a corresponding seeder override entry — concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders — for every new config. The planner is responsible for computing dates that satisfy the strict-monotonic ordering rule. Skip this step only when prod go-live is in the past.
+
+See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
 
 ## Verification Section Structure
 
-Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material:
+Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material.
+
+**The planner MUST drive verification via Q&A, item by item.** Walk through every AC in the ticket and ask "how do we verify this specifically? what command/test/file-check proves AC #N passes?" Then walk through the canonical generic-verification checklist (in `/create-plan-from-ticket` skill) and ask "does X apply here?" for each. Nothing is auto-included; nothing is assumed.
 
 ### Execution sequence (before pushing)
-Numbered steps in order: build → seed (if data changed, see `~/.claude/rules/seeding.md`) → `/prebind-captured-asserts` + diff review → targeted tests via `Run-DotnetTest.ps1` → `/review-pr`. Each `Run-DotnetTest.ps1` line should cross-reference the test artifact it's exercising (defined in the sections below).
+Numbered steps in order, derived from the AC walk-through and canonical-checklist answers. Each `Run-DotnetTest.ps1` line should cross-reference the test artifact it's exercising (defined in the sections below).
 
 ### Tests to add or modify
 List each new/extended test file with: filename, base class, and a case table (input → expected). One row per scenario. See `~/.claude/rules/testing.md` for TDD workflow and test-writing patterns.
@@ -107,6 +148,34 @@ Tests that should still pass without edits — list with a one-line "why this is
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
 
-## /prebind-captured-asserts is a misnomer
+## `/prebind-captured-asserts` is the default for most plans
 
 The skill name reflects its origin (PreBind captured asserts), but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/prebind-captured-asserts` in the execution sequence.
+
+---
+
+# Part C — How to EXECUTE the plan
+
+## ALWAYS FOLLOW THE PLAN
+
+Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends on a previous step, that's a hard stop — don't proceed until the dependency is satisfied. If you encounter anything that prevents you from adhering to the plan, **HARD STOP** — explain the blocker and wait for instructions. Deviation and disobedience are not allowed.
+
+## Reacting to Surprises
+
+**HARD STOP** — If a build fails, a test fails unexpectedly, or anything doesn't match the plan — stop and explain before pivoting. (This is Gate 1.5, applied to plan execution.)
+
+## Captured Asserts: Read Every Changed File
+
+When a captured-assert regen produces diffs, you MUST individually open and assess every changed file before committing or moving on. No sampling. No "I checked 3 of 28 and the rest looked similar." The captured-assert system exists precisely because each file encodes information your mental model can't reliably predict — sampling defeats its purpose and reintroduces exactly the bugs the system was built to surface.
+
+If a regen touches 30+ files, that's 30+ individual reads. There is no shortcut. Skipping this step is a Gate 3 violation by another name (extrapolating from partial data).
+
+## Line Length
+
+C# code lines must stay at or below **120 characters** including leading indent. This is a hard rule — wrap longer lines at natural punctuation: after commas, before operators, between method-chain links, or after the opening paren of a method call. Applies to `.cs` files only (production code AND tests). Markdown, `.txt` data files, JSON, YAML, etc. are exempt — prose and config wrap differently than code. No exceptions for "readability" within `.cs` — if the line is over, it gets wrapped.
+
+When a wrapped construct has multiple peer items (e.g., theory data rows, parameter lists, collection initializers), pick ONE wrapping pattern and apply it to ALL peers — don't mix single-line and multi-line entries in the same group. Inconsistent wrapping is the worst of both worlds and will be flagged.
+
+This applies only to lines newly written or modified by the current change. Pre-existing long lines that aren't being touched stay as-is — don't hijack the diff to reformat unrelated code.
+
+**Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. Run this before declaring "code complete" on any plan. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
