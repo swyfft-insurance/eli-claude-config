@@ -181,3 +181,16 @@ When a wrapped construct has multiple peer items (e.g., theory data rows, parame
 This applies only to lines newly written or modified by the current change. Pre-existing long lines that aren't being touched stay as-is — don't hijack the diff to reformat unrelated code.
 
 **Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. Run this before declaring "code complete" on any plan. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
+
+## Magic Numbers / Strings
+
+Hardcoded numeric / string literals must be extracted to named constants. Even sentinels like `int.MaxValue` used to mean "no limit" get a named alias — the name encodes intent the value alone doesn't. Applies to plan code excerpts AND executed code.
+
+Bad: `RenderSheet(ws, int.MaxValue, 64, lines.Add);`
+
+Good:
+```csharp
+const int allRows = int.MaxValue;
+const int maxColumnsToCapture = 64;
+RenderSheet(ws, allRows, maxColumnsToCapture, lines.Add);
+```

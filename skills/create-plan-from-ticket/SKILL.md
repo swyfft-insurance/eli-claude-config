@@ -9,6 +9,8 @@ This skill enforces the planning rules in `~/.claude/rules/plan-mode.md`. Its pu
 
 > **The agent's strongest temptation is to skip Q&A and jump to the plan. Resist it. The whole point of this skill is the conversation BEFORE the plan file gets written.**
 
+> **BETWEEN EVERY STEP — re-read `~/.claude/rules/plan-mode.md`.** Even if you "just read it" two minutes ago. Even if it appeared in a system reminder at session start. The rules drift out of working memory faster than recall suggests — most violations the agent commits during a step (dumping a plan blob, calling ExitPlanMode mid-discussion, skipping verification subsections, guessing at script args, deferring decisions, asking anti-pattern questions) are violations of rules already in `plan-mode.md`. The cost of re-reading is small; the cost of a rule violation is enormous user-facing frustration. Skipping with "I just read it" is the exact pattern this checkpoint exists to prevent. Re-read at every step transition, no exceptions.
+
 ## Invocation
 
 ```
@@ -23,15 +25,21 @@ The ticket ID is **required**. If the user runs `/create-plan-from-ticket` with 
 
 **Read every file in `~/.claude/rules/*.md` before doing anything else.** No skipping based on "I think I remember this one." The user has repeatedly been frustrated when the agent operates from partial recall of the rules. Load them all.
 
+**The system reminder at session start does NOT count as "loaded".** Those reminders fade from working memory as Q&A and code reads pile on. You MUST call `Read` on each file in `~/.claude/rules/*.md` as the first action of skill invocation — even if the content appears verbatim in an earlier system reminder. The act of issuing the Read calls is what keeps the rules in recent context. Skipping with "they're already in my context" is the exact failure mode this step exists to prevent.
+
 ```bash
 ls ~/.claude/rules/*.md
 ```
 
 Then read each one with the `Read` tool.
 
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
+
 ## Step 2 — Read the ticket
 
 Invoke `/read-ticket SW-XXXXX` to fetch the ticket's full content: description, all comments, custom fields, linked issues, and downloaded attachments. Walk through it carefully — do NOT skim. The ticket is the source of truth for ACs, scope, and most architectural decisions.
+
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
 ## Step 3 — Subsystem pre-reads
 
@@ -40,6 +48,8 @@ Auto-detect which subsystems the ticket touches by scanning the ticket body, ACs
 Then **present the detected list to the user** and ask: "Are these the subsystems we need to pre-read? Add/remove any?" Do NOT just read them silently — the user may know about a subsystem you missed, or want to drop one that's not really in scope.
 
 Once confirmed, read each `CLAUDE.md` file in the agreed set.
+
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
 ## Step 4 — Detect existing plan file
 
@@ -50,6 +60,8 @@ Check for `~/.claude/plans/{ticket-id-lowercase}-*.md`. If found, offer three op
 3. **Abort** — exit without changes
 
 If no existing file, proceed to Step 5.
+
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
 ## Step 5 — Q&A — Architecture (the main event)
 
@@ -97,6 +109,8 @@ After each cluster of questions, you may ask "ready to draft the outline?" — b
 - Asking questions whose answers are obvious from the ticket — just confirm and proceed
 - Letting Pass 2 do most of the work because Pass 1 was lazy
 
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
+
 ## Step 6 — Q&A — Verification
 
 Build the verification section by asking, item by item. Two sub-passes:
@@ -136,6 +150,8 @@ Walk through every item in the checklist below and ask "does this apply to this 
 
 After AC walk + checklist sweep, ask the user: **"Anything else specific to this change that should be verified?"** — to catch verification needs that fit neither bucket.
 
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
+
 ## Step 7 — Iterative outline loop
 
 Draft a **concise outline** in chat (not the full plan). The outline shows section structure and key decisions, not full prose, not all the research details.
@@ -146,6 +162,16 @@ Then ask: **"Outline good as-is, or want revisions?"**
 - Default behavior = continue iterating, not "done"
 - Loop ends only when the user explicitly says "good as-is" / "write it" / equivalent
 - **Banned:** declaring the outline "done" without explicit user approval. Outlines may take multiple drafts.
+
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
+
+## Step 7.5 — Re-read `plan-mode.md` before writing the plan file
+
+By the time the outline has been iterated, the structural requirements from `plan-mode.md` (concise-outline-vs-full-prose rule, required Verification subsections, AC coverage map, failure aggregation pattern, "no deferred decisions") have been pushed out of working memory by Q&A and codebase reads. Don't rely on recall.
+
+`Read` `~/.claude/rules/plan-mode.md` again, then proceed to Step 8.
+
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
 ## Step 8 — Write the full plan to file
 
@@ -192,6 +218,8 @@ Phrases that signal a deferred decision (per plan-mode.md Part A § "No Deferred
 
 If any of these appear in your draft, STOP and go back to Q&A.
 
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
+
 ## Step 9 — Ask "execute now?"
 
 After writing the plan file, prompt:
@@ -200,6 +228,8 @@ After writing the plan file, prompt:
 
 - `y` → proceed to Step 0 of the plan (`/create-branch`) and walk through the plan honoring its HARD STOPs (plan-mode.md Part C)
 - `n` → exit. User will decide later when/whether to execute
+
+**HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before plan execution (Part C) begins. No exceptions. No "I just read it." No "I remember the rules."**
 
 ---
 
