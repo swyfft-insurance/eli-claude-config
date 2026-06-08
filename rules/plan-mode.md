@@ -150,6 +150,10 @@ Tests that should still pass without edits — list with a one-line "why this is
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
 
+### Transition out of verification
+
+Verification ends when (a) all agreed-upon tests pass and (b) the user explicitly agrees we're "done". The post-test-approval sequence (commit + push → adversarial review → PR draft → PR creation) is **not part of verification** and is governed by Part C § "Post-Test-Approval Sequence".
+
 ## `/prebind-captured-asserts` is the default for most plans
 
 The skill name reflects its origin (PreBind captured asserts), but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/prebind-captured-asserts` in the execution sequence.
@@ -165,6 +169,18 @@ Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends
 ## Reacting to Surprises
 
 **HARD STOP** — If a build fails, a test fails unexpectedly, or anything doesn't match the plan — stop and explain before pivoting. (This is Gate 1.5, applied to plan execution.)
+
+## Post-Test-Approval Sequence
+
+Picks up where verification ends (tests pass + user agrees we're "done"). The sequence to PR is fixed:
+
+1. Ask once for approval to commit and push (single action — no separate ask for each).
+2. Commit (`SW-XXXXX: <summary>` per `git-safety.md` / project CLAUDE.md) and push (verify tracking via `git branch -vv` first).
+3. Run `/review-pr` against the pushed state.
+4. **Discuss `/review-pr` findings with the user.** Don't autonomously start fixing. `/review-pr` is the first reviewer of completed work, not a safety net — plan for it to find nothing.
+5. If findings warrant action: push ONE additional commit. **Do not run a second `/review-pr` after that commit.** One adversarial review per branch, full stop.
+6. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md` before drafting the PR description.** No exceptions. No "I just read it." No "I remember the rules." Then draft the PR description following those rules.
+7. **HARD STOP** — wait for approval, then create the PR.
 
 ## Captured Asserts: Read Every Changed File
 
