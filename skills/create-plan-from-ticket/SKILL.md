@@ -131,8 +131,7 @@ Walk through every item in the checklist below and ask "does this apply to this 
 
 | Item | Trigger to mark "yes" |
 |---|---|
-| Build solution (`pwsh ./Build-Solution.ps1`) | Any `.cs` change |
-| Line length check (`Test-LineLength.ps1 -Mode local`) | Any `.cs` change |
+| Build solution (`pwsh ./Build-Solution.ps1` — runs `Test-LineLength.ps1 -Mode local` internally as a pre-build gate; do NOT list line-length as a separate step) | Any `.cs` change |
 | Targeted tests on touched project via `Run-DotnetTest.ps1` | Any production code change |
 | Adversarial review (`/review-pr`) | Always |
 | YouTrack stage → Review after PR creation | Always |

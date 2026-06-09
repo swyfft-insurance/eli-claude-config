@@ -64,6 +64,7 @@ def inject_rules(filename):
 # Bash command → rules file mappings
 BASH_RULES = [
     (r"git\s+(push|commit|checkout|branch|merge|rebase|reset|cherry-pick)", "git-safety.md"),
+    (r"git\s+(log|blame|show)", "investigation.md"),
     (r"gh\s+pr\s+(create|edit)", "pr-creation.md"),
     (r"gh\s+pr\s+review", "pr-theirs-review.md"),
     (r"gh\s+", "pr-mine-address-feedback.md"),
@@ -406,6 +407,32 @@ def main():
                 file=sys.stderr,
             )
             sys.exit(2)
+
+        # BLOCK: unscoped `git log` — the whole-repo history sweep (research strategy, not safety).
+        # git blame (file-scoped) and git show (object-scoped) are always fine; only an
+        # unscoped/unbounded `git log` is blocked. The /file-history skill appends
+        # "# via-file-history-skill" to bypass. Allowed when scoped (path / -L) or bounded
+        # (revision range / commit limit).
+        if re.search(r"git\s+log\b", cmd) and "# via-file-history-skill" not in cmd:
+            has_pickaxe = re.search(r"\s-[SG]\b", cmd)
+            has_path = re.search(r"\s--\s\S", cmd)
+            has_range = re.search(r"\.\.", cmd)
+            has_limit = re.search(r"--max-count|\s-n\s+\d|\s-\d+\b", cmd)
+            has_line_log = re.search(r"\s-L\b", cmd)
+            scoped_or_bounded = has_path or has_range or has_limit or has_line_log
+            if (has_pickaxe and not has_path) or not scoped_or_bounded:
+                print(
+                    "BLOCKED: unscoped `git log` walks the ENTIRE repo history (the wasteful sweep). "
+                    "Scope or bound it, or use the /file-history skill:\n"
+                    "  git log -L :Method:path/File.cs        (one method's history)\n"
+                    "  git blame -L <a>,<b> -- path/File.cs    (who/when changed lines)\n"
+                    "  git log -S \"<string>\" -- path/File.cs   (when a string entered/left a file)\n"
+                    "  git log development..HEAD               (commits on this branch — PR review)\n"
+                    "  git log --oneline -20                   (recent commits, bounded)\n"
+                    "Commit messages carry the SW- prefix (= the ticket); else trace the PR via gh.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
 
         messages.extend(check_bash_warnings(cmd))
         # Check bash command matches for rules injection
