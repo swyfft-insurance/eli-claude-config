@@ -1,8 +1,10 @@
 # Comments and Documentation
 
-> Default to writing none. Add one only when the WHY is non-obvious and would mean something to a reader who opens the file in two years with no knowledge of the PR, plan, or session that produced it.
+> I like comments — specifically ones that capture the **business reason / intent** behind code. Write them as a habit on any non-trivial logic (see § How to write one) — they're the record of what the code was *meant* to do, which is exactly what you need when it turns out to be wrong.
 >
-> Applies to **everything you write that persists in the repo**: code comments, CLAUDE.md sections, signposts, docstrings, rule files, in-repo notes.
+> What to avoid is the comment that merely **restates what the code does**, or that only makes sense within the current work session — those rot (see § Banned).
+>
+> Applies to everything that persists in the repo: code comments, docstrings, CLAUDE.md sections, rule files, in-repo notes.
 
 ## The failure mode
 
@@ -25,3 +27,16 @@ I scope what I write to the current plan/work session — framing defaults in te
 
 ## The test
 Read what you wrote as if you've never seen the PR or plan. Does it still mean something concrete? If the meaning requires knowing what this specific work session was about, rewrite. If it would still make sense to a reader who's never met the codebase, leave it.
+
+## How to write one (when warranted)
+
+**Why these rules exist:** developers can already read code — a comment explaining what `Math.Clamp` does is noise. What code *can't* tell you is the **business reason** it was written and **what the developer was trying to achieve**. That intent is the entire value: it lets a future reader confirm the code actually does what was intended — and it matters most precisely when the code turns out to be *wrong*, because the comment is the only record of what it was *supposed* to do while you're debugging it.
+
+Default audience is therefore the **non-technical stakeholder who wrote the requirement** (the UW/Biz person), not a fellow engineer. If they couldn't follow it, it's not done.
+
+- **Explain what each block ACHIEVES (the business goal), not how it mechanically works.** "If the quote is created during wind season, it's good for 7 days" — not "the `IsBetween` guard returns the in-season floor."
+- **Lead with the goal/behavior; mechanism second, and only the non-obvious part.** State the business outcome first. Add a mechanism note only for the one genuinely subtle step — never a play-by-play of every line.
+- **No jargon or notation.** Banned in comment prose: "clamp", "ternary", "predicate", interval notation like `[7, 30]`, bare type/member names (`DayNumber`), and pseudo-code equations crammed into a sentence. Say "never fewer than 7 or more than 30", not "clamped to [7, 30]".
+- **If the ticket or stakeholder already described it in plain English, use that wording verbatim.** Don't paraphrase a clear requirement into worse prose — quote it.
+- **Concrete examples beat abstract description.** Dates and values ("created May 20 → expires June 1") land faster than a general rule.
+- **The test:** read it back as the requirement-writer. If a non-coder couldn't follow how the code meets their ask, rewrite.

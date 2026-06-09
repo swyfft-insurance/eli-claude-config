@@ -223,3 +223,10 @@ const int allRows = int.MaxValue;
 const int maxColumnsToCapture = 64;
 RenderSheet(ws, allRows, maxColumnsToCapture, lines.Add);
 ```
+
+## Comments
+
+When implementing non-trivial business logic, add an intent/business-reason comment per
+`~/.claude/rules/code-comments.md` § "How to write one" — explain in plain language what the code
+is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
+is a default habit, not an afterthought.

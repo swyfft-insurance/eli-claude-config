@@ -59,7 +59,7 @@ Only address **actionable** points — things that require a code change, an exp
   2. **Code block:** the commented line(s), in a fenced code block
   3. **Comment quote:** the reviewer's exact text in a blockquote
   4. **Thread context (when present):** other replies on the same thread, e.g. "Justin replied: X"
-  5. **Steelman:** one sentence stating the STRONGEST version of the reviewer's concern, written as if you agreed with it. Do this BEFORE the recommendation — it forces genuine engagement and blocks reflexive dismissal. You cannot recommend declining a concern you haven't first stated at full strength.
+  5. **Strongest case for the comment:** one sentence stating the strongest, most convincing version of the reviewer's concern, written as if you agreed with it. Do this BEFORE the recommendation — it forces genuine engagement and blocks reflexive dismissal. You cannot recommend declining a concern you haven't first stated at full strength.
   6. **Recommendation:** your pick + one-sentence reason. If the pick is **decline** or **skip**, the reason must state whether it rests on a *structural guarantee* (and cite the enforcing mechanism) or merely on *current state*. If it's only current state, declining a future-proofing comment is not permitted (see Important §).
   7. **Options:** lettered list (a, b, c...)
 - **Original comment + code go inline.** The user should never have to scroll to find what they're answering. Always quote the reviewer's exact text AND include the commented code lines.
@@ -81,7 +81,7 @@ public static HomeownerStateConfig ALByPerilEAndSBenchmarkSpecialtyV15 { get; } 
 
 > This newly introduced public config property doesn't have the usual summary/ticket context that the surrounding versioned configs have. Consider adding a brief `/// <summary>` (e.g., referencing SW-50765).
 
-**Steelman:** a developer landing on this config cold has no inline pointer to the ticket or rationale.
+**Strongest case for the comment:** a developer landing on this config cold has no inline pointer to the ticket or rationale.
 
 **Recommendation:** a — none of the surrounding V_prev configs carry summaries either; a summary here would be a new pattern, not parity (current-state basis; not a future-proofing comment, so declining is permitted).
 
@@ -103,7 +103,7 @@ public static HomeownerStateConfig ALByPerilEAndSBenchmarkSpecialtyV15 { get; } 
 
 > The XML doc says 'name is intentionally omitted' but the ctor actually has a `name` parameter (and forwards it). Consider rewording.
 
-**Steelman:** the doc comment directly contradicts the signature it documents, so a reader will trust a false statement about how the ctor behaves.
+**Strongest case for the comment:** the doc comment directly contradicts the signature it documents, so a reader will trust a false statement about how the ctor behaves.
 
 **Recommendation:** a — Copilot's right, wording's confusing.
 
@@ -123,7 +123,7 @@ name: name,
 
 Justin replied: *"That would be wrong as it would default to the previous config's name. By passing null to the other constructor it will default it to the correct name."*
 
-**Steelman:** `name` behaving differently from every other param is an unstated invariant; encoding it in the drift test would make the intent enforced rather than assumed.
+**Strongest case for the comment:** `name` behaving differently from every other param is an unstated invariant; encoding it in the drift test would make the intent enforced rather than assumed.
 
 **Recommendation:** d — Justin's reply stands; the only remaining suggestion (allow-list `name` in the drift test) is low-value relative to its upkeep cost.
 
