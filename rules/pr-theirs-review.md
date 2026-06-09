@@ -9,7 +9,7 @@
 ## Reviewing the diff
 
 - Only comment on fundamental bugs or red flags. No nits, no style comments.
-- **Inline comments only**: When a comment is about a specific file/line, post it as an inline review comment using `gh api` (not `gh pr review --comment`). Top-level review comments are for general feedback that doesn't target a specific location.
+- **Inline comments only**: When a comment is about a specific file/line, post it as an inline review comment (via `pr-review.py comment --inline`, which attaches each finding to its `path`/`line`). Top-level review comments are for general feedback that doesn't target a specific location.
 - **Subagent caps**: If you delegate any part of the review to a subagent, the hard caps in `pre-pr-review.md` apply (time, file-read, trace depth, output, stop-early).
 
 ## Presenting PRs to Eli
@@ -28,8 +28,9 @@ If you find yourself writing a list of PR numbers with no authors attached, stop
 
 ## Posting the review
 
+- **All posting goes through `~/.claude/scripts/pr-review.py`** (`approve` / `comment --inline <json>` / `request-changes --body-file <f>`). Raw `gh pr review`, `gh pr comment`, and `gh api ... POST .../reviews|/comments` are blocked by the pretooluse hook. The script sends bodies verbatim via `gh api --input` and reads each one back to confirm it landed — exit non-zero means nothing reliable posted, so don't claim success. Reads (`gh pr view`, `gh api ... GET`) are not blocked.
 - **Gate 2 applies.** NEVER approve, request changes, or post comments without drafting your review and getting explicit approval first. Present your findings and recommendation, then wait.
-- **Approvals don't need body text.** Once findings are presented and the user says to approve, just run `gh pr review --approve`. Don't draft "approval text" — the findings themselves are the review.
+- **Approvals don't need body text.** Once findings are presented and the user says to approve, just run `pr-review.py approve <PR#>`. Don't draft "approval text" — the findings themselves are the review.
 
 ## Review actions (least to most severe)
 

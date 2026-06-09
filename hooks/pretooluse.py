@@ -385,6 +385,28 @@ def main():
             )
             sys.exit(2)
 
+        # BLOCK: Raw PR review/comment WRITES — must use ~/.claude/scripts/pr-review.py.
+        # Writes only: `gh pr review`, `gh pr comment`, and `gh api` POSTs that CREATE a
+        # review/comment. Reads are deliberately left alone — `gh pr view --json
+        # reviews,comments`, any `gh api ... GET`, and the script's own read-back all pass.
+        gh_pr_write = re.search(r"\bgh\s+pr\s+(review|comment)\b", cmd)
+        gh_api_create = (
+            re.search(r"\bgh\s+api\b", cmd)
+            and re.search(r"pulls/\d+/(reviews|comments)\b", cmd)
+            and re.search(r"(-X\s*POST|-XPOST|--method\s+POST)", cmd)
+        )
+        if (gh_pr_write or gh_api_create) and not re.search(r"pr-review\.py|pr-feedback", cmd):
+            print(
+                "BLOCKED: Do not post PR reviews/comments directly. "
+                "Use ~/.claude/scripts/pr-review.py (approve | comment --inline <json> | "
+                "request-changes --body-file <f>). It sends bodies verbatim via `gh api "
+                "--input` and reads each one back to confirm it landed — preventing the "
+                "literal-@file / mangled-body class of bug. Reads (gh pr view, gh api GET) "
+                "are not blocked.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         messages.extend(check_bash_warnings(cmd))
         # Check bash command matches for rules injection
         for pattern, rules_file in BASH_RULES:

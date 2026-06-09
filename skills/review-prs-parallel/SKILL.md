@@ -117,7 +117,7 @@ When all agents complete, summarize in a single table (one row per PR). **EVERY 
 
 Then group recommendations:
 
-- **Clean — Approve (plain)**: list PRs with "No critical/major findings". `gh pr review --approve` only — no body text.
+- **Clean — Approve (plain)**: list PRs with "No critical/major findings". `pr-review.py approve {NUM}` only — no body text.
 - **Has findings — Comment + inline**: list PRs with [Major]+ findings. Draft each inline comment as `file:line — finding text` so Eli can pick which to post.
 - **Hold**: drafts, already-changes-requested PRs, or anything where the right move is "wait" rather than "act".
 
@@ -127,39 +127,44 @@ The user must reply with the actions to execute (e.g., "approve the clean four",
 
 ### 6. Execute approved actions
 
+All posting goes through `~/.claude/scripts/pr-review.py` — raw `gh pr review` / `gh pr
+comment` / `gh api ... POST .../reviews` are blocked by the pretooluse hook. The script
+sends bodies verbatim via `gh api --input` (no `-f`/`-F` footgun, no hook newline-splitting)
+and reads each one back to confirm it landed before reporting success.
+
 **Plain approve (no body):**
 
 ```bash
-gh pr review {NUM} --approve --repo swyfft-insurance/swyfft_web
+python ~/.claude/scripts/pr-review.py approve {NUM}
 ```
 
 **Comment-only review (no approval) with inline findings:**
 
-Get the head commit SHA, then post a review with `comments[]`:
+Write the inline findings to a JSON array file, then post. Each element needs `path`,
+`line`, `body` (`side` defaults to `RIGHT`). Bodies live in the JSON as plain strings —
+write multi-line/Unicode text directly, no escaping gymnastics.
 
 ```bash
-HEAD_SHA=$(gh pr view {NUM} --repo swyfft-insurance/swyfft_web --json headRefOid -q .headRefOid)
+cat > /tmp/inline.json <<'JSON'
+[
+  {"path": "path/to/file.cs", "line": 42, "body": "Finding text…"},
+  {"path": "path/to/other.cs", "line": 100, "body": "Second finding…"}
+]
+JSON
 
-gh api repos/swyfft-insurance/swyfft_web/pulls/{NUM}/reviews \
-  -X POST \
-  -F commit_id="$HEAD_SHA" \
-  -F event="COMMENT" \
-  -f "comments[][path]=path/to/file.cs" \
-  -F "comments[][line]=42" \
-  -f "comments[][side]=RIGHT" \
-  -f "comments[][body]=Finding text…" \
-  -f "comments[][path]=path/to/other.cs" \
-  -F "comments[][line]=100" \
-  -f "comments[][side]=RIGHT" \
-  -f "comments[][body]=Second finding…"
+python ~/.claude/scripts/pr-review.py comment {NUM} --inline /tmp/inline.json
+```
+
+**Request changes** (only if Eli explicitly says so) — body required, inline optional:
+
+```bash
+python ~/.claude/scripts/pr-review.py request-changes {NUM} --body-file /tmp/body.txt --inline /tmp/inline.json
 ```
 
 Notes:
-- `event="COMMENT"` for has-findings-but-not-blocking. `event="REQUEST_CHANGES"` if Eli explicitly says so.
-- `event="APPROVE"` with `comments[]` for approve-with-inline (rare — usually approve plain instead).
-- For multiline-string bodies, prefer writing the body to a temp file and `-F "comments[][body]=@/tmp/body.txt"` — the `block-prod-db.ps1` hook splits on newlines and false-positives on inline multiline `-f` args.
-
-Confirm each post with `gh pr view {NUM} --json reviews -q '.reviews[-3:]'` and check the latest entry shows `eli-swyfft`.
+- `--repo` defaults to `swyfft-insurance/swyfft_web`; pass `--repo OWNER/REPO` for others.
+- The script aborts non-zero if a posted body doesn't read back verbatim — so a non-zero
+  exit means nothing reliable landed; investigate, don't assume success.
 
 ### 7. Cleanup
 
@@ -169,7 +174,7 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 
 - **Approval status is irrelevant to the review.** If Eli asked you to review a PR, review it with full rigor regardless of whether it's already approved, has changes requested, or is in draft. Never flag "this is already approved" or "this already has changes requested" back to Eli in pre-flight as if it might change his mind — he picked these PRs knowing the state, and others can miss things he wouldn't. Approval status only matters at the action stage (which verb to use when posting), not at the review stage. Don't pass it into the agent prompt either — the agent reads existing reviews via `gh pr view --json reviews` to avoid duplicating findings, and that's sufficient.
 - **Gate 1.5**: If a finding makes me question whether a PR should be approved at all, STOP and ask Eli. Don't pivot from "clean approve" to "comment-only" on my own.
-- **Gate 2**: Every `gh pr review`, every `gh api ...reviews` POST waits for explicit approval. Acknowledgements aren't approval.
+- **Gate 2**: Every `pr-review.py` write (approve / comment / request-changes) waits for explicit approval. Acknowledgements aren't approval.
 - **Don't fan out more than ~8 agents at once** — token cost on the user's session is real (`pre-pr-review.md`: "a runaway subagent burns tokens against their session budget").
 - **Don't include banned phrases in agent prompts.** They license unbounded archaeology and burn time.
 - **No mention of the deferred-tool ToolSearch step** unless the agent will actually need YouTrack MCP. If the PR has no ticket, skip the YouTrack step in the prompt entirely.

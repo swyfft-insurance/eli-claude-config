@@ -170,6 +170,19 @@ Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends
 
 **HARD STOP** — If a build fails, a test fails unexpectedly, or anything doesn't match the plan — stop and explain before pivoting. (This is Gate 1.5, applied to plan execution.)
 
+## Build Once, Run Tests in Parallel
+
+When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ./Build-Solution.ps1`, then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls).
+
+**This applies to every test invocation in the parallel block** — `Run-DotnetTest.ps1`, test-running skills like `/prebind-captured-asserts`, or any wrapper script. **Before adding any invocation to a parallel block, verify its build behavior** — `Read` its SKILL.md / script `param(...)` block. If it builds by default, pass `-NoBuild` (or equivalent skip-build flag).
+
+Don't:
+- Let any invocation build implicitly when others are also running — multiplies build time AND causes build contention (parallel builds fight over output files/locks).
+- Assume a skill/script doesn't build because its description doesn't mention building. Verify by reading the source.
+- Run independent test suites sequentially.
+
+See `~/.claude/rules/testing-execution.md` § "Test Output — Run-DotnetTest.ps1" for `-NoBuild` parameter details.
+
 ## Post-Test-Approval Sequence
 
 Picks up where verification ends (tests pass + user agrees we're "done"). The sequence to PR is fixed:
