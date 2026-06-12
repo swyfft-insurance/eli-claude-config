@@ -28,3 +28,12 @@ plugins/
 projects/
 settings.local.json
 image-cache/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Claude machine/remote-managed state (re-synced locally; don't track)
+.last-*
+remote-settings.json
+policy-limits.json
