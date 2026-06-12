@@ -165,6 +165,13 @@ Always read the seeding/sheet-mapping, rater-service, and validation-test docs �
 4. **Implement** the C# the diff dictates (map below).
 5. **Verify.** Run the validation suite again (baselines auto-update on the run; review the diff) — now it also reflects the version wiring — plus `/prebind-captured-asserts`; confirm the final diff matches the scope with nothing unexpected, and the C# premium == Excel across all indices.
 
+### Ignore the `version_history` sheet
+
+`version_history` is the actuary's free-text changelog — not consumed by any premium
+calculation. A new rater routinely adds log rows, sometimes backfilling notes about factors
+that were already live. Read it for context if you want, but never scrutinize its diff or
+treat a log row as evidence of a functional change.
+
 ### Why the baseline diff, not `DumpRater`
 
 `RaterFileContents_ShouldMatchCaptured` (SW-50657) writes canonical, code-controlled inputs via `SetExcelValues` before dumping, so it reflects only the rater's factors/formulas/structure — never the stray inputs someone left in the file from clicking around. A raw `DumpRater` of the on-disk file carries that drift; it's ad-hoc debugging only. The diff is the same drift-free mechanism at both step-3 scoping and step-5 verification.
