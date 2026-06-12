@@ -135,7 +135,11 @@ See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the
 **Every plan that makes a version-gated `HomeownerStateConfig` change MUST address both principles below. No exceptions.** A version-gated change is any change confined to specific config versions — a new version, a fold into a parked version, or in-place on a not-yet-live V1. This is a required, reviewed checkpoint: if a plan touches a gated config and doesn't explicitly cover both points, it is incomplete — HARD STOP and fix it before execution.
 
 1. **Prefer folding over stacking — *only* as a default when the ticket is silent on version structure.** When the ticket or epic explicitly dictates fold vs stack, follow the ticket — it takes precedence, and you do NOT justify the choice or label it a "deviation" in code, doc comments, or the plan. You're implementing the requirement, not departing from a rule.
-2. **Document every feature each touched config activates.** (Always required, independent of fold vs stack.)
+2. **Document every feature each touched config activates** (always required, independent of fold vs stack). Unlike most code comments, these carry real weight: the requirement owner reads them — from the code alone — to decide what ships and when, since the config is otherwise just a version number. Get one wrong and a config's changes can ship unrecognized, or activate at an unexpected time.
+
+   Versioned work is gated by the config version you associate it with, so it's simple:
+   - **Piggybacking an existing config:** add your ticket to that config's comment.
+   - **Creating a new config:** put your ticket in the new config's comment.
 
 Both are defined in `Swyfft.Services/Common/Homeowner/CLAUDE.md` §§ "Prefer Folding Over Stacking" and "Document Every Feature a Config Activates" — read them every time; don't work from memory. The plan MUST name every config it will touch and, for each, the exact feature list its doc comment will carry. Treat a missing feature-doc list the same as a missing seeder override or a missing test — the plan is not done without it.
 
