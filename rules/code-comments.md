@@ -25,6 +25,17 @@ I scope what I write to the current plan/work session — framing defaults in te
 - File:line cross-references — useful starting points.
 - Domain rules, regulatory cites, hidden constraints, invariants.
 
+## Be concise and human
+
+A comment is a quick aside to a colleague, not an essay. Default to one or two plain sentences. More is occasionally fine when the meaning genuinely needs it — but that's the exception. The real failure mode is the giant blob of word-slop: it's exhausting to read and usually says little. When in doubt, cut.
+
+- **Short.** Say the point once. If it runs past ~2 sentences or wraps several lines, cut it down.
+- **Plain.** Write like you'd say it out loud. No jargon, no notation, no member names jammed into prose.
+- **No throat-clearing.** Cut "note that", "in order to", "deliberately", and anything that restates the code.
+
+Bad: *"Capping the roof age changes the price, so the cap only takes effect on versions at or above the point each line introduced it; every version at or below the ones listed here stays uncapped."*
+Good: *"These are the versions from before the cap — they keep the old uncapped roof age so live policies don't change."*
+
 ## The test
 Read what you wrote as if you've never seen the PR or plan. Does it still mean something concrete? If the meaning requires knowing what this specific work session was about, rewrite. If it would still make sense to a reader who's never met the codebase, leave it.
 
@@ -40,3 +51,4 @@ Default audience is therefore the **non-technical stakeholder who wrote the requ
 - **If the ticket or stakeholder already described it in plain English, use that wording verbatim.** Don't paraphrase a clear requirement into worse prose — quote it.
 - **Concrete examples beat abstract description.** Dates and values ("created May 20 → expires June 1") land faster than a general rule.
 - **The test:** read it back as the requirement-writer. If a non-coder couldn't follow how the code meets their ask, rewrite.
+- **No ambiguous references.** When more than one noun could be the antecedent, repeat the noun instead of "it"/"this"/"that"/"they". See `~/.claude/rules/communication.md` § "No Ambiguous References".

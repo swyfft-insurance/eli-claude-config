@@ -1,10 +1,41 @@
 param(
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    [switch]$ListTests,
+    [ValidateSet('full', 'classes', 'methods', 'tests', 'traits')]
+    [string]$ListLevel = 'methods'
 )
 
 $ErrorActionPreference = 'Stop'
 
 $scriptPath = Join-Path $HOME ".claude" "scripts" "Run-DotnetTest.ps1"
+
+$trait = "TestGroup=PreBindResidentialCapturedAssertTests"
+$projects = @(
+    "Swyfft.Services.UnitTests",
+    "Swyfft.Services.IntegrationTests",
+    "Swyfft.Seeding.IntegrationTests"
+)
+
+# --- List-tests mode (read-only): show exactly which tests this skill covers, no regeneration ---
+# Use before listing tests in a plan's verification section so you don't double-list a test the
+# skill already runs. Delegates to Run-DotnetTest.ps1 -ListTests (xUnit v3 native `-list`).
+# Output is grouped and prefixed by project so it's clear which project each test comes from.
+if ($ListTests) {
+    $grandTotal = 0
+    foreach ($proj in $projects) {
+        Write-Host "==================== $proj ($trait) ====================" -ForegroundColor Cyan
+        $raw = & $scriptPath -Project $proj -ListTests -ListLevel $ListLevel -FilterTrait $trait 2>&1
+        # Keep only discovered test FQNs (they start with "Swyfft."); drop the runner/wrapper banner.
+        $tests = @($raw | Where-Object { $_ -is [string] -and $_ -match '^Swyfft\.' })
+        foreach ($t in $tests) { Write-Host "[$proj] $t" }
+        Write-Host ("  -> {0} test(s) in {1}" -f $tests.Count, $proj) -ForegroundColor Green
+        $grandTotal += $tests.Count
+        Write-Host ""
+    }
+    Write-Host ("TOTAL: {0} PreBind test(s) across {1} project(s)" -f $grandTotal, $projects.Count) `
+        -ForegroundColor Green
+    return
+}
 
 $env:UPDATE_TEST_EXPECTED_RESULTS = "true"
 Write-Host "UPDATE_TEST_EXPECTED_RESULTS=true" -ForegroundColor Yellow
@@ -17,20 +48,14 @@ if ($NoBuild) {
     if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 }
 
-$projects = @(
-    "Swyfft.Services.UnitTests",
-    "Swyfft.Services.IntegrationTests",
-    "Swyfft.Seeding.IntegrationTests"
-)
-
 Write-Host "Running PreBind Captured Assert Tests concurrently..." -ForegroundColor Cyan
 
 $jobs = foreach ($proj in $projects) {
     Start-Job -ScriptBlock {
-        param($script, $proj)
+        param($script, $proj, $trait)
         $env:UPDATE_TEST_EXPECTED_RESULTS = "true"
-        & $script -Project $proj -FilterTrait "TestGroup=PreBindResidentialCapturedAssertTests" -NoBuild
-    } -ArgumentList $scriptPath, $proj
+        & $script -Project $proj -FilterTrait $trait -NoBuild
+    } -ArgumentList $scriptPath, $proj, $trait
 }
 
 $failed = @()

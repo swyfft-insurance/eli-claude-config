@@ -54,6 +54,7 @@ Filler options during planning are particularly toxic: they slow the discussion,
 - Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.
 - **Verify script args before writing them in plans.** When a plan invokes a script (`Build-Solution.ps1`, `Run-Seed.ps1`, `Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
 - DB queries and log searches are information-gathering — do them DURING planning, not after.
+- Write plan prose with no ambiguous references — repeat the noun rather than leaving "it"/"this"/"that"/"they" for the reader to resolve. See `~/.claude/rules/communication.md` § "No Ambiguous References".
 
 ---
 
@@ -125,7 +126,18 @@ Every plan must declare its type. The type determines the workflow and mandatory
 
 Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig`, or `DbbStateConfig` whose production go-live date is in the future, the plan MUST include a corresponding seeder override entry — concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders — for every new config. The planner is responsible for computing dates that satisfy the strict-monotonic ordering rule. Skip this step only when prod go-live is in the past.
 
+**Computing the dates** — overrides exist to activate the new quote defs in local/dev/beta *earlier* than their real prod go-live (in `QuoteDefinitions.txt`), so the configs are testable before launch. Set `NewQuotesOn` to today or yesterday so the config is the active version on merge. Set `RenewalOn` to a date strictly after the predecessor's effective `RenewalOn` and not shared with any other config's `RenewalOn` in the family — the predecessor being the config declared immediately before the new one in its State/Carrier/RatingType group (the current latest version in that family, usually what you `sourceConfig:` from), using its own override if it has one else its `QuoteDefinitions.txt` value (go read it). `RenewalOn` may equal `NewQuotesOn` or fall later, and `NewQuotesOn` must likewise be unique among the family's `NewQuotesOn`s. Both constraints are enforced by `EnsureConfigOrderWithDatabase` (orders each State/Carrier/RatingType group by `RenewalOn`) and `HoQuoteDefs_WithNonProdOverrides_ShouldNotViolateUniqueIndexes` (composite unique indexes on `NewQuotesOn` and `RenewalOn`), both run by `/prebind-captured-asserts` — don't hand-verify.
+
 See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
+
+## HomeownerStateConfig changes — fold-vs-stack and feature documentation (MANDATORY)
+
+**Every plan that makes a version-gated `HomeownerStateConfig` change MUST address both principles below. No exceptions.** A version-gated change is any change confined to specific config versions — a new version, a fold into a parked version, or in-place on a not-yet-live V1. This is a required, reviewed checkpoint: if a plan touches a gated config and doesn't explicitly cover both points, it is incomplete — HARD STOP and fix it before execution.
+
+1. **Prefer folding over stacking — *only* as a default when the ticket is silent on version structure.** When the ticket or epic explicitly dictates fold vs stack, follow the ticket — it takes precedence, and you do NOT justify the choice or label it a "deviation" in code, doc comments, or the plan. You're implementing the requirement, not departing from a rule.
+2. **Document every feature each touched config activates.** (Always required, independent of fold vs stack.)
+
+Both are defined in `Swyfft.Services/Common/Homeowner/CLAUDE.md` §§ "Prefer Folding Over Stacking" and "Document Every Feature a Config Activates" — read them every time; don't work from memory. The plan MUST name every config it will touch and, for each, the exact feature list its doc comment will carry. Treat a missing feature-doc list the same as a missing seeder override or a missing test — the plan is not done without it.
 
 ## Verification Section Structure
 
@@ -157,6 +169,16 @@ Verification ends when (a) all agreed-upon tests pass and (b) the user explicitl
 ## `/prebind-captured-asserts` is the default for most plans
 
 The skill name reflects its origin (PreBind captured asserts), but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/prebind-captured-asserts` in the execution sequence.
+
+### Never list a test a verification skill already runs
+
+Before naming any individual test (or adding a standalone `Run-DotnetTest.ps1` line) in the verification, confirm it isn't already covered by a test-running skill already in the plan. **List the skill's tests — don't guess from memory.** `/prebind-captured-asserts` runs everything tagged `TestGroup=PreBindResidentialCapturedAssertTests` across `Swyfft.Services.UnitTests`, `Swyfft.Services.IntegrationTests`, and `Swyfft.Seeding.IntegrationTests` — which already includes `EnsureConfigOrderWithDatabase` and `QuoteDefinitionsUnitTests`, among others. Listing those separately is duplication and overstates the verification.
+
+Check coverage with the list mode (no execution, no regeneration):
+- `pwsh ~/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1 -ListTests` — the full PreBind set.
+- `pwsh ~/.claude/scripts/Run-DotnetTest.ps1 -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait <t>]` — any project/trait.
+
+A test belongs in the plan as a *separate* line only when it's outside every skill the plan already runs (e.g. the ByPeril Excel validation tests in `Swyfft.Services.Excel.IntegrationTests`, which `/prebind-captured-asserts` does not cover).
 
 ---
 
@@ -230,3 +252,11 @@ When implementing non-trivial business logic, add an intent/business-reason comm
 `~/.claude/rules/code-comments.md` § "How to write one" — explain in plain language what the code
 is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
 is a default habit, not an afterthought.
+
+**Mandatory comment self-audit at code-complete.** Before the "Code complete — show the diff" HARD
+STOP, re-read `~/.claude/rules/code-comments.md` (don't work from memory) and audit every comment the
+diff adds or changes against it. For each comment, confirm: it explains the business reason/intent
+rather than restating the code; it carries no plan-scoped framing, intra-PR commit references,
+jargon/notation, or word-slop; and it's concise (one or two plain sentences). Fix every violation
+*before* presenting the diff. This audit is part of reaching code-complete — not a step the user
+should ever have to request. The diff you show should already be clean.

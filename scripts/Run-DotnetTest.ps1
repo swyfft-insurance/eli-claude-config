@@ -60,7 +60,12 @@ param(
 
     [switch]$NoBuild,
 
-    [string]$Suffix
+    [string]$Suffix,
+
+    [switch]$ListTests,
+
+    [ValidateSet('full', 'classes', 'methods', 'tests', 'traits')]
+    [string]$ListLevel = 'full'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -97,6 +102,30 @@ $target = if ($Solution) { $Solution } else { $Project }
 
 # Project/solution name (strip path and extension, keep dots)
 $projectName = ($target -replace '[\\/]', '/' -split '/')[-1] -replace '\.(csproj|slnx?)$', ''
+
+# --- List-tests mode (read-only): enumerate tests instead of running them ---
+# Listing goes through `dotnet run` (the xUnit v3 NATIVE runner CLI) — `dotnet test` is the MTP
+# integration and has no list capability. `dotnet run` locates the built assembly itself, so no
+# exe-path / output-dir guessing. The native runner uses `-list <level>` and single-dash filters
+# `-trait`/`-class`/`-method`/`-namespace` — NOT the MTP `--filter-*` flags used when running.
+if ($ListTests) {
+    if ($Solution) { throw "-ListTests requires -Project, not -Solution." }
+
+    $runArgs = @('run', '--project', $Project)
+    if ($NoBuild) { $runArgs += '--no-build' }
+    $runArgs += '--'
+    $runArgs += @('-list', $ListLevel)
+    if ($FilterTrait)     { $runArgs += '-trait';     $runArgs += $FilterTrait }
+    if ($FilterClass)     { $runArgs += '-class';     $runArgs += $FilterClass }
+    if ($FilterMethod)    { $runArgs += '-method';    $runArgs += $FilterMethod }
+    if ($FilterNamespace) { $runArgs += '-namespace'; $runArgs += $FilterNamespace }
+
+    Write-Host "Listing tests: $projectName  (level: $ListLevel)" -ForegroundColor Cyan
+    Write-Host "Command: dotnet $($runArgs -join ' ')" -ForegroundColor Cyan
+    Write-Host ""
+    & dotnet @runArgs
+    exit $LASTEXITCODE
+}
 
 # Filters (strip wildcards — invalid in filenames)
 $filterParts = @()

@@ -5,9 +5,17 @@
 - The user will run CI themselves if needed.
 
 ## xUnit v3 MTP
-- `dotnet test -- --list-tests` is BROKEN — use native runner: `"./Project/bin/Debug/net10.0/Project.exe" -list full`
-- Trait filter: `-- --filter-trait "TestGroup=GroupName"` (NOT `--filter-class`)
+- Trait filter (when RUNNING via `dotnet test` / `Run-DotnetTest.ps1`): `-- --filter-trait "TestGroup=GroupName"` (NOT `--filter-class`)
 - ByPeril Excel tests: ALWAYS use `-- --filter-trait "TestGroup=ByPerilTests"`. Unfiltered = 900+ tests (45 min).
+
+### Listing tests (read-only, no run)
+- Use the wrapper's list mode — it never executes tests:
+  `pwsh ~/.claude/scripts/Run-DotnetTest.ps1 -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
+- **Why not `dotnet test`:** `dotnet test` is the MTP integration and has **no** list capability — `dotnet test -- --list-tests` silently lists nothing ("Zero tests ran"). Listing is an xUnit v3 **native-CLI** feature, reached via **`dotnet run`**. The wrapper runs `dotnet run --project <P> -- -list <level>`, which locates the built assembly itself (no exe-path / `build/` output-dir guessing).
+- `-ListLevel`: `full` = complete discovery data; `tests` = display names; `methods` = class+method (default in the PreBind list); also `classes`/`traits`.
+- **Native-CLI filters are single-dash** `-trait "Name=Value"` / `-class` / `-method` / `-namespace` — NOT the MTP `--filter-*` flags. The wrapper translates `-FilterTrait`/`-FilterClass`/etc. for you in list mode. (`--filter-trait` is only for `dotnet test` when *running*.)
+- Requires the project built first (`pwsh ~/.claude/scripts/Build-Solution.ps1`); pass `-NoBuild` to skip the incremental build.
+- PreBind suite specifically: `pwsh ~/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1 -ListTests` lists all three PreBind projects' tagged tests, grouped and prefixed by project.
 
 ## PreBind Captured Assert Tests
 See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance.

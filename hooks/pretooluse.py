@@ -260,11 +260,21 @@ def main():
             )
             sys.exit(2)
 
+        # ALLOW: read-only test discovery. Listing tests or printing help/info never executes
+        # tests and captures no results, so the Run-DotnetTest.ps1 / Tee / trx requirements below
+        # don't apply. Recognized via the xUnit v3 native `-list <level>` (full/classes/methods/
+        # tests/traits), MTP `--list-tests`, or `--help`/`--info`. Canonical path: list via
+        # `dotnet run -- -list <level>` (see Run-DotnetTest.ps1 -ListTests), NOT `dotnet test`.
+        is_readonly_test_query = bool(
+            re.search(r"-list\s+(full|classes|methods|tests|traits)|--list-tests|--help|--info", cmd)
+        )
+
         # BLOCK: All test execution must go through Run-DotnetTest.ps1.
         # Scripts call it internally via pwsh -File, so "dotnet test" never appears
         # in their bash command. Raw "dotnet test" commands are always blocked.
         if re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe", cmd) \
-           and not re.search(r"# via-run-dotnet-test", cmd):
+           and not re.search(r"# via-run-dotnet-test", cmd) \
+           and not is_readonly_test_query:
             print(
                 "BLOCKED: Do not run dotnet test directly. "
                 "Use Run-DotnetTest.ps1 which enforces deterministic output file naming, "
@@ -291,6 +301,7 @@ def main():
         )
         if is_dotnet_test and re.search(r"Excel\.IntegrationTests", cmd) \
            and not has_byperil_trait \
+           and not is_readonly_test_query \
            and not re.search(r"ByPerilQuoteAuditDiagnosticTests", cmd):
             print(
                 "BLOCKED: Excel integration tests must include --filter-trait \"TestGroup=ByPerilTests\" "
@@ -302,7 +313,8 @@ def main():
             sys.exit(2)
 
         # BELT-AND-SUSPENDERS: dotnet test must capture output with Tee-Object, --output Detailed, and --report-trx.
-        if re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe", cmd):
+        if re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe", cmd) \
+           and not is_readonly_test_query:
             missing = []
             if not re.search(r"Tee-Object", cmd):
                 missing.append("Tee-Object")

@@ -42,3 +42,14 @@ Every option you present must be genuinely plausible. Never include filler / str
 Filler options waste time AND create a boy-who-cried-wolf problem: when a *real* concern surfaces, the user can't tell if it's a genuine flag or another hallucinated decoy.
 
 If the answer is obvious from the ticket, don't ask — just confirm and proceed.
+
+## No Ambiguous References
+
+When a sentence has more than one noun a pronoun or demonstrative could point to, repeat the noun. Never leave "it", "this", "that", "they", "those", "which", or "whatever" for the reader to resolve when two or more candidates are in scope. Repeating the noun beats an elegant-but-vague reference every time.
+
+Applies to all written prose: chat replies, plan files, code and doc comments, commit messages, PR descriptions, and rules files themselves.
+
+| Bad | Good |
+|---|---|
+| "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
+| "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
