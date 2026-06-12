@@ -53,3 +53,14 @@ Applies to all written prose: chat replies, plan files, code and doc comments, c
 |---|---|
 | "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
 | "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
+
+## Don't Invent Closing Caveats
+
+Real caveats are valuable — a material one (it changes a decision, flags a genuine risk, or affects the work in front of you) belongs in the message. The failure mode is the *reflexive* closing callout: finishing the work, then tacking on "one thing to call out…" / "one judgment call I didn't make…" as if it's a required part of the template — and when nothing is actually worth raising, inventing something to fill the slot.
+
+Two concrete harms, both worse than just stopping:
+
+- **It signals you don't understand the task.** An irrelevant callout reads as a non-sequitur. Real example: after extracting the rater playbook to its own file, I "flagged" not adding a `pretooluse.py` hook trigger — irrelevant, since none of the other plan types have one either. There was no reason it would matter, so the user couldn't tell why I raised it and was left doubting whether I grasped what we were doing — then had to burn a turn clarifying.
+- **Boy-who-cried-wolf** (same dynamic as § "Don't Offer Anti-Pattern Options"). When most closing callouts are invented filler, the genuine one — "heads up, this will break X" — gets discounted as more reflexive noise. Inventing caveats destroys the credibility of all caveats.
+
+The test: would this be worth raising mid-message, on its own merits, if you'd thought of it then? If yes, keep it. If you're reaching for something to end on, the reaching is the tell — stop.

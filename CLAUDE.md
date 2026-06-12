@@ -60,6 +60,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUs
 | PR Review (theirs) | `pr-theirs-review.md` | reviewing someone else's PR |
 | PR Feedback (mine) | `pr-mine-address-feedback.md` | replying to or resolving PR comments on my PR |
 | Plan Mode | `plan-mode.md` | entering plan mode |
+| Excel Rater Plans | `excel-rater-plans.md` | planning or executing any Excel rater (ByPeril) implementation ticket |
 | Tool Access | `tool-access.md` | a tool call fails or seems unavailable |
 | Standup | `standup.md` | generating any standup update |
 | Domain Reference | `swyfft-domain.md` | working with HomeownerStateConfig, carrier names, or PR descriptions |
