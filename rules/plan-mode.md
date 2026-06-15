@@ -136,6 +136,8 @@ Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `Commerci
 
 See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
 
+**MANDATORY — audit stale overrides when adding a new state config.** Any plan that adds a new `HomeownerStateConfig`, `FloodStateConfig`, or `DbbStateConfig` MUST run `/quote-def-override-audit` as a verification step, and for every override it flags (its config already live in prod) either remove it or record why it stays. Adding a new config is the checkpoint to clear overrides whose configs have since gone live. (Commercial overrides aren't covered by the audit.) The audit deterministically diffs every HO/Flood/DBB override against `QuoteDefinitions.txt` and lists the ones whose config is already live — don't hand-compare. See `~/.claude/rules/quote-def-dates-and-ordering.md` § "Finding stale overrides".
+
 ## HomeownerStateConfig changes — fold-vs-stack and feature documentation (MANDATORY)
 
 **Every plan that makes a version-gated `HomeownerStateConfig` change MUST address both principles below. No exceptions.** A version-gated change is any change confined to specific config versions — a new version, a fold into a parked version, or in-place on a not-yet-live V1. This is a required, reviewed checkpoint: if a plan touches a gated config and doesn't explicitly cover both points, it is incomplete — HARD STOP and fix it before execution.
