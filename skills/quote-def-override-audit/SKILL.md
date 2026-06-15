@@ -5,7 +5,7 @@ description: Audit the quote-def overrides (Homeowner Seeder.cs + Flood/DBB Envi
 
 # Quote-Def Override Audit
 
-Runs the `ReportOverridesForLiveConfigs` audit in `QuoteDefinitionsUnitTests`
+Runs the `ReportStaleOverridesForLiveConfigs` audit in `QuoteDefinitionsUnitTests`
 (`Swyfft.Services.UnitTests`). It lists every quote-def override whose config has **already gone live
 in prod** — its real `QuoteDefinitions.txt` `NewQuotesOn` is in the past, so the override's only
 purpose (let dev/beta test the config *before* go-live) is spent and it's a **removal candidate**.

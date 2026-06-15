@@ -3,7 +3,7 @@
     Audit the quote-def overrides: list the ones whose configs have already gone live in prod.
 
 .DESCRIPTION
-    Runs QuoteDefinitionsUnitTests.ReportOverridesForLiveConfigs
+    Runs QuoteDefinitionsUnitTests.ReportStaleOverridesForLiveConfigs
     (Swyfft.Services.UnitTests). It compares every Homeowner / Flood / DBB quote-def override
     against QuoteDefinitions.txt and reports three buckets: STALE (config already live → removal
     candidate), KEEP (not yet live), and KEEP (no prod row → override is the only activation).
@@ -31,7 +31,7 @@ $env:QUOTE_DEF_OVERRIDE_AUDIT = 'true'
 
 $testArgs = @{
     Project      = 'Swyfft.Services.UnitTests'
-    FilterMethod = '*ReportOverridesForLiveConfigs'
+    FilterMethod = '*ReportStaleOverridesForLiveConfigs'
 }
 if ($NoBuild) { $testArgs.NoBuild = $true }
 
