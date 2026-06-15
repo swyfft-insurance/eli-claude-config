@@ -68,6 +68,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUs
 | Test Writing | `testing.md` | writing tests, TDD, investigation |
 | Seeding | `seeding.md` | seeding (BLOCKED — use `/seed` skill instead) |
 | Captured Asserts | `captured-asserts.md` | running or regenerating captured assert tests |
+| Quote-def Dates & Ordering | `quote-def-dates-and-ordering.md` | editing QuoteDefinitions.txt / Seeder.cs overrides / HomeownerStateConfig versions, or reasoning about go-live dates, ordering, and which test enforces what |
 | DB Querying | `db-querying.md` | writing or running any SQL query |
 | Beta/Prod-Copy Database | `beta-prod-db.md` | connecting to any Azure SQL beta, dev, or prod-copy database |
 | SolarWinds Logs | `solarwinds.md` | searching or analyzing SolarWinds logs |

@@ -168,6 +168,8 @@ List the expected diffs by file, including which files should have **zero** diff
 
 Locally, running the captured asserts auto-updates the expected files — the workflow is run → review the diff. CI runners don't set the flag, so unupdated baselines fail there (the guard). This is fixed — don't research the mechanism; see `~/.claude/rules/captured-asserts.md`.
 
+When a plan changes quote-def go-live dates, adds/recomputes seeder overrides, or inserts new `QuoteDefinitions.txt` rows, see `~/.claude/rules/quote-def-dates-and-ordering.md` — which dates live where (prod file vs seeded override; seeded vs in-memory asserts), the file's global `NewQuotesOn` ordering, and every test that enforces each. Don't re-derive these per ticket.
+
 ### Existing tests as regression checks
 Tests that should still pass without edits — list with a one-line "why this is relevant to this change". Never list a test suite without a reason.
 

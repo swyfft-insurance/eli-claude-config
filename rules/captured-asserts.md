@@ -13,3 +13,10 @@ Settled and unchanging — **never** investigate the compile symbol, `CapturedAs
 ## When to regenerate
 
 Adding new data (HomeownerStateConfig versions, quote definitions, elements, constraint codes) causes captured assert tests to pick up new entries. The skill walks through the full process.
+
+## What a quote-def captured-assert diff shows (dates)
+
+Seeded captured asserts (`SeedingCoreBruteForceTest_EFHomeownerQuoteDefinitions…`,
+`GetQuoteDefinitionForQuotePurchase`/`…Renewal`) show the **`Seeder.cs` override** dates, not the
+`QuoteDefinitions.txt` prod dates. For the full map of which dates live where, the file's global
+ordering, and the tests that enforce each, see `~/.claude/rules/quote-def-dates-and-ordering.md`.

@@ -136,6 +136,7 @@ FILE_RULES = [
     (r"\.claude[/\\]projects[/\\].*[/\\]memory[/\\]", "meta.md"),
     (r"\.(cs|csproj)$", "coding-standards.md"),
     (r"\.(cs|csproj|ts|tsx|ps1|sql)$", "core-behavior.md"),
+    (r"QuoteDefinitions\.txt$|[/\\]Seeder\.cs$|HomeownerStateConfig", "quote-def-dates-and-ordering.md"),
 ]
 
 
