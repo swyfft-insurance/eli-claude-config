@@ -8,6 +8,16 @@
 - Trait filter (when RUNNING via `dotnet test` / `Run-DotnetTest.ps1`): `-- --filter-trait "TestGroup=GroupName"` (NOT `--filter-class`)
 - ByPeril Excel tests: ALWAYS use `-- --filter-trait "TestGroup=ByPerilTests"`. Unfiltered = 900+ tests (45 min).
 
+### ByPeril Excel validation tests run in parallel — no COM, no contention
+The ByPeril Excel validation tests (`ByPerilEAndSValidationTests*` in
+`Swyfft.Services.Excel.IntegrationTests`) do NOT use Excel COM interop, and each leaf exercises a
+different rater `.xlsm`, so there is no shared-file or COM contention. Run the per-state suites
+concurrently — separate `Run-DotnetTest.ps1` calls in one message, one per state. The "Acceptance
+Tests: Serial Execution Required" rule in the project's `.claude/rules/dotnet-testing.md` applies
+ONLY to document-validation and IMS *acceptance* tests — never generalize it to these integration
+tests. Don't invent an execution constraint from a generic "Excel COM isn't thread-safe" prior;
+verify against the docs/code first.
+
 ### Listing tests (read-only, no run)
 - Use the wrapper's list mode — it never executes tests:
   `pwsh ~/.claude/scripts/Run-DotnetTest.ps1 -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
@@ -15,9 +25,9 @@
 - `-ListLevel`: `full` = complete discovery data; `tests` = display names; `methods` = class+method (default in the PreBind list); also `classes`/`traits`.
 - **Native-CLI filters are single-dash** `-trait "Name=Value"` / `-class` / `-method` / `-namespace` — NOT the MTP `--filter-*` flags. The wrapper translates `-FilterTrait`/`-FilterClass`/etc. for you in list mode. (`--filter-trait` is only for `dotnet test` when *running*.)
 - Requires the project built first (`pwsh ~/.claude/scripts/Build-Solution.ps1`); pass `-NoBuild` to skip the incremental build.
-- PreBind suite specifically: `pwsh ~/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1 -ListTests` lists all three PreBind projects' tagged tests, grouped and prefixed by project.
+- PreBind suite specifically: `pwsh ~/.claude/skills/prebind-validation/Run-PreBindValidation.ps1 -ListTests` lists all three PreBind projects' tagged tests, grouped and prefixed by project.
 
-## PreBind Captured Assert Tests
+## PreBind Validation Tests
 See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance.
 
 ## Test Output — Run-DotnetTest.ps1
@@ -52,7 +62,7 @@ pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
 Parameters: `-Project` or `-Solution` (one required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`.
 
 ### Existing skills that use the script
-- `/prebind-captured-asserts` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
+- `/prebind-validation` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
 - `/byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
 
 ### `-Project` vs `-Solution`

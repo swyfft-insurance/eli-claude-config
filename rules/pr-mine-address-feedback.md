@@ -4,6 +4,7 @@
 - **PR comment replies are real work.** Research thoroughly, write clearly, don't rush to push them out. A sloppy reply to a reviewer is worse than a slow one.
 - Before responding to any PR comment, research the claim in the codebase. Don't draft a reply until you've read the relevant code.
 - **Quote-then-reply format**: Always quote the reviewer's text with `>` blockquotes, then reply below each quote. For top-level comments with multiple points, quote each point and reply individually. For inline comments, quote the specific portion you're addressing. Never use `#1`, `#2` etc. as labels — GitHub renders those as issue/PR links.
+- **Always paste the reviewer's verbatim text — never a placeholder.** When drafting replies for Eli's approval, every draft must include the actual reviewer comment in the blockquote, copied word-for-word. NEVER substitute a placeholder like `(quote Justin)` / `(reviewer's comment here)`. Eli approves the reply against what it answers; a placeholder forces him to cross-reference and makes the draft impossible to judge. Show the real quote and the real reply, together, every time.
 
   Example:
   ```markdown

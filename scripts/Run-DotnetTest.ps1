@@ -43,7 +43,7 @@
     Run-DotnetTest.ps1 -Solution "SwyfftCI.slnx" -NoBuild
 
 .EXAMPLE
-    Run-DotnetTest.ps1 -Project "Swyfft.Services.UnitTests" -FilterTrait "TestGroup=PreBindResidentialCapturedAssertTests" -NoBuild
+    Run-DotnetTest.ps1 -Project "Swyfft.Services.UnitTests" -FilterTrait "TestGroup=PreBindResidentialValidationTests" -NoBuild
 
 .EXAMPLE
     Run-DotnetTest.ps1 -Project "Swyfft.Services.Excel.IntegrationTests" -FilterClass "*ByPerilQuoteAuditDiagnosticTests" -Suffix "3-quotes"

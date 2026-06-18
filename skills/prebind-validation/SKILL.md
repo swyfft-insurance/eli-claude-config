@@ -1,9 +1,9 @@
 ---
-name: prebind-captured-asserts
+name: prebind-validation
 description: Run the broad suite of tests Eli wants on most PRs (originally captured-assert-only, now expanded to cover tests relevant to the code Eli typically works on). Default verification step for tickets that touch elements, state configs, generators, constraint codes, quote definitions, or rating-adjacent code. Regenerates expected results when run.
 ---
 
-# PreBind Captured Assert Tests
+# PreBind Validation Tests
 
 ## Step 1: Determine if seeding is needed
 
@@ -23,13 +23,13 @@ If seeding is needed, use the `/seed` skill first.
 The script builds, then runs all 3 projects concurrently with output saved to `$env:TEMP\swyfft-tests\`.
 
 ```bash
-pwsh -NoProfile -File "$HOME/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1"
+pwsh -NoProfile -File "$HOME/.claude/skills/prebind-validation/Run-PreBindValidation.ps1"
 ```
 
 Pass `-NoBuild` to skip the build step (the slnx is already built):
 
 ```bash
-pwsh -NoProfile -File "$HOME/.claude/skills/prebind-captured-asserts/Run-PreBindCapturedAsserts.ps1" -NoBuild
+pwsh -NoProfile -File "$HOME/.claude/skills/prebind-validation/Run-PreBindValidation.ps1" -NoBuild
 ```
 
 Timeout: 600000ms.

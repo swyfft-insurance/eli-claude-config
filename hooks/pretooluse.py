@@ -284,7 +284,7 @@ def main():
                 "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-DotnetTest.ps1\" "
                 "-Project \"Swyfft.Services.Excel.IntegrationTests\" "
                 "-FilterTrait \"TestGroup=ByPerilTests\"\n\n"
-                "For prebind captured asserts: /prebind-captured-asserts skill\n"
+                "For prebind validation: /prebind-validation skill\n"
                 "For audit diagnostics: /byperil-audit-diagnostic skill",
                 file=sys.stderr,
             )

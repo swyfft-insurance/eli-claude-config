@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 
 $scriptPath = Join-Path $HOME ".claude" "scripts" "Run-DotnetTest.ps1"
 
-$trait = "TestGroup=PreBindResidentialCapturedAssertTests"
+$trait = "TestGroup=PreBindResidentialValidationTests"
 $projects = @(
     "Swyfft.Services.UnitTests",
     "Swyfft.Services.IntegrationTests",
@@ -48,7 +48,7 @@ if ($NoBuild) {
     if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 }
 
-Write-Host "Running PreBind Captured Assert Tests concurrently..." -ForegroundColor Cyan
+Write-Host "Running PreBind Validation Tests concurrently..." -ForegroundColor Cyan
 
 $jobs = foreach ($proj in $projects) {
     Start-Job -ScriptBlock {
@@ -73,8 +73,8 @@ Write-Host ""
 Write-Host "Output files in: $outputDir" -ForegroundColor Cyan
 
 if ($failed.Count -gt 0) {
-    throw "PreBind Captured Assert Tests failed for: $($failed -join ', ')"
+    throw "PreBind Validation Tests failed for: $($failed -join ', ')"
 }
 
 Write-Host ""
-Write-Host "All PreBind Captured Assert Tests passed." -ForegroundColor Green
+Write-Host "All PreBind Validation Tests passed." -ForegroundColor Green

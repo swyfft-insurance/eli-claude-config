@@ -140,7 +140,7 @@ Walk through every item in the checklist below and ask "does this apply to this 
 
 | Item | Trigger |
 |---|---|
-| `/prebind-captured-asserts` regen + per-file diff review | Touches elements, state configs, generators, rating-adjacent code, quote definitions |
+| `/prebind-validation` regen + per-file diff review | Touches elements, state configs, generators, rating-adjacent code, quote definitions |
 | Seed local DB (`/seed`) | Touches Excel raters, quote definitions, seeder code, EF migrations |
 | Solution file consistency (all 5 `.slnx`) | New module or kernel project |
 | DB query review (validate on localhost first) | New or modified SQL |

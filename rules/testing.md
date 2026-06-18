@@ -35,3 +35,35 @@ if (failures.Count > 0)
 ```
 
 Existing examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (both in `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilValidationTestBase.cs`).
+
+## Test addresses — use the helper, never ask or hardcode
+
+When a test needs a valid address for a state/carrier/rating-type, get it from
+`TestAddressHelper.GetTestAddressesFiltered(...)` (`Swyfft.TestUtilities/ConstantsAndExpects/`).
+It reflects over every `*GoodTestAddresses*` class and filters by product line, carrier, rating
+type, state, and county, returning only addresses valid for that combination (and not already in
+use). Never ask the user which address to use, and never eyeball one out of the address files.
+
+```csharp
+var address = TestAddressHelper.GetTestAddressesFiltered(
+    productLine: ProductLine.Homeowner, carrierCode: CarrierCode.Qbe,
+    ratingType: RatingType.EAndS, state: nameof(StateCode.NY)).First();
+```
+
+## Setup asserts — verify the arrange before testing behavior
+
+After arranging a test — especially when a helper/builder/factory creates the subject (a quote,
+policy, etc.) — assert that the subject came out in the state the later assertions depend on,
+before exercising any behavior: the subject was actually created, and the config/property/elements
+those assertions read are populated the way this test needs.
+
+Without these, a test fails confusingly deep in the act/assert phase — or passes vacuously — when
+the real problem is that the helper never produced the required preconditions. A setup assert fails
+loudly at "my arrange is wrong," which is far easier to diagnose. We repeatedly see tests break
+because they never checked that the creation helper built the subject the way the later asserts
+required.
+
+Tie each setup assert to a later assertion — only assert preconditions the behavior asserts
+actually rely on, not arbitrary setup details. If the test later reads an element value off the
+created quote, the setup assert confirms the helper actually populated that element — not merely
+that it returned a quote.

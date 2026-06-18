@@ -1,6 +1,6 @@
 # Captured Assert Tests
 
-Use the `/prebind-captured-asserts` skill to run and regenerate. It handles seeding checks, build, regeneration with `UPDATE_TEST_EXPECTED_RESULTS=true`, and diff review.
+Use the `/prebind-validation` skill to run and regenerate. It handles seeding checks, build, regeneration with `UPDATE_TEST_EXPECTED_RESULTS=true`, and diff review.
 
 ## How captured-assert updates work — known, don't research it
 
