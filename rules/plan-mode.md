@@ -276,3 +276,24 @@ rather than restating the code; it carries no plan-scoped framing, intra-PR comm
 jargon/notation, or word-slop; and it's concise (one or two plain sentences). Fix every violation
 *before* presenting the diff. This audit is part of reaching code-complete — not a step the user
 should ever have to request. The diff you show should already be clean.
+
+## ClosedSets
+
+ClosedSets are pervasive in this codebase and carry strict usage rules — parameter typing,
+comparisons, `.Value`, `.ToString()`, `.Switch()`, implicit string conversion, and
+ModelBinder/JsonConverter at boundaries — all defined in `Swyfft.Common/SetDefinitions/CLAUDE.md`.
+Reviewers (human and bot) reject PRs for violating them.
+
+**Mandatory read before writing ClosedSet code.** Before you write or modify any C# that touches a
+ClosedSet — typing a parameter, comparing values, calling `.Value`/`.ToString()`/`.Switch()`, or
+crossing a UI/API boundary — read `Swyfft.Common/SetDefinitions/CLAUDE.md` in full. Don't work from
+memory: having read it earlier in the session — even having *edited* it — does NOT keep its rules
+active while you later write unrelated code.
+
+**Mandatory ClosedSet self-audit at code-complete.** Before the "Code complete — show the diff" HARD
+STOP, re-read `Swyfft.Common/SetDefinitions/CLAUDE.md` (don't work from memory) and audit every
+ClosedSet usage the diff adds or changes against it. Confirm in particular: new method parameters
+are typed as the ClosedSet, not `string`/`int`; `.Value` appears only at true system boundaries
+(external APIs, IMS, raw storage), never in internal calls that already accept the ClosedSet;
+comparisons and `.Switch()` follow the documented forms. Fix every violation before presenting the
+diff. This audit is part of reaching code-complete — not a step the user should ever have to request.

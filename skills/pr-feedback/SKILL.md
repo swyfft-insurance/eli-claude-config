@@ -146,6 +146,18 @@ This research must be complete before you write the **Triage recommendation** in
 
 Mandatory, every comment, no exceptions:
 
+- **Read the actual ticket(s) — FROM THE SOURCE, NEVER A PARAPHRASE.** Before you form a single
+  recommendation, read every YouTrack ticket in the PR/branch via the `/read-ticket` skill — the
+  only sanctioned way — including its description, ALL comments, and any ticket it was scoped from.
+  The ticket is the authoritative statement of what the change is FOR and what it **explicitly
+  guarantees**; reviewer concerns are routinely *already answered there*. **A plan file, a
+  conversation/compaction summary, a prior-session recollection, or memory is NOT a substitute for
+  reading the live ticket — these paraphrases silently drop or distort the exact guarantees a
+  reviewer is questioning.** If you find yourself writing a "strongest case" or a recommendation
+  resting on what the plan/summary *said* the ticket says, STOP and run `/read-ticket`. This is
+  non-negotiable: skipping it once shipped a review whose "strongest case" asserted a danger the
+  ticket explicitly ruled out — destroying the credibility of the entire triage and wasting the
+  user's time. NEVER let this happen again.
 - **Read the actual code.** Open the method the comment points at, its callers, and its callees — using Read/Grep. Not from memory. Not from the diff alone. If you assert anything about the code, you must have *just read the lines that prove it*.
 - **Read the governing docs.** Find and read the relevant `CLAUDE.md` and `.claude/rules/*.md` for the touched subsystem (use the "Namespace-Specific Documentation" and "Conditional Rules" tables in the root `CLAUDE.md` as the index). A comment is frequently right or wrong on the basis of a documented convention you have not loaded. Reading the diff does NOT auto-load path-scoped rule files — you must open them yourself.
 - **Verify every factual claim — the reviewer's AND your own.** Before you write "this can't happen" / "this is fine" / "this is wrong", point to the specific code or doc that establishes it. See the Important § ban on overstated absolutes.
@@ -208,6 +220,11 @@ Move to the next actionable item. Repeat until all are addressed.
 
 ## Important
 
+- **The live ticket is mandatory reading — a paraphrase is not the ticket.** Plan files,
+  conversation/compaction summaries, prior-session memory: none are acceptable stand-ins for the
+  PR's YouTrack ticket(s) and comments. The ticket states the change's purpose and its explicit
+  guarantees, and reviewer concerns are often settled there already. Forming ANY recommendation
+  from a paraphrase instead of the read-it-yourself ticket is a hard skill violation.
 - **Never skip the research step.** The whole point of this skill is to prevent lazy replies.
 - **Never post without approval.** Gate 2 applies to every reply and every resolve action.
 - If a comment identifies a legitimate issue, **fix the code** before replying. Then mention the fix in your reply.
