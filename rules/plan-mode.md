@@ -212,6 +212,8 @@ Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends
 
 When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ./Build-Solution.ps1`, then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls).
 
+**Parallel verification test runs MUST be backgrounded — no exceptions.** Every test invocation in the parallel block MUST be launched with `run_in_background: true` and with **no** `| tail` pipe (tail buffers all output until the process exits, hiding progress — see `windows-tooling.md`). Running them in the foreground during verification is forbidden: a foreground run blocks the whole turn, so the user cannot communicate with you or interrupt while a long suite runs, and it forces the user to manually background each one. Launch each suite as its own background task and collect results from the completion notifications.
+
 **This applies to every test invocation in the parallel block** — `Run-DotnetTest.ps1`, test-running skills like `/prebind-validation`, or any wrapper script. **Before adding any invocation to a parallel block, verify its build behavior** — `Read` its SKILL.md / script `param(...)` block. If it builds by default, pass `-NoBuild` (or equivalent skip-build flag).
 
 Don't:
