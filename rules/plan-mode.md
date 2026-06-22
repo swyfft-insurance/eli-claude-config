@@ -223,15 +223,18 @@ See `~/.claude/rules/testing-execution.md` § "Test Output — Run-DotnetTest.ps
 
 ## Post-Test-Approval Sequence
 
-Picks up where verification ends (tests pass + user agrees we're "done"). The sequence to PR is fixed:
+Picks up where verification ends (tests pass + user agrees we're "done"). The sequence is fixed.
+**Do NOT use the project `/create-pr` command — it autonomously fixes Critical/Major review findings,
+which violates step 4's discuss-first rule. Create the PR by hand, following these steps.**
 
 1. Ask once for approval to commit and push (single action — no separate ask for each).
 2. Commit (`SW-XXXXX: <summary>` per `git-safety.md` / project CLAUDE.md) and push (verify tracking via `git branch -vv` first).
 3. Run `/review-pr` against the pushed state.
 4. **Discuss `/review-pr` findings with the user.** Don't autonomously start fixing. `/review-pr` is the first reviewer of completed work, not a safety net — plan for it to find nothing.
 5. If findings warrant action: push ONE additional commit. **Do not run a second `/review-pr` after that commit.** One adversarial review per branch, full stop.
-6. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md` before drafting the PR description.** No exceptions. No "I just read it." No "I remember the rules." Then draft the PR description following those rules.
-7. **HARD STOP** — wait for approval, then create the PR.
+6. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md` before drafting the PR description.** No exceptions. No "I just read it." No "I remember the rules." Then draft the PR description following those rules, present it to the user, and iterate until they explicitly approve the text. **HARD STOP — do not proceed until the description is signed off.**
+7. **HARD STOP** — wait for approval, then create the PR by hand (`gh pr create --body-file` per `pr-creation.md`). Never route through `/create-pr`.
+8. **After the PR is created, move the YouTrack ticket Stage to Review** (if currently Backlog, Ready for Dev, or Develop; leave it if already Review or later). The work isn't done until the ticket reflects the PR.
 
 ## Captured Asserts: Read Every Changed File
 
