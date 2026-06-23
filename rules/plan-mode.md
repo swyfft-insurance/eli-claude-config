@@ -210,7 +210,7 @@ Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends
 
 ## Build Once, Run Tests in Parallel
 
-When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ./Build-Solution.ps1`, then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls).
+When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ./Build-Solution.ps1` — **backgrounded** (`run_in_background: true`, no `| tail`) — then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls). The build is a long-running step just like the suites: a foreground build blocks the whole turn and forces the user to background it manually, so background it, wait for the completion notification, and only then launch the suites.
 
 **Parallel verification test runs MUST be backgrounded — no exceptions.** Every test invocation in the parallel block MUST be launched with `run_in_background: true` and with **no** `| tail` pipe (tail buffers all output until the process exits, hiding progress — see `windows-tooling.md`). Running them in the foreground during verification is forbidden: a foreground run blocks the whole turn, so the user cannot communicate with you or interrupt while a long suite runs, and it forces the user to manually background each one. Launch each suite as its own background task and collect results from the completion notifications.
 

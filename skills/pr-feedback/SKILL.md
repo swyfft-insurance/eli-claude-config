@@ -51,6 +51,7 @@ Only address **actionable** points — things that require a code change, an exp
 
 **Presentation rules:**
 
+- **IMPORTANT: Present items ONE AT A TIME — never dump all items in a single message.** Show exactly one actionable item (in the entry shape below), then STOP and wait for the user's pick for that item. Only after they answer do you present the next one. Dumping all items at once is a hard violation — the user has repeatedly and emphatically rejected it. The total count may be stated up front (e.g. "7 actionable items — here's #1 of 7"), but the body of each message contains a single item.
 - **IMPORTANT: Decisions belong to the user, not you.** You may recommend an option, but never decide for them. Don't proceed on the "obvious" choice without explicit approval — wait for the user's pick, every entry. This is a hard requirement, not a suggestion — never skip it.
 - **One identifier per decision.** Every actionable item gets exactly ONE identifier in ONE numbering scheme. Sub-numbering is fine (e.g., `1.1, 1.2` when a parent group has sub-decisions), but pick a scheme and use it consistently. Don't run parallel schemes (e.g., "Bucket C" + "Question 3" + "C2" all pointing to the same thread).
 - **Numbered list, not table.** Tables fall apart once you need code blocks in cells (line breaks become `<br>` hacks, fenced code can't render). Always use a numbered list.
@@ -65,7 +66,7 @@ Only address **actionable** points — things that require a code change, an exp
 - **Original comment + code go inline.** The user should never have to scroll to find what they're answering. Always quote the reviewer's exact text AND include the commented code lines.
 - **Preserve content when restructuring.** If asked to fix formatting or numbering, keep the substantive content — reviewer quotes, code blocks, thread context, option descriptions. Don't bare-label options ("a) decline all") to fit a tighter layout. Restructuring is renumbering, not stripping.
 
-The user answers per entry with a single token (e.g. `1a 2a 3d 4c ...`).
+The user answers one entry at a time with a single token (e.g. `1a`). Present the next item only after they've answered the current one — do NOT batch.
 
 **Example** (from PR #20495, SW-50765 CompetitiveFactor rounding):
 

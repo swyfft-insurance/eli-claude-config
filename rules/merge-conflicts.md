@@ -18,3 +18,12 @@ For each conflicted file, one at a time:
 - Assuming conflicts are the same across files — each file may conflict for different reasons
 - Rushing through conflicts to "get it done" — this is delicate work, slow down
 - Not reading the conflict markers — you MUST understand what both sides changed before resolving
+
+## Building during a merge
+
+Building mid-merge is safe. `Build-Solution.ps1`'s line-length gate
+(`Test-LineLength.ps1 -Mode local`) auto-skips while a merge is in progress
+(`MERGE_HEAD` present): a merge's working tree diffs against the pre-merge
+`HEAD`, so the entire merged-in branch would otherwise be flagged as "added"
+long lines. Compilation is still verified — only the line-length check is
+skipped. Line length stays enforced on the branch's own commits.

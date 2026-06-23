@@ -29,6 +29,18 @@ $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot '_Diff-Helpers.ps1')
 
+# Merge-in-progress exception: in local mode the diff is `working tree vs HEAD`, but during a merge
+# HEAD is still the pre-merge commit, so the whole merged-in branch shows up as "added" lines and
+# every long line the other branch already had gets flagged. Line length is the merge commits' own
+# responsibility, not conflict resolution — skip the gate while MERGE_HEAD is present.
+if ($Mode -eq 'local') {
+    $mergeHeadPath = & git rev-parse --git-path MERGE_HEAD 2>$null
+    if ($mergeHeadPath -and (Test-Path -LiteralPath $mergeHeadPath)) {
+        Write-Host "SKIP: merge in progress — line-length gate not applied during conflict resolution." -ForegroundColor Yellow
+        exit 0
+    }
+}
+
 $violations = [System.Collections.ArrayList]::new()
 foreach ($entry in Get-CSharpDiffLines -Mode $Mode) {
     if ($entry.Content.Length -gt $MaxLength) {

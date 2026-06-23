@@ -381,10 +381,15 @@ def main():
         if re.search(r"git\s+diff", cmd) and "# via-diff-skill" not in cmd:
             print(
                 "BLOCKED: Do not run git diff directly. "
-                "Use the /diff skill with an explicit argument:\n\n"
+                "Use the /diff skill:\n\n"
                 "  /diff local   — uncommitted changes (working tree vs last commit)\n"
                 "  /diff branch  — committed changes vs development\n\n"
-                "You MUST choose one. No default.",
+                "You MUST choose one. No default.\n\n"
+                "Do NOT dodge this by reconstructing the same view another way "
+                "(git diff --name-only, git show <ref>:<file>, git log -p, etc.). "
+                "Those commands are fine for their OWN jobs — reading a specific commit, "
+                "a file at a ref, or history — but never to inspect the local or branch "
+                "changes /diff already covers. Use /diff.",
                 file=sys.stderr,
             )
             sys.exit(2)
