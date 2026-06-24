@@ -51,16 +51,24 @@ if ($NoBuild) {
 Write-Host "Running PreBind Validation Tests concurrently..." -ForegroundColor Cyan
 
 $jobs = foreach ($proj in $projects) {
-    Start-Job -ScriptBlock {
+    Start-Job -Name $proj -ScriptBlock {
         param($script, $proj, $trait)
         $env:UPDATE_TEST_EXPECTED_RESULTS = "true"
         & $script -Project $proj -FilterTrait $trait -NoBuild
+        # Run-DotnetTest returns the runner exit code without throwing; treat any non-zero as failure.
+        # Exit 8 = "Zero tests ran" (the trait filter matched nothing — e.g. a renamed trait whose
+        # retag isn't on this branch), which must fail loudly instead of reporting a false green over
+        # a suite that never executed.
+        if ($LASTEXITCODE -ne 0) {
+            $reason = if ($LASTEXITCODE -eq 8) { "zero tests matched trait '$trait'" } else { "test failures" }
+            throw "$proj : Run-DotnetTest exited $LASTEXITCODE ($reason)."
+        }
     } -ArgumentList $scriptPath, $proj, $trait
 }
 
 $failed = @()
 foreach ($job in $jobs) {
-    Receive-Job -Job $job -Wait
+    Receive-Job -Job $job -Wait -ErrorAction SilentlyContinue
     if ($job.State -eq 'Failed') {
         $failed += $job.Name
     }

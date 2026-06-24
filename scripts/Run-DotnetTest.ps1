@@ -179,4 +179,13 @@ Write-Host ""
 Write-Host "Output: $outputFile" -ForegroundColor Green
 Write-Host "TRX:    $trxName" -ForegroundColor Green
 
+# A run that matched no tests must never look like success. MTP returns exit code 8 for "Zero tests
+# ran" — almost always a stale or renamed filter (trait/class/method/namespace) that matches nothing
+# on this branch. Fail loudly with a non-zero code so no caller can mistake a no-op for a green suite.
+if ($exitCode -eq 8 -or (Select-String -Path $outputFile -Pattern 'Zero tests ran' -Quiet)) {
+    Write-Host ""
+    Write-Host "FAILED: Zero tests ran - filter matched no tests ($filterStr)." -ForegroundColor Red
+    if ($exitCode -eq 0) { $exitCode = 8 }
+}
+
 exit $exitCode
