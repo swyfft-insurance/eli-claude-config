@@ -67,6 +67,21 @@ If no existing file, proceed to Step 5.
 
 > **This is the most important step in the skill. Do not rush it. Do not call it done after 2-3 questions.**
 
+### One thing at a time, every question carries its evidence (MANDATORY)
+
+This governs all Q&A in Steps 5 and 6.
+
+**Present exactly one item per message.** Never bundle a skill/process change with a question, or two questions together, into one blob. One decision, one message — wait for the answer before the next thing.
+
+**Every question must carry its evidence inline**, because the user has no source material in front of them otherwise:
+1. **Verbatim ticket text** — quote in full every part of the ticket you reference. The moment you name or allude to any ticket element (the title/summary, an acceptance criterion, the repro steps, a section heading), paste its actual text in the same message. Naming or paraphrasing is not enough — the user cannot see the ticket. If the decision is not ticket-derived, say so explicitly: "(not in the ticket — discovered in code)".
+2. **The relevant code excerpt** with `file:line`, showing exactly what changes.
+3. **The decision + numbered options**, each stated as a concrete consequence.
+
+Prefer prose with numbered options over AskUserQuestion when the evidence is substantial (AskUserQuestion truncates it). A question without its evidence is incomplete — the user should never have to go read the ticket or grep the code to answer.
+
+**MANDATORY before presenting ANY question — `Read` `~/.claude/rules/communication.md` § "Don't Offer Anti-Pattern Options" (don't work from memory).** Every option must be genuinely plausible. You must NEVER present "follow the acceptance criteria" vs "violate them" as a choice — implement the AC. A ticket-deviating path is raised only as an evidenced concern, never as a neutral A/B. Offering a fake choice confuses the user and burns trust for when a real concern surfaces.
+
 Two interleaved passes:
 
 ### Pass 1 — Ticket-derived questions (do this FIRST)
@@ -76,6 +91,8 @@ Read the ticket content carefully. For every architectural decision implied by t
 > "The ticket says X. That means we need to decide Y. Here are the options I see, with tradeoffs..."
 
 This is real engagement with the ticket content, not template-filling. If Pass 1 is shallow, Pass 2 will become the de facto Pass 1 and the whole exercise turns into template-fill.
+
+**When weighing approaches, `Read` `~/.claude/rules/coding-standards.md` § "We own this code" (don't work from memory).** Never let the *current* shape of the code — an access modifier, a signature, where a value is computed — narrow the options you present. We can change existing code as part of the work; design the clean approach, not the one that avoids touching anything.
 
 ### Pass 2 — Category-coverage sweep
 

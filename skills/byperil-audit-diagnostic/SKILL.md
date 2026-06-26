@@ -6,9 +6,15 @@ description: Run the ByPeril Homeowner Excel audit diagnostic test against one o
 # ByPeril Audit Diagnostic
 
 Runs `ByPerilQuoteAuditDiagnosticTests.ValidateQuoteAudit` against a list of quote GUIDs.
-The test loads each quote from the DB, runs the Excel rater, and compares
-`AnnualPremium + AnnualFeesTotal` against `FinalTotalPremium` — same comparison as
-production `ByPerilHomeownerExcelQuoteAuditService`.
+For each quote the test does a **three-way comparison** and prints per-factor diffs:
+
+- **DB(bind)** — stored `AnnualPremium + AnnualFeesTotal`, what the customer was charged.
+- **Excel(now)** — `FinalTotalPremium` from the current rater. `Excel ≠ DB` is the production
+  audit failure (same comparison as `ByPerilHomeownerExcelQuoteAuditService`).
+- **Recompute(now)** — current C# premium via an in-RAM clone reprice; supplementary.
+
+For interpreting the output (which column moved, the Hurricane clone-artifact, etc.), see the
+`audit-doc-mismatch-investigation` skill.
 
 ## Arguments
 
@@ -16,24 +22,57 @@ Comma-, semicolon-, or whitespace-separated list of quote GUIDs.
 
 If no quote IDs are provided, ask the user for them.
 
-## Preflight Checks
+## Preflight & DB Setup
 
-Run these BEFORE invoking the script. If any fails, HARD STOP.
-
-### 1. appsettings.json points at a non-local, non-prod DB
+These quote GUIDs never exist locally, so a **localhost** connection is the *expected default*
+state of appsettings — NOT a surprise to error on. The quotes can live in beta OR in prod-copy
+depending on which environment the ticket's errors came from and how recently the quote was
+created, so the environment is a real choice the user must make.
 
 Read `Swyfft.Common/appsettings.json` and check the `SwyfftCore` connection string's
 `Data Source`:
 
-| Server | Verdict |
+| Server | Action |
 |---|---|
-| `yde2xj08jm.database.windows.net,1433` (dev or beta catalog) | OK |
-| `swyfftsqleastus2.database.windows.net` (prod-copy, read-only) | OK |
-| `localhost` or anything local | HARD STOP — prod quote GUIDs won't exist locally |
-| `swyfftsqleastus.database.windows.net` (no `2` — that's real prod) | HARD STOP — refuse |
+| `yde2xj08jm.database.windows.net,1433` (dev or beta catalog) | Already remote — confirm it's the env the user wants, then proceed |
+| `swyfftsqleastus2.database.windows.net` (prod-copy, read-only) | Already remote — confirm, then proceed |
+| `localhost` / anything local / anything else | Ask which env (below), then repoint |
+| `swyfftsqleastus.database.windows.net` (no `2` — that's real prod) | **HARD STOP — refuse** |
 
-If not OK, tell the user to point appsettings at prod-copy or beta per
-`~/.claude/rules/beta-prod-db.md` Scenario 2, and stop.
+### Ask which environment — reference the ticket's environment
+
+Before repointing, **ask the user which environment to point at**, and frame the question with
+the ticket's own environment context so the choice is informed:
+
+- Pull the environment(s) from the ticket — for a LogMonitor ticket the body lists them (e.g.
+  `Environments: Console.Beta, Console.Prod`); otherwise infer from the `Found in Stage` /
+  custom fields.
+- Present the env choice referencing that: e.g. *"This ticket's errors are from Console.Beta and
+  Console.Prod. Which DB should I point at — beta, or prod-copy?"*
+- Decision guidance to include: **beta** is a weekly Monday snapshot — fine if the quote predates
+  last Monday; **prod-copy** (`swyfftsqleastus2.database.windows.net`, read-only) is required if
+  the quote was created in the current week, is missing from beta, or you're chasing a
+  prod-vs-beta discrepancy. See `~/.claude/rules/beta-prod-db.md`.
+
+### Repoint to the chosen environment
+
+Rewrite all four connection strings — `SwyfftCore`, `SwyfftCoreSecondary`, `SwyfftRating`,
+`SwyfftRatingSecondary` — using the template in `~/.claude/rules/beta-prod-db.md` Scenario 2
+(only `Data Source`, `Initial Catalog`, and the
+`Authentication=Active Directory Default;User ID=placeholder;` auth pair change):
+
+| Env | Server | Core / Rating catalogs |
+|---|---|---|
+| Beta | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreBeta` / `SwyfftRatingBeta` |
+| Prod-copy | `swyfftsqleastus2.database.windows.net` | `SwyfftCoreProd` / `SwyfftRatingProd` |
+| Dev | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreDev` / `SwyfftRatingDev` |
+
+Prereqs for the connection to authenticate: **VPN connected** and **Azure AD signed in**
+(Visual Studio or `az login`). If the run fails with a login/connection error, that's the
+likely cause — surface it, don't silently retry.
+
+If the chosen env turns out to be missing the quote (beta snapshot too old), tell the user and
+offer to repoint to prod-copy and re-run.
 
 ## Run
 
@@ -58,13 +97,14 @@ The script:
 1. Read the output file (path printed at script end).
 2. Report:
    - Pass / fail counts
-   - Per failure: quote ID, config (e.g., `TX.QBE.ByPeril.EAndS.V5`), DB premium, Excel
-     premium, diff, tolerance, and the saved `.xlsm` path (grep for `Excel file:` in the
-     output — each failing run writes its workbook to
+   - Per failure: quote ID, config (e.g., `TX.QBE.ByPeril.EAndS.V5`), the three totals
+     (DB / Excel / Recompute), diff, tolerance, the diverging by-peril factor(s) the test
+     names, and the saved `.xlsm` path (grep for `Excel file:` in the output — each failing
+     run writes its workbook to
      `%TEMP%\1\Swyfft\<NNNNNN>\HO_<AD|ES>_<CARRIER>_<STATE>_Rater_<ts>_<guid>.xlsm`).
-3. If there are failures, the next investigation step is to open each `.xlsm` and
-   compare premium/fee lines against DB values using `ReadExcel` / `DumpRater` /
-   `ReadNamedRanges` console tasks (see `~/.claude/rules/tooling.md`).
+3. If there are failures, the test has already named the diverging factor — go to the
+   `audit-doc-mismatch-investigation` skill (Step 2 interpretation gotchas, Step 3 source trace).
+   Don't hand-compare the `.xlsm` first; that's a Step 3 fallback, not the starting point.
 
 ## Cleanup
 

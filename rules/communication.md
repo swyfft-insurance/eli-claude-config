@@ -43,6 +43,8 @@ Filler options waste time AND create a boy-who-cried-wolf problem: when a *real*
 
 If the answer is obvious from the ticket, don't ask — just confirm and proceed.
 
+**The sharpest case: never present "follow the AC" vs "violate the AC" as a choice.** If one option is "do what the ticket says" and the other is "deviate from it" with no stated reason, that is not a decision — implement the AC. Offering it as a menu option is the most damaging form of this anti-pattern: the user reasonably reads it as "do you want to break the requirement?", loses a turn untangling it, and trusts your next question less. The *only* time a ticket-deviating path is worth raising is when you have concrete, evidenced reason it might be right (a filing conflict, a contradicting AC, a genuine defect in the requirement) — and then you raise it as a flagged concern *with that evidence*, never as a neutral A/B.
+
 ## No Ambiguous References
 
 When a sentence has more than one noun a pronoun or demonstrative could point to, repeat the noun. Never leave "it", "this", "that", "they", "those", "which", or "whatever" for the reader to resolve when two or more candidates are in scope. Repeating the noun beats an elegant-but-vague reference every time.

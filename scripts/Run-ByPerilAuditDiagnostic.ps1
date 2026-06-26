@@ -48,6 +48,13 @@ Write-Host ""
 $env:EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS = ($ids -join ',')
 $env:GITHUB_ACTIONS = 'true'
 
+# The beta/prod-copy connection uses "Active Directory Default", whose credential chain tries
+# Managed Identity before the Azure CLI / Visual Studio token. On a local machine the Managed
+# Identity probe doesn't fail cleanly — it hard-errors after retrying the Azure VM metadata
+# endpoint and aborts the whole chain before the local `az login` token is ever tried. Limiting
+# the chain to developer credentials skips that probe so the cached `az login` / VS token is used.
+$env:AZURE_TOKEN_CREDENTIALS = 'dev'
+
 & $scriptPath `
     -Project 'Swyfft.Services.Excel.IntegrationTests' `
     -FilterClass '*ByPerilQuoteAuditDiagnosticTests' `

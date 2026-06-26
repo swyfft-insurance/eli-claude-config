@@ -84,6 +84,19 @@ Edit `Swyfft.Common/appsettings.json`. Replace `SwyfftCore`, `SwyfftCoreSecondar
 - Visual Studio signed in with Azure AD (or `az login`)
 - If switching branches to match env (e.g., `git checkout beta`), do that too
 
+### Required env vars to run integration tests against beta/prod-copy (don't waste time on this again)
+
+Set BOTH in the test-run shell, and `az login` must be current:
+
+```
+$env:AZURE_TOKEN_CREDENTIALS = 'dev'   # so DefaultAzureCredential uses your az/VS token
+$env:GITHUB_ACTIONS          = 'true'  # bypass the read-only TestGlobalIds write (see next section)
+```
+
+- **`AZURE_TOKEN_CREDENTIALS=dev` is mandatory.** The connections use `Authentication=Active Directory Default` → `DefaultAzureCredential`. Without this var the in-process chain skips the dev credentials (Azure CLI / Visual Studio) and falls through to `ManagedIdentityCredential` (Azure-VM-only), failing with `ManagedIdentityCredential authentication failed … IMDS … 169.254.169.254 … unreachable`. Setting it to `dev` restricts the chain to dev creds, so it uses your `az login` token.
+- **A passing `az account get-access-token` is necessary but NOT sufficient** — the token can be valid yet unused without `AZURE_TOKEN_CREDENTIALS=dev`. Verify the token exists with `az account get-access-token --resource https://database.windows.net/ --query expiresOn -o tsv` (future timestamp = good; error → `! az login`), then still set the var.
+- **`GITHUB_ACTIONS=true`** — bypasses the read-only counter write; see the next section.
+
 ### Read-only DB workaround (GITHUB_ACTIONS flag)
 
 `Swyfft.Test.Base.GlobalPersistentCounter` writes to `dbo.TestGlobalIds` on every test-ID reservation. Against a read-only DB (like prod-copy), this fails with `UPDATE permission was denied on the object 'TestGlobalIds'` before the actual test runs.
