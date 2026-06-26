@@ -39,6 +39,18 @@ treat a log row as evidence of a functional change.
 
 `RaterFileContents_ShouldMatchCaptured` (SW-50657) writes canonical, code-controlled inputs via `SetExcelValues` before dumping, so it reflects only the rater's factors/formulas/structure — never the stray inputs someone left in the file from clicking around. A raw `DumpRater` of the on-disk file carries that drift; it's ad-hoc debugging only. The diff is the same drift-free mechanism at both step-3 scoping and step-5 verification.
 
+## Researching rater structure — read the pre-dumped baselines
+
+Every ByPeril HO rater's full structure is already captured on disk by
+`RaterFileContents_ShouldMatchCaptured`, under
+`Swyfft.Services.Excel.IntegrationTests/ExpectedResults/{TestClass}/` — `_NamedRanges.txt` (every
+named cell and its target), `Fees.txt`, `Rating_Algorithm.txt`, and the per-sheet dumps. To
+research a rater's current shape (does a named range exist? what's the inspection-fee cell and its
+formula? which fees are wired?), **read these dumps — never open the `.xlsm`**. It's drift-free
+(canonical inputs written before the dump), needs no Excel/COM, and covers every state/carrier
+leaf. Use it both to scope a change and to find which raters already have or lack a given named
+range (e.g. grep the `_NamedRanges.txt` files for a cell name across all leaves at once).
+
 ## Component → Excel-signal map
 
 The diff signal on the left tells you which component on the right must change:
