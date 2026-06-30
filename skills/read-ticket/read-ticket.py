@@ -115,6 +115,40 @@ def extract_custom_fields(raw_fields):
     return out
 
 
+def extract_field_change(activity):
+    """Summarize one custom-field change activity (Stage moved, reassigned, priority changed)."""
+    def names(items):
+        if not items:
+            return None
+        if isinstance(items, list):
+            vals = [i.get("name") if isinstance(i, dict) else str(i) for i in items if i is not None]
+            return ", ".join(v for v in vals if v) or None
+        if isinstance(items, dict):
+            return items.get("name")
+        return str(items)
+
+    return {
+        "on": format_timestamp(activity.get("timestamp")),
+        "author": extract_user(activity.get("author")),
+        "field": (activity.get("field") or {}).get("name"),
+        "from": names(activity.get("removed")),
+        "to": names(activity.get("added")),
+    }
+
+
+def extract_work_item(wi):
+    """Summarize one time-tracking work item (logged time)."""
+    duration = wi.get("duration") or {}
+    work_type = wi.get("type") or {}
+    return {
+        "date": format_timestamp(wi.get("date")),
+        "author": extract_user(wi.get("author")),
+        "duration": duration.get("presentation") if isinstance(duration, dict) else None,
+        "type": work_type.get("name") if isinstance(work_type, dict) else None,
+        "text": wi.get("text"),
+    }
+
+
 def download_all_attachments(attachments, images_dir, attachments_dir, token):
     """Download all attachments, returning (images, other_attachments) maps."""
     images = {}
@@ -188,6 +222,7 @@ def main():
         "customFields(name,value(name,login,text))",
         "attachments(id,name,mimeType,size,url)",
         "links(direction,linkType(name),issues(idReadable,summary))",
+        "tags(name)",
     ])
     issue = api_get(
         f"/api/issues/{issue_id}?fields={urllib.parse.quote(issue_fields, safe='(),*')}",
@@ -209,6 +244,36 @@ def main():
         if len(batch) < 50:
             break
         skip += 50
+
+    # --- Fetch field-change history (Stage transitions, reassignments, priority, etc.) ---
+    # The MCP has no activities tool; folding this in keeps read-ticket the single source for
+    # everything about a ticket. CustomFieldCategory = the field changes worth surfacing.
+    activity_fields = "id,timestamp,author(login,name),field(name),added(name),removed(name)"
+    try:
+        activities_raw = api_get(
+            f"/api/issues/{issue_id}/activities"
+            f"?fields={urllib.parse.quote(activity_fields, safe='(),*')}"
+            f"&categories=CustomFieldCategory&$top=100",
+            token,
+        )
+    except Exception:
+        activities_raw = []
+    field_history = [
+        extract_field_change(a) for a in (activities_raw or [])
+        if (a.get("field") or {}).get("name")
+    ]
+
+    # --- Fetch time-tracking work items (logged time) ---
+    workitem_fields = "id,date,duration(minutes,presentation),author(login,name),text,type(name)"
+    try:
+        workitems_raw = api_get(
+            f"/api/issues/{issue_id}/timeTracking/workItems"
+            f"?fields={urllib.parse.quote(workitem_fields, safe='(),*')}&$top=100",
+            token,
+        )
+    except Exception:
+        workitems_raw = []
+    work_items = [extract_work_item(w) for w in (workitems_raw or [])]
 
     # --- Download images ---
     all_attachments = list(issue.get("attachments") or [])
@@ -239,6 +304,8 @@ def main():
         "updated": format_timestamp(issue.get("updated")),
         "resolved": format_timestamp(issue.get("resolved")),
         "customFields": extract_custom_fields(issue.get("customFields")),
+        "fieldHistory": field_history,
+        "tags": [t.get("name") for t in (issue.get("tags") or []) if isinstance(t, dict) and t.get("name")],
         "links": [],
         "description": description_resolved,
         "comments": [],

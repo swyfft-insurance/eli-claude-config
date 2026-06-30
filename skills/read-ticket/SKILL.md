@@ -22,6 +22,7 @@ python ~/.claude/skills/read-ticket/read-ticket.py <ISSUE-ID>
 Set timeout to 30000ms. The script:
 - Fetches the issue via YouTrack REST API (description, custom fields, links)
 - Fetches all comments (paginated)
+- Fetches field-change history (Stage transitions, reassignments, priority changes)
 - Downloads all attachments: images to `$TEMP/swyfft-tickets/<ISSUE-ID>/images/`, other files to `$TEMP/swyfft-tickets/<ISSUE-ID>/attachments/`
 - Outputs structured JSON to stdout
 
@@ -35,6 +36,8 @@ The output contains:
 | `customFields` | Stage, Priority, IssueType, ProductLine, Carrier, RatingType, USState, Assignee, etc. |
 | `description` | Full markdown description with `[IMAGE: <local_path>]` markers where screenshots appear |
 | `comments[]` | Each comment with `author`, `created`, `text` (also with resolved image markers) |
+| `fieldHistory[]` | Field-change history — each with `on`, `author`, `field`, `from`, `to` (Stage transitions, reassignments, priority changes) |
+| `tags[]` | Tag names on the ticket |
 | `links[]` | Linked issues with type, direction, id, summary |
 | `images` | Map of `filename → local path` for all downloaded images |
 | `imagesDir` | Directory containing all downloaded images |
@@ -64,6 +67,7 @@ Summarize the ticket with:
 - **Description**: The full description text, describing what each inline image shows
 - **Attachments**: List non-image attachments and summarize their contents
 - **Comments**: Each comment with author, date, and content (including what their images show)
+- **Field history**: Notable field changes (e.g. Stage transitions, reassignments), when relevant
 - **Links**: Related/duplicate/parent tickets
 
 ## Error Handling

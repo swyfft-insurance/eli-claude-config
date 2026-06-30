@@ -68,10 +68,9 @@ Read base-branch versions with: `git -C /c/Users/eli.koslofsky/Documents/GitHub/
 NEVER `git checkout`.
 
 PROCESS:
-1. Read the ticket(s). YouTrack MCP tools are DEFERRED — load via ToolSearch with query "select:mcp__YouTrackNative__get_issue,mcp__YouTrackNative__get_issue_comments" then call mcp__YouTrackNative__get_issue for each ticket ID. On failure, fall back to curl:
-   YOUTRACK_TOKEN=$(powershell -NoProfile -Command "[System.Environment]::GetEnvironmentVariable('YOUTRACK_API_TOKEN', 'User')")
-   curl -s -H "Authorization: Bearer $YOUTRACK_TOKEN" "https://swyfft.myjetbrains.com/youtrack/api/issues/{TICKET}?fields=idReadable,summary,description,customFields(name,value(name))"
-   Form a one-sentence understanding of each. Flag scope mismatch with the PR.
+1. Read the ticket(s) with the read-ticket script — full ticket (description, all comments, custom fields, attachments). The MCP get tools are blocked by the pretooluse hook; use the script:
+   python ~/.claude/skills/read-ticket/read-ticket.py {TICKET}
+   It accepts the readable ID (SW-XXXXX) or the internal entity ID (2-XXXXX). Form a one-sentence understanding of each. Flag scope mismatch with the PR.
 
 2. Fetch PR:
    gh pr view {NUM} --repo swyfft-insurance/swyfft_web --json files,additions,deletions,body,isDraft

@@ -161,6 +161,23 @@ def main():
         )
         sys.exit(2)
 
+    # BLOCK: YouTrack ticket reads — must use the /read-ticket skill instead.
+    # Reading a ticket is one usage: /read-ticket returns the full ticket (description, every
+    # comment, custom fields incl. Stage, attachments) — the same complete view a human gets
+    # opening it. get_issue / get_issue_comments invite partial reads that miss context.
+    # /read-ticket runs read-ticket.py (direct REST), not these MCP tools, so it's unaffected.
+    # No bypass: an MCP call has no command string to carry a token (matches the SolarWinds block).
+    if tool_name in ("mcp__YouTrackNative__get_issue", "mcp__YouTrackNative__get_issue_comments"):
+        print(
+            "BLOCKED: Do not read YouTrack tickets via the MCP get tools. "
+            "Use the /read-ticket skill — it returns the full ticket (description, all comments, "
+            "custom fields incl. Stage, attachments), the same view you get opening the ticket. "
+            "It accepts the readable ID (SW-XXXXX) or the internal entity ID (2-XXXXX). "
+            "search_issues and the write tools are unaffected.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     # Check tool name matches (MCP tools, EnterPlanMode, ExitPlanMode)
     for pattern, rules_file in TOOL_RULES:
         if re.search(pattern, tool_name):
@@ -208,6 +225,31 @@ def main():
             print(
                 "BLOCKED: Do not call the SolarWinds API directly. "
                 "Use the /search-logs skill, which calls ~/.claude/scripts/Search-SolarWinds.ps1.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        # BLOCK: lazy YouTrack ticket reads via the REST API — must use /read-ticket.
+        # /read-ticket is the one-stop ticket read (description, comments, custom fields,
+        # attachments, field-change history, tags). A raw GET dodges it — both the by-id form
+        # (/api/issues/{id}, /comments, /activities, ...) and the search/list form
+        # (/api/issues?query=...&fields=description,comments(...)). Hence /api/issues[/?].
+        # Writes stay open: POST/PUT/DELETE (e.g. the /api/commands Release Stage NA call,
+        # which isn't under /api/issues anyway) are not reads. read-ticket.py reads via Python
+        # urllib, so its command ("python .../read-ticket.py") contains no /api/issues.
+        is_yt_issue_read = re.search(r"youtrack[^\n]*?/api/issues[/?]", cmd)
+        is_yt_write = re.search(
+            r"-X\s*(POST|PUT|DELETE)|-XPOST|-XPUT|--request\s+(POST|PUT|DELETE)|-Method\s+(Post|Put|Delete)",
+            cmd,
+            re.IGNORECASE,
+        )
+        if is_yt_issue_read and not is_yt_write and "read-ticket.py" not in cmd:
+            print(
+                "BLOCKED: Do not read YouTrack tickets via the REST API directly. "
+                "Use the /read-ticket skill — the single source for everything about a ticket "
+                "(description, all comments, custom fields incl. Stage, attachments, and "
+                "field-change history). It accepts SW-XXXXX or the internal 2-XXXXX id. "
+                "Writes (POST/PUT to the command/issue API) are unaffected.",
                 file=sys.stderr,
             )
             sys.exit(2)
