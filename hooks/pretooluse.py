@@ -84,7 +84,7 @@ TOOL_RULES = [
     (r"^EnterPlanMode$", "core-behavior.md"),
     (r"^ExitPlanMode$", "coding-standards.md"),
     (r"^ExitPlanMode$", "core-behavior.md"),
-    (r"^AskUserQuestion$", "communication.md"),
+    (r"^AskUserQuestion$", "talking-to-eli.md"),
     (r"^AskUserQuestion$", "core-behavior.md"),
 ]
 

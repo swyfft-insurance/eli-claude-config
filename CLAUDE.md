@@ -48,12 +48,12 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUs
 | Section | File | Read before... |
 |---------|------|----------------|
 | Core Behavior | `core-behavior.md` | every action (injected automatically at key trigger points) |
-| Communication Style | `communication.md` | composing any response |
+| Talking to Eli | `talking-to-eli.md` | composing any response |
 | Git Safety | `git-safety.md` | any git push, commit, branch, merge, or rebase |
 | Windows / Tooling | `windows-tooling.md` | using sed, tee, mv, printenv, or pwsh with Unix paths |
 | Coding Standards | `coding-standards.md` | modifying access modifiers or adding usings |
 | Refactoring Strategy | `refactoring.md` | changing a type, signature, member name, or access modifier |
-| Comments and Documentation | `code-comments.md` | writing comments, docs (CLAUDE.md, signposts), or any persisted prose |
+| Comments, Docs & External Writing | `comments-docs-and-external-writing.md` | writing comments, docs, RCAs, Slack/YouTrack, PR descriptions, or any persisted/external prose |
 | Slack | `slack.md` | sending any Slack message |
 | YouTrack | `youtrack.md` | creating, updating, or reading YouTrack issues |
 | PR Creation | `pr-creation.md` | creating a PR |

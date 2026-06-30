@@ -1,10 +1,10 @@
-# Comments and Documentation
+# Comments, Docs, and External Writing
 
 > I like comments — specifically ones that capture the **business reason / intent** behind code. Write them as a habit on any non-trivial logic (see § How to write one) — they're the record of what the code was *meant* to do, which is exactly what you need when it turns out to be wrong.
 >
 > What to avoid is the comment that merely **restates what the code does**, or that only makes sense within the current work session — those rot (see § Banned).
 >
-> Applies to everything that persists in the repo: code comments, docstrings, CLAUDE.md sections, rule files, in-repo notes.
+> Applies to all durable written prose: code comments, docstrings, CLAUDE.md sections, rule files, in-repo notes — and to external/published writing: YouTrack comments and RCAs, Slack messages, PR descriptions. Those are comments too; every rule here applies to them. Chat replies follow the prose-quality rules here as well (see `talking-to-eli.md`).
 
 ## The failure mode
 
@@ -51,4 +51,26 @@ Default audience is therefore the **non-technical stakeholder who wrote the requ
 - **If the ticket or stakeholder already described it in plain English, use that wording verbatim.** Don't paraphrase a clear requirement into worse prose — quote it.
 - **Concrete examples beat abstract description.** Dates and values ("created May 20 → expires June 1") land faster than a general rule.
 - **The test:** read it back as the requirement-writer. If a non-coder couldn't follow how the code meets their ask, rewrite.
-- **No ambiguous references.** When more than one noun could be the antecedent, repeat the noun instead of "it"/"this"/"that"/"they". See `~/.claude/rules/communication.md` § "No Ambiguous References".
+- **No ambiguous references.** When more than one noun could be the antecedent, repeat the noun instead of "it"/"this"/"that"/"they". See § "No Ambiguous References" below.
+
+## No Ambiguous References
+
+When a sentence has more than one noun a pronoun or demonstrative could point to, repeat the noun. Never leave "it", "this", "that", "they", "those", "which", or "whatever" for the reader to resolve when two or more candidates are in scope. Repeating the noun beats an elegant-but-vague reference every time.
+
+Applies to all written prose: chat replies, plan files, code and doc comments, commit messages, PR descriptions, and rules files themselves.
+
+| Bad | Good |
+|---|---|
+| "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
+| "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
+
+## Tense precision — don't state the future or a hypothesis as present fact
+
+Say what is true *now* in the present tense, and what *will* be true in the future or conditional. Don't collapse a predicted, not-yet-live, or hypothetical outcome into the present — it reads as a claim about current reality and leaves the reader unable to tell what has actually happened from what you expect to happen. Watch this hardest in dated / go-live reasoning, where the relevant event is in the future relative to now.
+
+| Bad | Good |
+|---|---|
+| "every prod quote shows 0.03%" (said before the product is live and before the cutover) | "once it launches 7/6 — past the cutover — every production quote will rate at 0.03%" |
+| "the fee is fixed" (when the fix is unmerged) | "the fix is on the branch; once merged the fee will be correct" |
+
+Applies to all prose: chat, comments, RCAs, YouTrack/Slack, PR descriptions.

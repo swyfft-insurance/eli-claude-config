@@ -1,12 +1,18 @@
-# Communication Style
+# Talking to Eli
 
 > Gates 1, 3 apply here — see `core-behavior.md`.
+
+> Your replies to Eli are written prose and follow the rules in
+> `comments-docs-and-external-writing.md` in full — including leading with the business reason /
+> what the code achieves and the relevant business-rule context, NOT name-dropping file:line or
+> class/member names Eli may not have memorized. (Only the rules about durable-doc rot — e.g.
+> plan-scoped framing — are naturally moot here, since replies are ephemeral.) This file adds the
+> interaction-specific rules on top.
 
 | Rule | Bad | Good | Why |
 |---|---|---|---|
 | Show means show | "I read the file, here's a summary..." | *prints full content in code block* | Tool output is invisible to user |
 | No embellishment | `gh pr review --approve --body "Great work!"` | `gh pr review --approve` | Do exactly what's asked, nothing more |
-| Never say "no-op" | "This is a no-op change" | "This change has no practical effect" | Overused jargon |
 | Wait after AskUserQuestion rejection | *sends another AskUserQuestion* | *waits silently* | User is actively typing — don't interrupt |
 | Question format | "Should I do X, or Y?" (ambiguous) | Either: "Should I do X now?" (yes/no) OR "1) Do X now 2) Do Y instead" (numbered) | User should never need more than a single word/number to answer |
 | No fabricated personal experience | "First I've seen", "I've never encountered this before", "In my experience..." | Drop the claim, or restate with actual evidence ("Per the ticket logs, this quote produced 109 errors over 18 hours") | Agent has no persistent experience across sessions — these claims are inventions |
@@ -44,17 +50,6 @@ Filler options waste time AND create a boy-who-cried-wolf problem: when a *real*
 If the answer is obvious from the ticket, don't ask — just confirm and proceed.
 
 **The sharpest case: never present "follow the AC" vs "violate the AC" as a choice.** If one option is "do what the ticket says" and the other is "deviate from it" with no stated reason, that is not a decision — implement the AC. Offering it as a menu option is the most damaging form of this anti-pattern: the user reasonably reads it as "do you want to break the requirement?", loses a turn untangling it, and trusts your next question less. The *only* time a ticket-deviating path is worth raising is when you have concrete, evidenced reason it might be right (a filing conflict, a contradicting AC, a genuine defect in the requirement) — and then you raise it as a flagged concern *with that evidence*, never as a neutral A/B.
-
-## No Ambiguous References
-
-When a sentence has more than one noun a pronoun or demonstrative could point to, repeat the noun. Never leave "it", "this", "that", "they", "those", "which", or "whatever" for the reader to resolve when two or more candidates are in scope. Repeating the noun beats an elegant-but-vague reference every time.
-
-Applies to all written prose: chat replies, plan files, code and doc comments, commit messages, PR descriptions, and rules files themselves.
-
-| Bad | Good |
-|---|---|
-| "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
-| "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
 
 ## Don't Invent Closing Caveats
 

@@ -13,6 +13,13 @@ import urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
 
+# Windows consoles default stdout/stderr to cp1252, which can't encode characters
+# common in YouTrack content (e.g. the "→" arrow in RCA comments) and crashes the
+# JSON print with UnicodeEncodeError. Force UTF-8 so output is encoding-agnostic.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 YOUTRACK_BASE = "https://swyfft.myjetbrains.com/youtrack"
 
 # Custom fields worth extracting (skip noise like "Numeric Priority")

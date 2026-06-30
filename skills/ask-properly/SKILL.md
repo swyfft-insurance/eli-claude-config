@@ -25,14 +25,28 @@ NEVER use bare numbers for both the questions and their options — answering `1
 ambiguous about which number is the question and which is the chosen option. Always
 question-number + option-letter.
 
-Follow `~/.claude/rules/communication.md` (§ "Question format", § "Don't Offer Anti-Pattern
+Follow `~/.claude/rules/talking-to-eli.md` (§ "Question format", § "Don't Offer Anti-Pattern
 Options", § "No Ambiguous References"):
 - Each option must be **genuine** — no filler, strawman, or anti-pattern decoys.
 - When you have a recommendation, make it option **a** and label it "(Recommended)".
 - Every question answerable with a single number+letter. No "X, or Y?" prose forks.
 - Repeat the noun instead of "it"/"this"/"that" when more than one antecedent is in scope.
 
-## 3. Constraints
+## 3. Audit the whole message against the rules — fix violations before presenting
+
+Don't just reformat the questions; audit the entire re-presented message and rewrite anything that
+breaks the rules. Read these (don't work from memory):
+- `~/.claude/rules/comments-docs-and-external-writing.md` — your replies are written prose. Check:
+  concise (cut word-slop and throat-clearing), plain, no jargon/notation, **lead with the business
+  reason / what the code achieves and the business-rule context — don't name-drop file:line or
+  class/member names Eli may not have memorized**, no ambiguous references, and tense precision
+  (never state a future or hypothetical outcome as present fact).
+- `~/.claude/rules/talking-to-eli.md` — every option genuine (no filler/strawman decoys), each
+  question answerable with one number+letter, no invented closing caveats.
+
+Present the conforming version, not your original wording.
+
+## 4. Constraints
 - **Only reformat what you already asked.** Don't invent new questions, expand scope, or add
   decisions Eli never faced.
 - **Don't answer the questions yourself**, and don't start or continue any work until Eli answers.

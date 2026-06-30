@@ -8,6 +8,16 @@ This file is organized into three parts by lifecycle stage:
 - **Part B: REQUIRED CONTENT in every plan file** — what must appear in the plan itself (the `/create-plan-from-ticket` skill enforces this)
 - **Part C: How to EXECUTE the plan** — rules that apply while working through the plan after it's drafted
 
+## FULL-COVERAGE MANDATE — read before writing or executing ANY plan
+
+**Every plan must incorporate EVERY rule in this file — Parts A, B, AND C — not merely the sections Part B enumerates.** A plan is not a document that happens to list some sections; it must *embody the entire ruleset*:
+
+- **Part A** — the plan was co-designed via Q&A, with no deferred decisions and only genuine options.
+- **Part B** — every mandated section is written into the file (or marked `N/A — <reason>` for the conditional ones).
+- **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the comment self-audit, the ClosedSet self-audit, line-length, magic-number extraction, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
+
+If a rule appears anywhere in this file, it must be reflected in the plan. A plan that silently drops any rule is incomplete — the same as a missing test or seeder override. This is exactly why the skill mandates re-reading the rules between every step: so nothing falls out of working memory and gets dropped after a couple of actions. The skill's Step 8 verification gate (below) enforces this full-coverage mandate before any plan is considered written.
+
 ---
 
 # Part A — How to PLAN
@@ -44,7 +54,7 @@ No silent punts.
 
 ## Q&A Options Must Be Genuine
 
-See `~/.claude/rules/communication.md` § "Don't Offer Anti-Pattern Options" — **especially relevant during planning Q&A**. When asking the user to pick between options, every option must be genuinely plausible. Don't pad questions with strawman options the ticket already rules out. If the ticket says do A, B, C, don't ask "do A, B, C or skip them entirely?" — confirm and proceed (or skip the question if the answer is obvious from the ticket).
+See `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" — **especially relevant during planning Q&A**. When asking the user to pick between options, every option must be genuinely plausible. Don't pad questions with strawman options the ticket already rules out. If the ticket says do A, B, C, don't ask "do A, B, C or skip them entirely?" — confirm and proceed (or skip the question if the answer is obvious from the ticket).
 
 Filler options during planning are particularly toxic: they slow the discussion, confuse the user into doubting their own reading of the ticket, and erode trust in subsequent genuine concerns.
 
@@ -54,7 +64,7 @@ Filler options during planning are particularly toxic: they slow the discussion,
 - Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.
 - **Verify script args before writing them in plans.** When a plan invokes a script (`Build-Solution.ps1`, `Run-Seed.ps1`, `Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
 - DB queries and log searches are information-gathering — do them DURING planning, not after.
-- Write plan prose with no ambiguous references — repeat the noun rather than leaving "it"/"this"/"that"/"they" for the reader to resolve. See `~/.claude/rules/communication.md` § "No Ambiguous References".
+- Write plan prose with no ambiguous references — repeat the noun rather than leaving "it"/"this"/"that"/"they" for the reader to resolve. See `~/.claude/rules/talking-to-eli.md` § "No Ambiguous References".
 
 ---
 
@@ -68,10 +78,24 @@ Every plan file must begin with this block after the title and type:
 
 > **Execute steps in order. Never skip ahead, reorder, or deviate. If you encounter anything that prevents adherence to this plan, HARD STOP — explain the blocker and wait for instructions.**
 
-## Subsystem Pre-Reads — Required Before Step 0
+## IMPORTANT: Step 0a — Confirm the ticket(s) are in Develop
+
+**Every plan, every time, before anything else** — before the subsystem pre-reads and before the
+branch. For every YouTrack ticket the plan covers:
+
+1. Read the ticket's current Stage.
+2. If the Stage is earlier than Develop (Backlog, Ready for Dev), move it to Develop and tell the
+   user. This is a workflow-triggered transition — it does NOT need separate Gate 2 approval, the
+   same way the post-PR move to Review doesn't (see `youtrack.md`).
+3. If the Stage is already Develop or later (Review, Ready for Test, Done, Tested), leave the Stage
+   untouched — never move a ticket backward.
+4. If YouTrack is unreachable (VPN down, MCP failing), HARD STOP and ask — don't plan against a
+   ticket whose Stage you can't read.
+
+## Subsystem Pre-Reads — Required Before Step 0b
 
 Every plan must list the governing `CLAUDE.md` files for the subsystems it
-touches as required pre-reads, **above** Step 0. Match by topic, not by path —
+touches as required pre-reads, **above** Step 0b. Match by topic, not by path —
 the relevant doc often lives in a sibling directory (e.g.,
 `Data/{State}/Homeowner/ByPeril/**/*.xlsm` is governed by
 `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`, not `Data/CLAUDE.md`).
@@ -86,9 +110,9 @@ the index. Format inside the plan:
 A plan that omits these gets caught mid-execution by oddities the docs would
 have explained — that's a planner discipline failure.
 
-## IMPORTANT: Step 0 — Create a Branch
+## IMPORTANT: Step 0b — Create a Branch
 
-**Every plan, every time, no exceptions.** The first step in every plan, before any step that writes code:
+**Every plan, every time, no exceptions.** Before any step that writes code:
 1. Check if the current branch is appropriate for this ticket. `development`, `beta`, and `master` are never appropriate. A branch for a different ticket is never appropriate.
 2. If not, create a new branch with `/create-branch` and push it.
 
@@ -174,6 +198,9 @@ When a plan changes quote-def go-live dates, adds/recomputes seeder overrides, o
 
 ### Existing tests as regression checks
 Tests that should still pass without edits — list with a one-line "why this is relevant to this change". Never list a test suite without a reason.
+
+### Code-complete self-audit (comments + ClosedSets) — REQUIRED in EVERY plan
+A written step in the execution sequence, before the code-complete "show the diff" HARD STOP, to re-read `~/.claude/rules/comments-docs-and-external-writing.md` and `Swyfft.Common/SetDefinitions/CLAUDE.md` and audit every comment and ClosedSet usage the diff adds or changes. This audit is already mandatory at execution time (Part C §§ "Comments", "ClosedSets") — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a missing test or seeder override.
 
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
@@ -270,12 +297,12 @@ RenderSheet(ws, allRows, maxColumnsToCapture, lines.Add);
 ## Comments
 
 When implementing non-trivial business logic, add an intent/business-reason comment per
-`~/.claude/rules/code-comments.md` § "How to write one" — explain in plain language what the code
+`~/.claude/rules/comments-docs-and-external-writing.md` § "How to write one" — explain in plain language what the code
 is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
 is a default habit, not an afterthought.
 
 **Mandatory comment self-audit at code-complete.** Before the "Code complete — show the diff" HARD
-STOP, re-read `~/.claude/rules/code-comments.md` (don't work from memory) and audit every comment the
+STOP, re-read `~/.claude/rules/comments-docs-and-external-writing.md` (don't work from memory) and audit every comment the
 diff adds or changes against it. For each comment, confirm: it explains the business reason/intent
 rather than restating the code; it carries no plan-scoped framing, intra-PR commit references,
 jargon/notation, or word-slop; and it's concise (one or two plain sentences). Fix every violation

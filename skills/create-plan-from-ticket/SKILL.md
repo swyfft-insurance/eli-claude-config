@@ -39,6 +39,8 @@ Then read each one with the `Read` tool.
 
 Invoke `/read-ticket SW-XXXXX` to fetch the ticket's full content: description, all comments, custom fields, linked issues, and downloaded attachments. Walk through it carefully — do NOT skim. The ticket is the source of truth for ACs, scope, and most architectural decisions.
 
+After reading, perform plan **Step 0a** (per `plan-mode.md`) — if the ticket's Stage is earlier than Develop (Backlog, Ready for Dev), move it to Develop; leave it if already Develop or later.
+
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
 ## Step 3 — Subsystem pre-reads
@@ -80,7 +82,7 @@ This governs all Q&A in Steps 5 and 6.
 
 Prefer prose with numbered options over AskUserQuestion when the evidence is substantial (AskUserQuestion truncates it). A question without its evidence is incomplete — the user should never have to go read the ticket or grep the code to answer.
 
-**MANDATORY before presenting ANY question — `Read` `~/.claude/rules/communication.md` § "Don't Offer Anti-Pattern Options" (don't work from memory).** Every option must be genuinely plausible. You must NEVER present "follow the acceptance criteria" vs "violate them" as a choice — implement the AC. A ticket-deviating path is raised only as an evidenced concern, never as a neutral A/B. Offering a fake choice confuses the user and burns trust for when a real concern surfaces.
+**MANDATORY before presenting ANY question — `Read` `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" (don't work from memory).** Every option must be genuinely plausible. You must NEVER present "follow the acceptance criteria" vs "violate them" as a choice — implement the AC. A ticket-deviating path is raised only as an evidenced concern, never as a neutral A/B. Offering a fake choice confuses the user and burns trust for when a real concern surfaces.
 
 Two interleaved passes:
 
@@ -122,7 +124,7 @@ After each cluster of questions, you may ask "ready to draft the outline?" — b
 ### Banned in Q&A
 
 - Rushing to outline after 2-3 questions — must be sustained discussion
-- Filler / strawman / anti-pattern options (see `communication.md` § "Don't Offer Anti-Pattern Options"). Every option you present must be genuinely plausible.
+- Filler / strawman / anti-pattern options (see `talking-to-eli.md` § "Don't Offer Anti-Pattern Options"). Every option you present must be genuinely plausible.
 - Asking questions whose answers are obvious from the ticket — just confirm and proceed
 - Letting Pass 2 do most of the work because Pass 1 was lazy
 
@@ -150,6 +152,7 @@ Walk through every item in the checklist below and ask "does this apply to this 
 |---|---|
 | Build solution (`pwsh ./Build-Solution.ps1` — runs `Test-LineLength.ps1 -Mode local` internally as a pre-build gate; do NOT list line-length as a separate step) | Any `.cs` change |
 | Targeted tests on touched project via `Run-DotnetTest.ps1` | Any production code change |
+| Comment + ClosedSet self-audit (re-read `comments-docs-and-external-writing.md` + `SetDefinitions/CLAUDE.md`; audit every comment & ClosedSet usage the diff adds/changes — before the code-complete diff) | Always |
 | Adversarial review (`/review-pr`) | Always |
 | YouTrack stage → Review after PR creation | Always |
 
@@ -203,36 +206,40 @@ The full plan is the outline structure + all technical research details accumula
 
 **Why the full research belongs in the plan file:** the user often `/compact`s after planning is complete. The plan must be self-contained so post-compact execution doesn't waste tokens re-researching what was already known.
 
-### Required content (per plan-mode.md Part B)
+### Required content
 
-Every plan file must include, in order:
+The plan file must contain every section defined in `plan-mode.md` Part B, in the order that
+file specifies — including § Plan Types for the HARD STOP sequence matching the chosen plan type.
+Read Part B and follow it directly; don't restate the structure here — it drifts.
 
-1. Title + plan type declaration
-2. Plan File Preamble blockquote
-3. Subsystem Pre-Reads block listing the confirmed CLAUDE.md files
-4. Step 0 — Create Branch (boilerplate)
-5. Steps 1..N (substantive work)
-6. Seeder Overrides section (if plan adds new state configs)
-7. Verification section with subsections:
-   - Execution sequence (before pushing)
-   - Tests to add or modify
-   - Captured asserts to regenerate (if applicable)
-   - Existing tests as regression checks
-   - AC coverage map
+### Mandatory full-coverage verification gate — the plan is NOT "written" until this passes
 
-Follow plan-mode.md Part B § Plan Types for the HARD STOP sequence matching the plan type the user chose.
+Per `plan-mode.md` § "FULL-COVERAGE MANDATE", every plan must incorporate EVERY rule in that file —
+Parts A, B, AND C — not just Part B's section list. After writing the plan, **re-read
+`plan-mode.md` in full** and verify the plan reflects all three parts. Confirm each item below is
+present (or `N/A — <reason>` for conditional ones); any gap means the plan is not done — go back
+and add it before proceeding to Step 9:
+
+- **Part A honored:** co-designed via Q&A; no deferred-decision phrases; options were genuine.
+- **Part B sections present (written in):** Preamble block · Step 0a (→Develop) · Subsystem
+  pre-reads · Step 0b (branch) · Plan type + matching HARD STOP sequence · Seeder overrides (or
+  N/A + reason) · HomeownerStateConfig fold-vs-stack + feature-doc list (or N/A + reason) ·
+  Verification: execution sequence · tests to add/modify · captured asserts · existing-test
+  regressions · **code-complete self-audit (comments + ClosedSets)** · AC coverage map · transition
+  out of verification.
+- **Part C reflected:** HARD STOP sequence matches the plan type; the comment + ClosedSet
+  self-audit is a written step before the code-complete diff; line-length, magic-number extraction,
+  build-once-then-parallel test runs, "read every changed captured-assert file," and the
+  post-test-approval sequence are all honored where they apply.
+
+A plan that silently drops any plan-mode.md rule is incomplete — treat it exactly like a missing
+test or seeder override.
 
 ### Banned in plan files
 
-Phrases that signal a deferred decision (per plan-mode.md Part A § "No Deferred Decisions"):
-
-- "decide when we get there"
-- "figure out later"
-- "TBD"
-- "we'll see what makes sense"
-- "leave as an exercise"
-
-If any of these appear in your draft, STOP and go back to Q&A.
+No deferred-decision phrases ("TBD", "decide when we get there", etc.) — see `plan-mode.md`
+Part A § "No Deferred Decisions" for the full list. If any appear in your draft, STOP and go
+back to Q&A.
 
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
@@ -242,7 +249,7 @@ After writing the plan file, prompt:
 
 > **Plan written to `~/.claude/plans/{filename}.md`. Execute now? (y/n)**
 
-- `y` → proceed to Step 0 of the plan (`/create-branch`) and walk through the plan honoring its HARD STOPs (plan-mode.md Part C)
+- `y` → execute the plan from its first step, honoring its HARD STOPs (plan-mode.md Part C)
 - `n` → exit. User will decide later when/whether to execute
 
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before plan execution (Part C) begins. No exceptions. No "I just read it." No "I remember the rules."**
@@ -252,6 +259,6 @@ After writing the plan file, prompt:
 ## Quick reference — rules this skill enforces
 
 - `plan-mode.md` Part A (How to PLAN): Discuss Before Drafting; No Deferred Decisions; Q&A Options Must Be Genuine
-- `plan-mode.md` Part B (Required Content): Plan File Preamble; Subsystem Pre-Reads; Step 0; Plan Types; Seeder Overrides; Verification Section Structure
-- `communication.md`: Don't Offer Anti-Pattern Options; Question format (single-word/number answers)
+- `plan-mode.md` Part B (Required Content): Plan File Preamble; Subsystem Pre-Reads; the plan-file Step sequence; Plan Types; Seeder Overrides; Verification Section Structure
+- `talking-to-eli.md`: Don't Offer Anti-Pattern Options; Question format (single-word/number answers)
 - `core-behavior.md`: Gates 1, 1.5, 2, 3 throughout
