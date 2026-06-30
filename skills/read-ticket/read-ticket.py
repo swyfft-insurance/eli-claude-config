@@ -136,19 +136,6 @@ def extract_field_change(activity):
     }
 
 
-def extract_work_item(wi):
-    """Summarize one time-tracking work item (logged time)."""
-    duration = wi.get("duration") or {}
-    work_type = wi.get("type") or {}
-    return {
-        "date": format_timestamp(wi.get("date")),
-        "author": extract_user(wi.get("author")),
-        "duration": duration.get("presentation") if isinstance(duration, dict) else None,
-        "type": work_type.get("name") if isinstance(work_type, dict) else None,
-        "text": wi.get("text"),
-    }
-
-
 def download_all_attachments(attachments, images_dir, attachments_dir, token):
     """Download all attachments, returning (images, other_attachments) maps."""
     images = {}
@@ -262,18 +249,6 @@ def main():
         extract_field_change(a) for a in (activities_raw or [])
         if (a.get("field") or {}).get("name")
     ]
-
-    # --- Fetch time-tracking work items (logged time) ---
-    workitem_fields = "id,date,duration(minutes,presentation),author(login,name),text,type(name)"
-    try:
-        workitems_raw = api_get(
-            f"/api/issues/{issue_id}/timeTracking/workItems"
-            f"?fields={urllib.parse.quote(workitem_fields, safe='(),*')}&$top=100",
-            token,
-        )
-    except Exception:
-        workitems_raw = []
-    work_items = [extract_work_item(w) for w in (workitems_raw or [])]
 
     # --- Download images ---
     all_attachments = list(issue.get("attachments") or [])
