@@ -37,3 +37,13 @@ __pycache__/
 .last-*
 remote-settings.json
 policy-limits.json
+
+# Daemon runtime state (locks, logs, keys, PIDs, roster)
+daemon.lock
+daemon.log
+daemon.status.json
+daemon/
+
+# Local caches
+gh-pr-status-cache.json
+jobs/

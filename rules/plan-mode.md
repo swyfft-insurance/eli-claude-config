@@ -62,7 +62,7 @@ Filler options during planning are particularly toxic: they slow the discussion,
 
 - Don't call ExitPlanMode while actively discussing — wait for conversation to conclude.
 - Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.
-- **Verify script args before writing them in plans.** When a plan invokes a script (`Build-Solution.ps1`, `Run-Seed.ps1`, `Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
+- **Verify script args before writing them in plans.** When a plan invokes a script (`~/.claude/scripts/Build-Solution.ps1`, `Run-Seed.ps1`, `~/.claude/scripts/Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
 - DB queries and log searches are information-gathering — do them DURING planning, not after.
 - Write plan prose with no ambiguous references — repeat the noun rather than leaving "it"/"this"/"that"/"they" for the reader to resolve. See `~/.claude/rules/talking-to-eli.md` § "No Ambiguous References".
 
@@ -213,6 +213,11 @@ Verification ends when (a) all agreed-upon tests pass and (b) the user explicitl
 
 The skill began as captured-assert-only but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/prebind-validation` in the execution sequence.
 
+**This default is Homeowner/residential.** `/prebind-validation` is the residential suite
+(`PreBindResidentialValidationTests`). For Commercial (or other non-HO) work it is the wrong
+surface — use the commercial validation instead. See `testing-execution.md` § "Validation surface
+is per product line — don't default to the HO suite".
+
 ### Never list a test a verification skill already runs
 
 Before naming any individual test (or adding a standalone `Run-DotnetTest.ps1` line) in the verification, confirm it isn't already covered by a test-running skill already in the plan. **List the skill's tests — don't guess from memory.** `/prebind-validation` runs everything tagged `TestGroup=PreBindResidentialValidationTests` across `Swyfft.Services.UnitTests`, `Swyfft.Services.IntegrationTests`, and `Swyfft.Seeding.IntegrationTests` — which already includes `EnsureConfigOrderWithDatabase` and `QuoteDefinitionsUnitTests`, among others. Listing those separately is duplication and overstates the verification.
@@ -237,7 +242,7 @@ Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends
 
 ## Build Once, Run Tests in Parallel
 
-When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ./Build-Solution.ps1` — **backgrounded** (`run_in_background: true`, no `| tail`) — then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls). The build is a long-running step just like the suites: a foreground build blocks the whole turn and forces the user to background it manually, so background it, wait for the completion notification, and only then launch the suites.
+When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ~/.claude/scripts/Build-Solution.ps1` — **backgrounded** (`run_in_background: true`, no `| tail`) — then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls). The build is a long-running step just like the suites: a foreground build blocks the whole turn and forces the user to background it manually, so background it, wait for the completion notification, and only then launch the suites.
 
 **Parallel verification test runs MUST be backgrounded — no exceptions.** Every test invocation in the parallel block MUST be launched with `run_in_background: true` and with **no** `| tail` pipe (tail buffers all output until the process exits, hiding progress — see `windows-tooling.md`). Running them in the foreground during verification is forbidden: a foreground run blocks the whole turn, so the user cannot communicate with you or interrupt while a long suite runs, and it forces the user to manually background each one. Launch each suite as its own background task and collect results from the completion notifications.
 
@@ -279,7 +284,7 @@ When a wrapped construct has multiple peer items (e.g., theory data rows, parame
 
 This applies only to lines newly written or modified by the current change. Pre-existing long lines that aren't being touched stay as-is — don't hijack the diff to reformat unrelated code.
 
-**Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. `Build-Solution.ps1` runs this as a pre-build gate (and aborts the build on failure), so a plan that already builds does NOT need a separate line-length verification step — call it out standalone only when the plan doesn't build (e.g. markdown-only changes) or as a pre-build self-check. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
+**Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. `~/.claude/scripts/Build-Solution.ps1` runs this as a pre-build gate (and aborts the build on failure), so a plan that already builds does NOT need a separate line-length verification step — call it out standalone only when the plan doesn't build (e.g. markdown-only changes) or as a pre-build self-check. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
 
 ## Magic Numbers / Strings
 

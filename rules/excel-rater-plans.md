@@ -4,6 +4,37 @@ This is the full playbook for the **Excel Rater (ByPeril)** plan type (defined i
 
 **These plans are a deliberate exception to "resolve every open question before execution."** You can't place the new rater or regenerate baselines while authoring — the new rater arrives only at execution time (you download/place it), so its true scope (the diff) doesn't exist yet. A rater plan is therefore a **ticket-shaped outline, hardened by the diff immediately after the files are placed.**
 
+## MANDATORY plan header — the rater-parsing hard rule (physically insert into EVERY rater plan)
+
+Every Excel rater plan MUST reproduce the block below **verbatim, at the very top of the plan file**
+(immediately after the title/type line, above the preamble) — not a link, not a paraphrase, the
+actual text. A rater plan without this block physically inserted is incomplete, exactly like a
+missing HARD STOP. Copy it in as the first thing you write, and re-insert it if a revision drops it.
+
+> ### HARD RULE — never parse a rater `.xlsm` yourself
+> To read anything out of a rater workbook — Versions-sheet values, named ranges, input options,
+> factor tables, fees — there are exactly TWO sanctioned sources:
+> 1. **HO:** the pre-dumped baselines under `Swyfft.Services.Excel.IntegrationTests/ExpectedResults/`.
+> 2. **Any rater without a baseline (Commercial, or a brand-new file):** the `DumpRater` / `ReadExcel`
+>    console task (`WorkbookJsonDump.cs`).
+>
+> **NEVER open the `.xlsm` yourself** — not with a Python/zip/XML parser, not by unzipping the OOXML
+> and reading `sheetN.xml` / `sharedStrings.xml`, not with any ad-hoc script. Hand-rolled Excel
+> parsing is banned: it silently mishandles shared strings, cached-vs-formula values, and
+> defined-name scoping, and it reinvents tooling the repo already owns. When the sanctioned tool is
+> heavyweight (DumpRater needs a console build/run), that cost is the price of correctness — pay it.
+> "It was faster to parse it myself" is never a justification.
+
+## Running the Excel dump tasks — pointer
+
+The three Excel tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI (no Excel/COM); each carries
+its exact `-t:...` invocation in a `/// Usage:` header — read the file, don't re-derive it:
+`DumpRaterTask.cs` (dump sheets → JSON; `-sheet` for one; skips large reference sheets like
+`Market_Factor` / `Roof_Type_Age` unless `-sheet` is passed — see its `SkipSheets`),
+`ReadExcelTask.cs`, and `ReadNamedRangesTask.cs`. Build the console once
+(`pwsh ~/.claude/scripts/Build-Solution.ps1` — the wrapper lives in `~/.claude/scripts/`, NOT the repo
+root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
+
 ## Mandatory pre-reads — before authoring an Excel rater plan
 
 A rater plan must not be authored — and the plan file must list as required pre-reads — without reading:

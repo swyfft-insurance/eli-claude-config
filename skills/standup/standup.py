@@ -315,6 +315,21 @@ def build_pr_items(prs, lwd, today):
                 "reviews": review_info,
             })
 
+        # PR merged during the window but opened before it — the pr_opened
+        # branch above never fires for these, so the merge would otherwise be
+        # invisible. Emit a dedicated merged item keyed on the merge date.
+        merged_date = to_date(merged_et)
+        if merged_date and merged_date >= lwd and created_date and created_date < lwd:
+            items.append({
+                "date": merged_date.isoformat(),
+                "type": "pr_merged",
+                "tickets": tickets,
+                "pr": num,
+                "prTitle": title,
+                "prUrl": gh_pr_url(num),
+                "reviews": review_info,
+            })
+
         # PR feedback addressed — commits on later days after reviews
         if commits and created_date:
             # Find earliest review date
@@ -486,10 +501,11 @@ def main():
     # Sort: by date, then type priority
     type_order = {
         "pr_opened": 0,
-        "pr_feedback_addressed": 1,
-        "stage_change": 2,
-        "active_ticket": 3,
-        "pr_in_review": 4,
+        "pr_merged": 1,
+        "pr_feedback_addressed": 2,
+        "stage_change": 3,
+        "active_ticket": 4,
+        "pr_in_review": 5,
     }
     items.sort(key=lambda x: (x["date"], type_order.get(x["type"], 99)))
 

@@ -21,7 +21,7 @@ For each conflicted file, one at a time:
 
 ## Building during a merge
 
-Building mid-merge is safe. `Build-Solution.ps1`'s line-length gate
+Building mid-merge is safe. `~/.claude/scripts/Build-Solution.ps1`'s line-length gate
 (`Test-LineLength.ps1 -Mode local`) auto-skips while a merge is in progress
 (`MERGE_HEAD` present): a merge's working tree diffs against the pre-merge
 `HEAD`, so the entire merged-in branch would otherwise be flagged as "added"

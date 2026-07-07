@@ -150,7 +150,7 @@ Walk through every item in the checklist below and ask "does this apply to this 
 
 | Item | Trigger to mark "yes" |
 |---|---|
-| Build solution (`pwsh ./Build-Solution.ps1` — runs `Test-LineLength.ps1 -Mode local` internally as a pre-build gate; do NOT list line-length as a separate step) | Any `.cs` change |
+| Build solution (`pwsh ~/.claude/scripts/Build-Solution.ps1` — runs `Test-LineLength.ps1 -Mode local` internally as a pre-build gate; do NOT list line-length as a separate step) | Any `.cs` change |
 | Targeted tests on touched project via `Run-DotnetTest.ps1` | Any production code change |
 | Comment + ClosedSet self-audit (re-read `comments-docs-and-external-writing.md` + `SetDefinitions/CLAUDE.md`; audit every comment & ClosedSet usage the diff adds/changes — before the code-complete diff) | Always |
 | Adversarial review (`/review-pr`) | Always |

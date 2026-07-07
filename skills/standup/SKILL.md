@@ -40,6 +40,7 @@ The JSON contains:
 | Type | Meaning | Key fields |
 |------|---------|------------|
 | `pr_opened` | Eli opened a PR on this date | `tickets`, `pr`, `prTitle`, `prUrl`, `prState`, `mergedOn`, `reviews` |
+| `pr_merged` | A PR opened before the window merged on this date | `tickets`, `pr`, `prTitle`, `prUrl`, `reviews` |
 | `pr_feedback_addressed` | Eli pushed commits addressing review feedback | `tickets`, `pr`, `prTitle`, `prUrl` |
 | `stage_change` | Eli changed a ticket's field | `ticket`, `ticketSummary`, `ticketUrl`, `field`, `from`, `to` |
 | `active_ticket` | Ticket currently in Develop/Review | `ticket`, `ticketSummary`, `ticketUrl`, `stage` |
@@ -58,6 +59,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
 
 **Rules:**
 - Merges are NOT separate bullets. If a PR was opened on the last working day and merged, just mention it was merged in the same bullet.
+- `pr_merged` = a PR that predates the window but merged inside it. Say it was merged (and approved, from `reviews`). If the SAME PR also has a `pr_feedback_addressed` item on that day, collapse both into ONE bullet — "addressed feedback and merged" — never two.
 - `pr_feedback_addressed` = "addressed PR feedback on #XXXX" — don't over-explain.
 - `stage_change`: these `to` values represent real work:
   - `to` = "Develop" → "picked up" or "started developing"

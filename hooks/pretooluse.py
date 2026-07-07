@@ -254,6 +254,24 @@ def main():
             )
             sys.exit(2)
 
+        # BLOCK: truncating /read-ticket output - the skill returns the FULL ticket on purpose.
+        # Piping read-ticket.py through head/tail/more/Select-Object -First clips the description,
+        # ACs, or comments - the exact content the skill exists to deliver. If the JSON is large,
+        # parse out the fields you need (python -c over the parsed object); never lop off the end.
+        if "read-ticket.py" in cmd and re.search(
+            r"\|\s*(head|tail|more)\b|Select-Object\s+-(First|Last)\b|Select\s+-(First|Last)\b",
+            cmd,
+        ):
+            print(
+                "BLOCKED: Do not pipe /read-ticket output through head, tail, more, or "
+                "Select-Object -First/-Last. The skill returns the full ticket on purpose; "
+                "clipping it drops the description, acceptance criteria, or comments, the exact "
+                "content the skill exists to deliver. If the JSON is large, parse out the fields "
+                "you need (e.g. python -c over the parsed object); never truncate the end.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # BLOCK: Seed scripts must go through Run-Seed.ps1 wrapper, which captures
         # full output to a deterministic file so completion is verifiable. Direct
         # invocation produces truncated stdout that hides whether the seed actually
@@ -306,10 +324,15 @@ def main():
         # ALLOW: read-only test discovery. Listing tests or printing help/info never executes
         # tests and captures no results, so the Run-DotnetTest.ps1 / Tee / trx requirements below
         # don't apply. Recognized via the xUnit v3 native `-list <level>` (full/classes/methods/
-        # tests/traits), MTP `--list-tests`, or `--help`/`--info`. Canonical path: list via
-        # `dotnet run -- -list <level>` (see Run-DotnetTest.ps1 -ListTests), NOT `dotnet test`.
+        # tests/traits), MTP `--list-tests`, `--help`/`--info`, OR the Run-DotnetTest.ps1 /
+        # Run-PreBindValidation.ps1 wrapper param `-ListTests` (which the wrapper translates to the
+        # native `-list` form). Case-insensitive because PowerShell params are.
         is_readonly_test_query = bool(
-            re.search(r"-list\s+(full|classes|methods|tests|traits)|--list-tests|--help|--info", cmd)
+            re.search(
+                r"-list\s+(full|classes|methods|tests|traits)|--list-tests|-ListTests\b|--help|--info",
+                cmd,
+                re.IGNORECASE,
+            )
         )
 
         # BLOCK: All test execution must go through Run-DotnetTest.ps1.
@@ -342,13 +365,19 @@ def main():
             re.search(r'--filter-trait\s+["\']?TestGroup=ByPerilTests', cmd)
             or re.search(r'-FilterTrait\s+["\']?TestGroup=ByPerilTests', cmd)
         )
+        # Commercial ByPeril Excel tests carry TestGroup=Commercial, not ByPerilTests. Passing
+        # -IsCommercial to Run-DotnetTest.ps1 is a deliberate opt-in to run them (can't be hit by
+        # accident), so allow it through the guard.
+        is_commercial_optin = re.search(r"-IsCommercial\b", cmd)
         if is_dotnet_test and re.search(r"Excel\.IntegrationTests", cmd) \
            and not has_byperil_trait \
+           and not is_commercial_optin \
            and not is_readonly_test_query \
            and not re.search(r"ByPerilQuoteAuditDiagnosticTests", cmd):
             print(
                 "BLOCKED: Excel integration tests must include --filter-trait \"TestGroup=ByPerilTests\" "
-                "(or -FilterTrait via Run-DotnetTest.ps1) or target ByPerilQuoteAuditDiagnosticTests specifically. "
+                "(or -FilterTrait via Run-DotnetTest.ps1), pass -IsCommercial for the commercial suite, "
+                "or target ByPerilQuoteAuditDiagnosticTests specifically. "
                 "Running without this filter includes commercial tests which take an eternity. "
                 "If you truly need all tests, ask the user to confirm.",
                 file=sys.stderr,

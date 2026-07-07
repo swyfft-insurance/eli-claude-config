@@ -34,7 +34,7 @@ Set the Bash tool timeout to ~30 minutes when building (build 5–10 min + healt
 | Step | Action | Failure mode |
 |------|--------|--------------|
 | 1 | Stop `Swyfft.Web` and `bun` processes | (none — best effort) |
-| 2 | `Build-Solution.ps1` (always builds Swyfft.slnx; skipped if `-NoBuild`) | exit non-zero, skip rest, run Step 7 |
+| 2 | `~/.claude/scripts/Build-Solution.ps1` (always builds Swyfft.slnx; skipped if `-NoBuild`) | exit non-zero, skip rest, run Step 7 |
 | 3 | `RunSwyfftWeb.ps1` in a background `Start-Job` | (none — failure surfaces in Step 4) |
 | 4 | Poll `https://localhost:5001` until 200 OK or 60s timeout (`-HealthTimeoutSec` to override) | exit 3, run Step 7 |
 | 5 | `Run-DotnetTest.ps1 -Project ... -NoBuild` + filter args | test exit code propagates |

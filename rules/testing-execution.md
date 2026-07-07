@@ -18,17 +18,55 @@ ONLY to document-validation and IMS *acceptance* tests — never generalize it t
 tests. Don't invent an execution constraint from a generic "Excel COM isn't thread-safe" prior;
 verify against the docs/code first.
 
-### Listing tests (read-only, no run)
-- Use the wrapper's list mode — it never executes tests:
-  `pwsh ~/.claude/scripts/Run-DotnetTest.ps1 -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
-- **Why not `dotnet test`:** `dotnet test` is the MTP integration and has **no** list capability — `dotnet test -- --list-tests` silently lists nothing ("Zero tests ran"). Listing is an xUnit v3 **native-CLI** feature, reached via **`dotnet run`**. The wrapper runs `dotnet run --project <P> -- -list <level>`, which locates the built assembly itself (no exe-path / `build/` output-dir guessing).
-- `-ListLevel`: `full` = complete discovery data; `tests` = display names; `methods` = class+method (default in the PreBind list); also `classes`/`traits`.
-- **Native-CLI filters are single-dash** `-trait "Name=Value"` / `-class` / `-method` / `-namespace` — NOT the MTP `--filter-*` flags. The wrapper translates `-FilterTrait`/`-FilterClass`/etc. for you in list mode. (`--filter-trait` is only for `dotnet test` when *running*.)
-- Requires the project built first (`pwsh ~/.claude/scripts/Build-Solution.ps1`); pass `-NoBuild` to skip the incremental build.
-- PreBind suite specifically: `pwsh ~/.claude/skills/prebind-validation/Run-PreBindValidation.ps1 -ListTests` lists all three PreBind projects' tagged tests, grouped and prefixed by project.
+### Listing tests — read-only discovery (`-ListTests`)
+
+**What it does:** enumerates the tests in a project — by class, method, trait, or full display
+name — **without executing any of them.** No DB, no seeding, no side effects, no captured results.
+It's how you see what a suite or skill actually covers before you run it or rely on it.
+
+**When to use it:**
+- Discover what a validation skill or trait actually covers (is my change's test in this set?).
+- Verify a `-FilterTrait`/`-FilterClass` matches what you expect before a real run.
+- Avoid listing in a plan a test a skill already runs (see plan-mode § "Never list a test a
+  verification skill already runs").
+
+**How to run it:**
+- Any project/trait: `Run-DotnetTest.ps1 -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
+- The PreBind (residential) set across its three projects, grouped by project:
+  `Run-PreBindValidation.ps1 -ListTests`
+- `-ListLevel`: `full` = complete discovery data; `tests` = display names; `methods` = class+method
+  (default); also `classes`, `traits`.
+- `-NoBuild`: use it when the project is already built and unchanged since — the list is then
+  instant and read-only, no need to background. If the project isn't built or its sources changed,
+  omit `-NoBuild` so it builds first, and background it (that build contends with anything else in
+  flight).
+
+**Why the wrapper, not `dotnet test`:** listing is an xUnit v3 **native-CLI** feature reached via
+`dotnet run --project <P> -- -list <level>`; `dotnet test` has no list capability (`--list-tests`
+there silently lists nothing). Native-CLI filters are single-dash (`-trait`, `-class`, `-method`,
+`-namespace`) — the wrapper translates `-FilterTrait`/`-FilterClass`/etc. for you and locates the
+built assembly itself.
 
 ## PreBind Validation Tests
 See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance.
+
+## Validation surface is per product line — don't default to the HO suite
+
+`/prebind-validation` covers **Homeowner/residential only**
+(`TestGroup=PreBindResidentialValidationTests`) — it is not a general validation suite. Match the
+surface to the product line before validating a change:
+
+| Product line | Validation surface |
+|---|---|
+| Homeowner / residential | `/prebind-validation` — captured asserts, config-ordering, quote-def index guards |
+| Commercial | premium-parity tests `CommercialEAndSByPerilRaterValidation*` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) |
+
+Never assume a skill applies across product lines because it's the one you usually reach for.
+
+### Discover a suite's coverage before relying on it
+Unsure what a suite covers, or which surface applies to your product line? List it first (see
+§ "Listing tests — read-only discovery" above), read the result, then find the equivalent for your
+line. Never assume a skill covers your work because it's the one you usually reach for.
 
 ## Test Output — Run-DotnetTest.ps1
 

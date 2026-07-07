@@ -33,6 +33,11 @@
 .PARAMETER NoBuild
     Skip building before testing (--no-build).
 
+.PARAMETER IsCommercial
+    Deliberate opt-in for the commercial ByPeril Excel validation tests, which carry
+    TestGroup=Commercial (not ByPerilTests). Required to run them past the pretooluse guard.
+    When no explicit -FilterTrait is given, defaults the trait to TestGroup=Commercial.
+
 .PARAMETER Suffix
     Optional suffix appended before the timestamp (e.g., "3-quotes").
 
@@ -60,6 +65,8 @@ param(
 
     [switch]$NoBuild,
 
+    [switch]$IsCommercial,
+
     [string]$Suffix,
 
     [switch]$ListTests,
@@ -82,6 +89,16 @@ if ($Project -and $Project -match '\.slnx?$') {
 }
 if ($Solution -and $Solution -notmatch '\.slnx?$') {
     throw "-Solution received a non-solution file ('$Solution'). Use -Project instead."
+}
+
+# --- Commercial Excel tests opt-in ---
+# The commercial ByPeril Excel validation tests carry TestGroup=Commercial, not ByPerilTests, so
+# the pretooluse guard (which blocks unfiltered Excel.IntegrationTests runs — the full commercial
+# suite is ~45 min) rejects them. Pass -IsCommercial to deliberately opt in. Only default the
+# trait when nothing else scopes the run; if a class/method/namespace filter is given, trust it —
+# forcing the trait on top would AND with the filter and can match nothing.
+if ($IsCommercial -and -not $FilterTrait -and -not $FilterClass -and -not $FilterMethod -and -not $FilterNamespace) {
+    $FilterTrait = 'TestGroup=Commercial'
 }
 
 # --- Output directory ---
