@@ -17,6 +17,12 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta, tzinfo
 import calendar
 
+# Force UTF-8 stdout/stderr regardless of the Windows console codepage (cp1252),
+# which can't encode characters like the arrow (→) that appear in the output.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 YOUTRACK_BASE = "https://swyfft.myjetbrains.com/youtrack"
 GITHUB_REPO = "swyfft-insurance/swyfft_web"
 GITHUB_USER = "eli-swyfft"
@@ -256,7 +262,7 @@ def gather_youtrack(yt_token, lwd, today):
         if iid:
             all_issues[iid] = issue
 
-    # Fetch activities per issue
+    # Fetch activities and comments per issue
     for iid in all_issues:
         activities = yt_get(
             f"/api/issues/{iid}/activities?"
@@ -265,6 +271,17 @@ def gather_youtrack(yt_token, lwd, today):
             yt_token,
         )
         all_issues[iid]["_activities"] = activities or []
+
+        # Full comment history (any author) — a ticket's real status often
+        # lives here (tabled, reprioritized, blocked-because), not in a field
+        # change. Tickets rarely exceed ~10 comments, so pull them all; the
+        # per-comment date lets the formatter tell which are recent.
+        comments = yt_get(
+            f"/api/issues/{iid}/comments?"
+            f"fields=text,created,author(login,name)&$top=50",
+            yt_token,
+        )
+        all_issues[iid]["_comments"] = comments or []
 
     return all_issues
 
@@ -492,10 +509,25 @@ def main():
     # Build ticket details lookup (for tickets referenced by PRs)
     ticket_details = {}
     for iid, issue in issues.items():
+        comments = []
+        for c in issue.get("_comments", []):
+            text = (c.get("text") or "").strip()
+            if not text:
+                continue
+            created = ms_to_et(c.get("created"))
+            author = c.get("author") or {}
+            comments.append({
+                "date": to_date(created).isoformat() if created else None,
+                "author": author.get("name") or author.get("login"),
+                "text": text,
+            })
+        comments.sort(key=lambda c: c["date"] or "")
+
         ticket_details[iid] = {
             "summary": issue.get("summary", ""),
             "url": yt_url(iid),
             "stage": extract_yt_field(issue, "Stage"),
+            "comments": comments,
         }
 
     # Sort: by date, then type priority

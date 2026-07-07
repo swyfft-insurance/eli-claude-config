@@ -32,7 +32,7 @@ The JSON contains:
 | Field | Content |
 |-------|---------|
 | `dates` | `today`, `todayName`, `lastWorkingDay`, `lastWorkingDayName` |
-| `ticketDetails` | Map of ticket ID → {summary, url, stage} |
+| `ticketDetails` | Map of ticket ID → {summary, url, stage, comments} — `comments` is the full comment history (any author), each `{date, author, text}`, oldest first |
 | `workItems[]` | Each item has `date`, `type`, and type-specific fields |
 
 ### Work item types
@@ -58,14 +58,15 @@ Group work items by date into EXACTLY two sections:
 For each item, create a bullet combining the ticket + PR + what happened. Use `ticketDetails` to look up ticket summaries for tickets referenced by PRs.
 
 **Rules:**
+- **MANDATORY — check comments before describing any active ticket or stage change.** Before writing a bullet for an `active_ticket` or `stage_change`, read that ticket's `comments` in `ticketDetails`. A ticket's real status (tabled, reprioritized, waiting on someone, blocked-because) frequently lives in a recent comment, not in the Stage field — a ticket sitting in Develop may actually be paused. Use the comment `date` to judge which comments are recent and relevant. If a comment changes the true status, the bullet must reflect that (e.g. "tabled X until Y is done"), not just the raw stage.
 - Merges are NOT separate bullets. If a PR was opened on the last working day and merged, just mention it was merged in the same bullet.
 - `pr_merged` = a PR that predates the window but merged inside it. Say it was merged (and approved, from `reviews`). If the SAME PR also has a `pr_feedback_addressed` item on that day, collapse both into ONE bullet — "addressed feedback and merged" — never two.
 - `pr_feedback_addressed` = "addressed PR feedback on #XXXX" — don't over-explain.
 - `stage_change`: these `to` values represent real work:
   - `to` = "Develop" → "picked up" or "started developing"
   - `to` = "Review" → "finished coding"
-  - `to` = "Blocked" → "blocked" (read ticket comments to explain why)
-  - `to` = "Done" → resolved (read ticket comments to explain why — won't fix, duplicate, not applicable, etc.)
+  - `to` = "Blocked" → "blocked" (read the ticket's `comments` in `ticketDetails` to explain why)
+  - `to` = "Done" → resolved (read the ticket's `comments` in `ticketDetails` to explain why — won't fix, duplicate, not applicable, etc.)
   - All other values (Backlog, Ready for Dev, Ready for Test, Test, Tested, Failed Test) → skip. Ticket housekeeping, not coding.
   - Same-day collapse: if a ticket has BOTH a Develop and Review transition on the same day, that means the whole ticket was completed in one day. Emit ONE bullet — don't narrate both transitions as separate bullets.
   - Example: SW-49790 moves to Develop and Review on Wednesday → "SW-49790 — picked up and finished the Hadron LA EachElementOption test failure, opened PR 19974"
@@ -81,7 +82,7 @@ Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). The directo
 
 ### Slack format
 
-- Section headers in Slack bold (`*...*`), using the label chosen above ("Yesterday"/"Today" or the day names)
+- Section headers in bold (`**...**`), using the label chosen above ("Yesterday"/"Today" or the day names). The `slack_send_message` tool takes standard markdown, not Slack mrkdwn — use `**bold**` and `[text](url)` links, which the tool converts to Slack formatting on send.
 - Each bullet: ticket as Markdown link `[SW-XXXXX](youtrack_url)`, ticket summary in quotes, action, PR as link `[PR #XXXX](pr_url)`
 - Concise — one line per bullet
 
