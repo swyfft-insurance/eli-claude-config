@@ -150,7 +150,7 @@ Every plan must declare its type. The type determines the workflow and mandatory
 
 A distinct plan type for rater-update tickets: actuarial delivers a new rater `.xlsm` and the C# is brought into agreement with it. The change can land on any sheet — base rates, any factor table, inputs, fees, optional coverages, layout. The ticket gives a general outline of what's changing, but the precise footprint isn't pinned down until you diff the placed file. Almost always declared `Feature` in YouTrack, but distinct enough to call out here. It **follows the Feature HARD STOP sequence above, plus one added HARD STOP**: a scoping checkpoint after the rater is placed and before any C#, reconciling the regenerated-baseline diff against the provisional scope.
 
-It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig feature-doc requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading `~/.claude/rules/excel-rater-plans.md` in full is **MANDATORY** — it holds the complete playbook (pre-reads, the plan shape, the component→Excel-signal map).
+It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig ticket-note requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading `~/.claude/rules/excel-rater-plans.md` in full is **MANDATORY** — it holds the complete playbook (pre-reads, the plan shape, the component→Excel-signal map).
 
 ## Seeder Overrides — Required for every new not-yet-live state config
 
@@ -162,22 +162,26 @@ See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the
 
 **MANDATORY — audit stale overrides when adding a new state config.** Any plan that adds a new `HomeownerStateConfig`, `FloodStateConfig`, or `DbbStateConfig` MUST run `/quote-def-override-audit` as a verification step, and for every override it flags (its config already live in prod) either remove it or record why it stays. Adding a new config is the checkpoint to clear overrides whose configs have since gone live. (Commercial overrides aren't covered by the audit.) The audit deterministically diffs every HO/Flood/DBB override against `QuoteDefinitions.txt` and lists the ones whose config is already live — don't hand-compare. See `~/.claude/rules/quote-def-dates-and-ordering.md` § "Finding stale overrides".
 
-## State-config changes — fold-vs-stack and feature documentation (MANDATORY, every product line)
+## State-config changes — fold-vs-stack and version doc-comments (MANDATORY, every product line)
 
 **Every plan that makes a version-gated change to ANY state config — `HomeownerStateConfig`, `CommercialStateConfig`, `FloodStateConfig`, or `DbbStateConfig` (every `IStateConfig` implementer) — MUST address both principles below. No exceptions.** A version-gated change is any change confined to specific config versions — a new version, a fold into a parked version, or in-place on a not-yet-live V1. This is a required, reviewed checkpoint: if a plan touches a gated config and doesn't explicitly cover both points, it is incomplete — HARD STOP and fix it before execution.
 
 1. **Prefer folding over stacking — *only* as a default when the ticket is silent on version structure.** When the ticket or epic explicitly dictates fold vs stack, follow the ticket — it takes precedence, and you do NOT justify the choice or label it a "deviation" in code, doc comments, or the plan. You're implementing the requirement, not departing from a rule. (Fold-vs-stack detail lives in `Swyfft.Services/Common/Homeowner/CLAUDE.md`.)
-2. **Document every feature each touched config activates** (always required, independent of fold vs stack, and independent of product line). Add a `///` XML doc comment listing every feature the version activates, each prefixed with its ticket. The requirement owner reads these from the code alone to decide what ships and when, since the config is otherwise just a version number. This covers **every config the change touches, not just new ones** — a re-pointed lookup or an in-place edit to a not-yet-live V1 is a gated change too, so annotate those and fix any stale "Based on Vn" pointer the change invalidates.
-   - **Editing an existing config:** add (don't replace) your ticket + feature to its comment.
-   - **Creating a new config:** put your ticket + feature in the new config's comment.
+2. **Tag every touched config with its ticket** (always required, independent of fold vs stack, and independent of product line). Add the one-line `///` ticket breadcrumb per the canonical convention — `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket". This covers **every config the change touches, not just new ones** — a re-pointed lookup or an in-place edit to a not-yet-live V1 is a gated change too, so annotate those and fix any stale "Based on Vn" pointer the change invalidates.
+   - **Editing an existing config:** add (don't replace) your ticket line to its comment.
+   - **Creating a new config:** put your ticket line in the new config's comment.
 
-**MANDATORY, NON-NEGOTIABLE — the feature-doc convention is a physical plan artifact.** Any plan that adds, edits, re-points, or otherwise touches ANY `IStateConfig` implementer MUST (a) list every config it touches with the exact `///` feature-doc each will carry, and (b) reproduce the "Document Every Feature a Config Activates" convention (canonical in `Swyfft.Services/Common/CLAUDE.md`) VERBATIM at the top of the plan file. This has been missed before; it must never be missed again. A plan touching a config without this block physically inserted is incomplete — HARD STOP.
+**MANDATORY, NON-NEGOTIABLE — the ticket-note convention is a physical plan artifact.** Any plan that adds, edits, re-points, or otherwise touches ANY `IStateConfig` implementer MUST (a) list every config it touches with the exact `///` ticket note each will carry, and (b) reproduce the "Tag Each Config Version With Its Ticket" convention (canonical in `Swyfft.Services/Common/CLAUDE.md`) VERBATIM at the top of the plan file. This has been missed before; it must never be missed again. A plan touching a config without this block physically inserted is incomplete — HARD STOP.
 
-The convention text and examples are canonical in `Swyfft.Services/Common/CLAUDE.md` § "Document Every Feature a Config Activates" — read it every time; don't work from memory. Treat a missing feature-doc list the same as a missing seeder override or a missing test — the plan is not done without it.
+The convention text and examples are canonical in `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket" — read it every time; don't work from memory. Treat a missing ticket note the same as a missing seeder override or a missing test — the plan is not done without it.
 
 ## Mandatory sections that live in repo docs — copied VERBATIM into the plan
 
 When a mandatory convention lives in a repo doc (a `CLAUDE.md`, etc.), do NOT duplicate its text into this rules file — the repo doc is the single source of truth. Instead, every plan that triggers the convention MUST copy the convention's text VERBATIM into the plan file itself, physically inserted at the top (the same way the Excel-rater HARD RULE is inserted). This rule names the trigger and points to the source; the plan carries the actual text. Applies to every mandatory section that lives in a repo doc.
+
+## Keep a Progress record in the plan (MANDATORY)
+
+Every plan carries a **Progress** section recording, as execution proceeds, which steps are complete and what actually happened — outcomes and any deviation from the plan (a reused version, a scope change, a discovered constraint). Update it at each step boundary, not at the end. A plan with executed steps but a stale Progress record is out of date — fix it before continuing. This is what lets a post-compact or fresh reader know the real state without re-deriving it.
 
 ## Verification Section Structure
 
