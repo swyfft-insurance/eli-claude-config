@@ -142,7 +142,7 @@ FILE_RULES = [
 
 def main():
     try:
-        data = json.load(sys.stdin)
+        data = json.load(sys.stdin)  # utf8-ok: stdin JSON from Claude Code, never a file/BOM
     except Exception:
         sys.exit(0)
 
@@ -523,6 +523,25 @@ def main():
                 )
                 sys.exit(2)
 
+        # BLOCK: Python file reads without utf-8-sig. Windows files routinely carry a UTF-8 BOM
+        # (.NET/PowerShell/VS/DumpRater output); plain 'utf-8' leaves the BOM at char 0 so json.load
+        # dies "Expecting value: line 1 column 1". utf-8-sig strips a BOM if present and is identical
+        # to utf-8 when absent, so it's always correct for READS. Keyed on read APIs only — writes
+        # (json.dump/to_csv/write_text) never match, so we never push a BOM into output. Append
+        # "# utf8-ok" for a deliberate non-utf8 read (binary/latin-1/stdin).
+        if re.search(r"\bpython[0-9.]*\b", cmd) \
+           and re.search(r"json\.load\(|\.read_text\(|pd\.read_(csv|json|excel)\b|csv\.reader\b", cmd) \
+           and not re.search(r"utf-8-sig|utf_8_sig", cmd) \
+           and "# utf8-ok" not in cmd:
+            print(
+                "BLOCKED: Python file read without encoding='utf-8-sig'. On Windows most files carry "
+                "a UTF-8 BOM (.NET/PowerShell/VS/DumpRater); plain 'utf-8' leaves \\ufeff at char 0 and "
+                "json.load dies 'Expecting value: line 1 column 1'. Add encoding='utf-8-sig' (safe with "
+                "or without a BOM). Deliberate non-utf8 read (binary/latin-1/stdin)? Append '# utf8-ok'.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         messages.extend(check_bash_warnings(cmd))
         # Check bash command matches for rules injection
         for pattern, rules_file in BASH_RULES:
@@ -533,6 +552,25 @@ def main():
 
     elif tool_name in ("Write", "Edit"):
         file_path = tool_input.get("file_path", "")
+
+        # BLOCK: a .py file that reads a file without utf-8-sig — same BOM footgun as the inline
+        # python block above, caught at write time before the script ever runs. Read APIs only;
+        # writes never match. Append "# utf8-ok" for a deliberate non-utf8 read (binary/latin-1/stdin).
+        edit_content = tool_input.get("content", "") if tool_name == "Write" else tool_input.get("new_string", "")
+        edit_content = edit_content or ""
+        if file_path.endswith(".py") \
+           and re.search(r"json\.load\(|\.read_text\(|pd\.read_(csv|json|excel)\b|csv\.reader\b", edit_content) \
+           and not re.search(r"utf-8-sig|utf_8_sig", edit_content) \
+           and "# utf8-ok" not in edit_content:
+            print(
+                "BLOCKED: This .py reads a file without encoding='utf-8-sig'. Windows files carry a "
+                "UTF-8 BOM (.NET/PowerShell/VS/DumpRater); plain 'utf-8' leaves \\ufeff at char 0 and "
+                "json.load dies 'Expecting value: line 1 column 1'. Use encoding='utf-8-sig' for every "
+                "read (safe with or without a BOM), or append '# utf8-ok' for a deliberate non-utf8 read.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # Check file path matches for rules injection
         for pattern, rules_file in FILE_RULES:
             if re.search(pattern, file_path):

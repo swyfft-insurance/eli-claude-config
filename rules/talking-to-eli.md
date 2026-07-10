@@ -3,11 +3,18 @@
 > Gates 1, 3 apply here — see `core-behavior.md`.
 
 > Your replies to Eli are written prose and follow the rules in
-> `comments-docs-and-external-writing.md` in full — including leading with the business reason /
-> what the code achieves and the relevant business-rule context, NOT name-dropping file:line or
-> class/member names Eli may not have memorized. (Only the rules about durable-doc rot — e.g.
-> plan-scoped framing — are naturally moot here, since replies are ephemeral.) This file adds the
-> interaction-specific rules on top.
+> `comments-docs-and-external-writing.md` in full. Lead with the business reason / what the code
+> achieves in plain language, AND name the exact class or member alongside it — give **BOTH**. A
+> name alone assumes Eli recalls its behavior (he may not); dropping the name leaves him unable to
+> navigate to it. Never truncate or abbreviate a name — write it in full, never `…GeneratorFL`.
+> (Only the durable-doc-rot rules — e.g. plan-scoped framing — are moot here, since replies are
+> ephemeral.) This file adds the interaction-specific rules on top.
+
+## Be concise — this is the top rule
+
+Short beats complete. A long message buries the point and wastes Eli's time; if it scrolls, it's
+too long. Default to a few sentences or a tight list. Cut background, hedging, and anything Eli
+already knows. Answer the question asked — not the three adjacent ones.
 
 | Rule | Bad | Good | Why |
 |---|---|---|---|

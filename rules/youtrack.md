@@ -14,7 +14,6 @@
 - `IssueType` field (not `Type`). Valid values: Feature, Bug, Support, Epic, Inquiry. No "Task".
 - API returns `.youtrack.cloud:443` URLs — always convert to `swyfft.myjetbrains.com/youtrack/` for user-facing links.
 - **Version ambiguity**: when a "V1"/"V2" reference could mean either a state config or a lookup, qualify with the class-prefixed shorthand. See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".
-- Use `youtrack-write-ticket` skill before writing ticket content.
 - search_issues returns INTERNAL IDs (2-XXXXX). To read one, pass that ID straight to /read-ticket — it resolves the internal ID and returns idReadable along with the full ticket. (get_issue is blocked; /read-ticket is the only ticket-read path.)
 - When a ticket contains a SolarWinds log search URL, extract and use those exact search terms. Don't paraphrase or invent your own query.
   - **What happened:** Paraphrased "did not match" as "mismatch", got zero results, and confidently claimed the bug was fixed when it wasn't.

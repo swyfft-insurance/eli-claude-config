@@ -1,5 +1,11 @@
 # Comments, Docs, and External Writing
 
+## ⚠️ Word slop is the cardinal sin
+
+Eli despises word slop — cut it at all costs. Be concise: use the fewest words that keep the **full** meaning.
+
+That caveat is the hard part. Concise does NOT mean stripping until the point is lost, swapping in vaguer or weaker words, or shortcutting any other rule in this file. It means deleting filler — throat-clearing, hedging, restatement, padding — the words you reflexively add that carry no meaning. Keep every word that carries meaning; delete every word that doesn't.
+
 > I like comments — specifically ones that capture the **business reason / intent** behind code. Write them as a habit on any non-trivial logic (see § How to write one) — they're the record of what the code was *meant* to do, which is exactly what you need when it turns out to be wrong.
 >
 > What to avoid is the comment that merely **restates what the code does**, or that only makes sense within the current work session — those rot (see § Banned).
@@ -36,6 +42,16 @@ A comment is a quick aside to a colleague, not an essay. Default to one or two p
 Bad: *"Capping the roof age changes the price, so the cap only takes effect on versions at or above the point each line introduced it; every version at or below the ones listed here stays uncapped."*
 Good: *"These are the versions from before the cap — they keep the old uncapped roof age so live policies don't change."*
 
+## Write for a reader who doesn't have your context loaded
+
+The reader — even a developer, even Eli — does not have the ticket, its ACs, the methods, or the line numbers in front of them or memorized. Write so they can follow without opening the code.
+
+- **Name the exact thing** — the method, the class or member. Don't dumb it down to a vaguer word ("calculation" for "method"); that vagueness is the word slop this file forbids.
+- **Pair every name with what it does and the business rule or AC it serves.** A bare reference — "the `GetAnnualFloodTax` method on line 238 does X" — is unusable to someone who can't see line 238.
+- **Lead with why** the code exists and which rule it addresses; the precise name rides alongside the intent, never alone.
+
+Register still varies by reader: business-facing writing (YouTrack user stories) uses plain UW/Biz language; developer-facing writing uses the exact technical term. Neither assumes the reader has your context in front of them.
+
 ## The test
 Read what you wrote as if you've never seen the PR or plan. Does it still mean something concrete? If the meaning requires knowing what this specific work session was about, rewrite. If it would still make sense to a reader who's never met the codebase, leave it.
 
@@ -43,11 +59,11 @@ Read what you wrote as if you've never seen the PR or plan. Does it still mean s
 
 **Why these rules exist:** developers can already read code — a comment explaining what `Math.Clamp` does is noise. What code *can't* tell you is the **business reason** it was written and **what the developer was trying to achieve**. That intent is the entire value: it lets a future reader confirm the code actually does what was intended — and it matters most precisely when the code turns out to be *wrong*, because the comment is the only record of what it was *supposed* to do while you're debugging it.
 
-Default audience is therefore the **non-technical stakeholder who wrote the requirement** (the UW/Biz person), not a fellow engineer. If they couldn't follow it, it's not done.
+Default audience is therefore the **non-technical stakeholder who wrote the requirement** (the UW/Biz person), not a fellow engineer. If they couldn't follow it, it's not done. This is the default for **business-intent** writing only — developer-facing writing uses exact technical terms; see § "Write for a reader who doesn't have your context loaded".
 
 - **Explain what each block ACHIEVES (the business goal), not how it mechanically works.** "If the quote is created during wind season, it's good for 7 days" — not "the `IsBetween` guard returns the in-season floor."
 - **Lead with the goal/behavior; mechanism second, and only the non-obvious part.** State the business outcome first. Add a mechanism note only for the one genuinely subtle step — never a play-by-play of every line.
-- **No jargon or notation.** Banned in comment prose: "clamp", "ternary", "predicate", interval notation like `[7, 30]`, bare type/member names (`DayNumber`), and pseudo-code equations crammed into a sentence. Say "never fewer than 7 or more than 30", not "clamped to [7, 30]".
+- **No jargon or notation.** "Jargon" means obscuring notation and shorthand — "clamp", "ternary", "predicate", interval notation like `[7, 30]`, pseudo-code equations crammed into a sentence — that hides meaning. It does NOT mean the correct technical noun: for a developer reader, "method" or a class/member name is the exact term and belongs there. In a business-intent comment, say "never fewer than 7 or more than 30", not "clamped to [7, 30]".
 - **If the ticket or stakeholder already described it in plain English, use that wording verbatim.** Don't paraphrase a clear requirement into worse prose — quote it.
 - **Concrete examples beat abstract description.** Dates and values ("created May 20 → expires June 1") land faster than a general rule.
 - **The test:** read it back as the requirement-writer. If a non-coder couldn't follow how the code meets their ask, rewrite.
@@ -63,6 +79,28 @@ Applies to all written prose: chat replies, plan files, code and doc comments, c
 |---|---|
 | "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
 | "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
+
+## Call things by their exact name — repeat it, don't vary it
+
+Name each thing by its exact term and repeat that exact term every time you mean it. Never swap in a synonym, a broader category word, or a vaguer umbrella term to avoid repetition. Varying vocabulary so prose doesn't feel repetitive ("elegant variation") is a creative-writing habit; in technical writing the substitute is always less precise than the exact term, so it trades accuracy for style and manufactures ambiguity. Repeating the precise term is correct — not a flaw to fix.
+
+Broader than "No Ambiguous References" above: that rule bans pronouns and demonstratives when two or more antecedents are in scope. This rule bans the synonym or umbrella swap even when nothing is ambiguous, because the vaguer word is still less precise than the exact term.
+
+Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages, PR descriptions, Slack, YouTrack, RCAs.
+
+| Bad (term varied) | Good (exact term repeated) |
+|---|---|
+| "a change could re-rate existing business; that business keeps its premium" | "a change could re-rate existing quotes and policies; those quotes and policies keep their premium" |
+
+## Consistent bullet granularity — don't mix single- and multi-item bullets
+
+Within one list, every bullet holds the same unit: one item per bullet throughout, or the same grouping throughout. Never put a single-item bullet next to a sibling that crams several distinct items behind commas. If the items are worth listing, give each its own bullet; if they're worth grouping, group them all the same way. Mixed granularity reads as sloppy and makes the reader wonder whether the comma-jammed items are different in kind from the standalone ones.
+
+Applies to all prose: chat replies, Slack, code and doc comments, PR descriptions, YouTrack, rules files.
+
+| Bad (mixed granularity) | Good (consistent) |
+|---|---|
+| • policy fee (`DbbPolicyFee`)<br>• state tax, service fee, stamping, SLIP+ | • policy fee (`DbbPolicyFee`)<br>• state tax (`DbbStateTax`)<br>• service fee (`DbbServiceFee`)<br>• stamping fee (`DbbStampingFee`)<br>• SLIP+ (`SurplusLinesServiceFee`) |
 
 ## Tense precision — don't state the future or a hypothesis as present fact
 
