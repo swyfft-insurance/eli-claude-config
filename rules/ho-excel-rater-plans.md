@@ -1,39 +1,6 @@
-# Excel Rater (ByPeril) Implementation Tickets
+# Excel Rater (ByPeril) — Homeowner Implementation Tickets
 
-This is the full playbook for the **Excel Rater (ByPeril)** plan type (defined in `plan-mode.md` § "Plan Types"). It inherits every general rule in `plan-mode.md` — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig feature-doc requirements, and the full Verification structure. The one carve-out is the provisional-scope rule below.
-
-**These plans are a deliberate exception to "resolve every open question before execution."** You can't place the new rater or regenerate baselines while authoring — the new rater arrives only at execution time (you download/place it), so its true scope (the diff) doesn't exist yet. A rater plan is therefore a **ticket-shaped outline, hardened by the diff immediately after the files are placed.**
-
-## MANDATORY plan header — the rater-parsing hard rule (physically insert into EVERY rater plan)
-
-Every Excel rater plan MUST reproduce the block below **verbatim, at the very top of the plan file**
-(immediately after the title/type line, above the preamble) — not a link, not a paraphrase, the
-actual text. A rater plan without this block physically inserted is incomplete, exactly like a
-missing HARD STOP. Copy it in as the first thing you write, and re-insert it if a revision drops it.
-
-> ### HARD RULE — never parse a rater `.xlsm` yourself
-> To read anything out of a rater workbook — Versions-sheet values, named ranges, input options,
-> factor tables, fees — there are exactly TWO sanctioned sources:
-> 1. **HO:** the pre-dumped baselines under `Swyfft.Services.Excel.IntegrationTests/ExpectedResults/`.
-> 2. **Any rater without a baseline (Commercial, or a brand-new file):** the `DumpRater` / `ReadExcel`
->    console task (`WorkbookJsonDump.cs`).
->
-> **NEVER open the `.xlsm` yourself** — not with a Python/zip/XML parser, not by unzipping the OOXML
-> and reading `sheetN.xml` / `sharedStrings.xml`, not with any ad-hoc script. Hand-rolled Excel
-> parsing is banned: it silently mishandles shared strings, cached-vs-formula values, and
-> defined-name scoping, and it reinvents tooling the repo already owns. When the sanctioned tool is
-> heavyweight (DumpRater needs a console build/run), that cost is the price of correctness — pay it.
-> "It was faster to parse it myself" is never a justification.
-
-## Running the Excel dump tasks — pointer
-
-The three Excel tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI (no Excel/COM); each carries
-its exact `-t:...` invocation in a `/// Usage:` header — read the file, don't re-derive it:
-`DumpRaterTask.cs` (dump sheets → JSON; `-sheet` for one; skips large reference sheets like
-`Market_Factor` / `Roof_Type_Age` unless `-sheet` is passed — see its `SkipSheets`),
-`ReadExcelTask.cs`, and `ReadNamedRangesTask.cs`. Build the console once
-(`pwsh ~/.claude/scripts/Build-Solution.ps1` — the wrapper lives in `~/.claude/scripts/`, NOT the repo
-root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
+This is the **Homeowner** playbook for the **Excel Rater (ByPeril)** plan type (defined in `plan-mode.md` § "Plan Types"). It inherits every general rule in `plan-mode.md` — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig feature-doc requirements, and the full Verification structure — plus the shared rater conventions in `excel-rater-plans-common.md` (the HARD RULE, the dump tasks, the provisional-scope carve-out, the `version_history` caveat, seeder-first, and blast radius). This file holds the HO-specific pieces below: pre-reads, the plan shape, and the component→Excel-signal map.
 
 ## Mandatory pre-reads — before authoring an Excel rater plan
 
@@ -44,11 +11,6 @@ A rater plan must not be authored — and the plan file must list as required pr
 
 Always read the seeding/sheet-mapping, rater-service, and validation-test docs — not just the ones the ticket seems to touch — because the step-3 diff can implicate any component.
 
-## Authoring rules
-
-- Write the C# change list from the **ticket's stated scope, and label it provisional.** Do **not** assert as fact what the rater changed — you haven't seen it. Mark every ticket-derived scope claim explicitly unverified (e.g., *"per ticket; unverified until the step-3 diff"*). This is the one place a plan is allowed to carry unverified items — *because* they're labeled and a checkpoint resolves them.
-- You may read the **old, on-disk** rater (`ReadExcel`) to sharpen the provisional scope, but that's the baseline, not the change — still provisional.
-
 ## Plan shape (every rater ticket)
 
 1. Branch.
@@ -58,13 +20,6 @@ Always read the seeding/sheet-mapping, rater-service, and validation-test docs �
 5. **Verify.** Run the ByPeril Excel validation tests again (baselines auto-update on the run; review the diff) — now it also reflects the version wiring — plus `/prebind-validation`; confirm the final diff matches the scope with nothing unexpected, and the C# premium == Excel across all indices.
 
 > Running the ByPeril Excel validation tests (the `ByPerilEAndSValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`) through `Run-DotnetTest.ps1` **must** include `-FilterTrait "TestGroup=ByPerilTests"` — omit it and the run also pulls the Commercial validation tests (900+, ~45 min) and the pre-tool hook blocks it. Scope to one state by AND-ing `-FilterNamespace "*{ST}.EAndS"`.
-
-## Ignore the `version_history` sheet
-
-`version_history` is the actuary's free-text changelog — not consumed by any premium
-calculation. A new rater routinely adds log rows, sometimes backfilling notes about factors
-that were already live. Read it for context if you want, but never scrutinize its diff or
-treat a log row as evidence of a functional change.
 
 ## Why the baseline diff, not `DumpRater`
 
@@ -81,6 +36,22 @@ formula? which fees are wired?), **read these dumps — never open the `.xlsm`**
 (canonical inputs written before the dump), needs no Excel/COM, and covers every state/carrier
 leaf. Use it both to scope a change and to find which raters already have or lack a given named
 range (e.g. grep the `_NamedRanges.txt` files for a cell name across all leaves at once).
+
+## Surfaces an HO rater implementation can touch (non-exhaustive)
+
+This is thorough — a rater rarely needs a surface not on it. But it isn't a closed set: the diff is the authority, so don't rule out an off-list surface just because it's absent here. A given ticket touches only a subset. Inferred from the HO docs.
+
+- **Rater file(s)** — `Data/{State}/Homeowner/ByPeril/.../{Rater}.xlsm`.
+- **Seeder** — `ByPerilSeederHomeowner{...}.cs`.
+- **State config** — a new `HomeownerStateConfig` version.
+- **Quote defs + activation** — `Data/QuoteDefinitions.txt` row; seeder override in `Seeder.cs` (`CustomizeCoreLocalAndDevAndBeta`).
+- **Version lookups** — `ByPerilVersionLookup/Homeowner/...`.
+- **Premium generators** — `HomeownerByPerilPremiumGenerator.cs` (+ carrier subclass) + the generator factory.
+- **Rated agent inputs (element model)** — element loader → constraint code → generator → `IByPerilQuoteElementModel`/`ByPerilQuoteElementModel` → `ByPerilElementService` → `ByPerilName` → rater service `WorkbookSetters`.
+- **Rater services** — `ByPerilHomeowner{RT}ExcelRaterService{ST}.cs` (+ `ByPerilCellNames`, version-cell mapping, `FeeNames`, factor/coverage names).
+- **Fees** — `QuoteFees/Homeowner/...` + `StateQuoteFeeFactoryHelper.cs`.
+- **Validation tests + baselines** — `ByPerilEAndSValidationTests*` + the `RaterFileContents` baselines.
+- **Captured asserts / config guards** — `/prebind-validation` (config ordering, quote-def index guards).
 
 ## Component → Excel-signal map
 
