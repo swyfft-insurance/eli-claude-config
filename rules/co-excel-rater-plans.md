@@ -8,6 +8,14 @@ Commercial rating is unusually hierarchy-heavy and shares one rater across carri
 
 The HO playbook scopes and verifies against the `RaterFileContents` captured baselines. **Commercial has none.** So the sanctioned way to read a Commercial rater is the `DumpRater` console task (see `excel-rater-plans-common.md` § "Running the Excel dump tasks"), and the scoping checkpoint compares a `DumpRater` dump of the old on-disk rater against a dump of the placed new rater — that diff is what hardens the provisional plan, the same role the baseline diff plays for HO.
 
+## The scoping diff demands a verdict on EVERY sheet — none is presumed noise
+
+When reconciling the old-vs-new rater diff (the step-4 checkpoint), enumerate every sheet the diff touches and record an explicit verdict for each — versioned-safe, inert, or break. Never let a sheet pass by omission: working from the ticket/changelog factor list and skimming the rest is how a break ships, because the parity leaves cannot catch an unversioned change the seeder mirrors into C# — the diff verdict is the only guard.
+
+For a **seeded factor sheet** the bar is stricter: there is no innocent "layout" change to seeded data. If a seeded sheet's values differ at all, either (a) properly versioned rows were added (V1 = the prior values, new behavior on V2), or (b) the change is wrong — an unversioned value change on an existing tab is a backwards-compat break exactly like an unversioned new factor. Reference-shift noise exists only on formula sheets (`Rating_Algorithm` refs auto-shifting around inserted rows), never on data tabs.
+
+- **What happened:** SW-52867 — the LA/TX `Ordinance_Law` values changed unversioned (1.15 on Fire+Hurricane only → 1.25/1.4/1.65 on all perils). The audit enumerated only the new factor sheets, so the change sat unflagged in the diff artifacts until TX validation failures exposed it; the in-force LA/TX books would have silently re-rated.
+
 ## Mandatory pre-reads — before authoring a Commercial rater plan
 
 - **Implementation / component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Commercial/CLAUDE.md` (CommercialStateConfig); `Swyfft.Services/Premium/CLAUDE.md` (ByPeril premium system **and** "Commercial: agent inputs rate via quote columns"); `Swyfft.Services/Elements/CLAUDE.md` (elements/constraint codes, and the Commercial "an element alone doesn't rate" note); `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`; `Swyfft.Services.Excel/Commercial/CLAUDE.md` (rater-service subclasses are validation-test-only).

@@ -129,6 +129,7 @@
       "Read(//c/Users/eli.koslofsky/**)"
     ]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {

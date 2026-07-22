@@ -27,8 +27,8 @@ missing HARD STOP. Copy it in as the first thing you write, and re-insert it if 
 
 The three Excel tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI (no Excel/COM); each carries
 its exact `-t:...` invocation in a `/// Usage:` header — read the file, don't re-derive it:
-`DumpRaterTask.cs` (dump sheets → JSON; `-sheet` for one; skips large reference sheets like
-`Market_Factor` / `Roof_Type_Age` unless `-sheet` is passed — see its `SkipSheets`),
+`DumpRaterTask.cs` (dump sheets → JSON; dumps every sheet by default, `-sheet` narrows to one;
+formula cells emit only formula text unless `-IncludeFormulaValues:true` is passed),
 `ReadExcelTask.cs`, and `ReadNamedRangesTask.cs`. Build the console once
 (`pwsh ~/.claude/scripts/Build-Solution.ps1` — the wrapper lives in `~/.claude/scripts/`, NOT the repo
 root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
