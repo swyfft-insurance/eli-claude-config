@@ -36,7 +36,7 @@ elseif ($Mode -eq 'branch') {
     $dirty = git status --porcelain 2>&1
     if ($dirty) {
         Write-Host "WARNING: Uncommitted changes exist. They will NOT appear in this diff." -ForegroundColor Yellow
-        Write-Host "Use '/diff local' to see uncommitted changes, or commit first." -ForegroundColor Yellow
+        Write-Host "Use '/eli-diff local' to see uncommitted changes, or commit first." -ForegroundColor Yellow
         Write-Host ""
     }
 

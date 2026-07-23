@@ -7,7 +7,7 @@ This is the **Homeowner** playbook for the **Excel Rater (ByPeril)** plan type (
 A rater plan must not be authored — and the plan file must list as required pre-reads — without reading:
 
 - **Implementation / component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Homeowner/CLAUDE.md` (HomeownerStateConfig, QuoteDefinitions, seeder overrides, fold-vs-stack); `Swyfft.Services/Elements/CLAUDE.md` + `Elements/Homeowner/CLAUDE.md` (elements, constraint codes, generators, factory version fallback); `Swyfft.Services/Premium/CLAUDE.md` (element-model wiring); `Swyfft.Services/QuoteFees/CLAUDE.md` (fees); `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md` + its children `reading-rater-files.md`, `Homeowner/CLAUDE.md`, `Homeowner/rater-sheets-reference.md` (seeding + the sheet→component mapping); `Swyfft.Services.Excel/Homeowner/ByPeril/Rater/CLAUDE.md` + `audit-and-debugging.md` (rater-service overrides).
-- **Excel test docs:** `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md` + `Homeowner/CLAUDE.md` (ByPeril validation tests, debugging `#VALUE!`); `~/.claude/rules/captured-asserts.md` and the `/prebind-validation` skill (the baseline regen flow).
+- **Excel test docs:** `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md` + `Homeowner/CLAUDE.md` (ByPeril validation tests, debugging `#VALUE!`); `~/.claude/rules/captured-asserts.md` and the `/eli-prebind-validation` skill (the baseline regen flow).
 
 Always read the seeding/sheet-mapping, rater-service, and validation-test docs — not just the ones the ticket seems to touch — because the step-3 diff can implicate any component.
 
@@ -17,7 +17,7 @@ Always read the seeding/sheet-mapping, rater-service, and validation-test docs �
 2. **(You) place the rater(s).** Overwrite the canonical `Data/{State}/…/{Rater}.xlsm`. For a UnifiedRater (E&S HO ships one rater per state), propagate it byte-identical to each in-scope carrier file and hash-verify.
 3. **Scoping checkpoint — HARD STOP.** Run the ByPeril Excel validation tests for the affected leaves; the `RaterFileContents` baselines auto-update locally on the run (captured-assert update behavior: see `~/.claude/rules/captured-asserts.md`). Read the `ExpectedResults/` diff and reconcile against the provisional plan: diff ⊆ provisional → proceed; diff shows more (another factor, new input, fee, layout) → surface the delta and expand the plan before any C#. **This is where provisional becomes verified.**
 4. **Implement** the C# the diff dictates (map below).
-5. **Verify.** Run the ByPeril Excel validation tests again (baselines auto-update on the run; review the diff) — now it also reflects the version wiring — plus `/prebind-validation`; confirm the final diff matches the scope with nothing unexpected, and the C# premium == Excel across all indices.
+5. **Verify.** Run the ByPeril Excel validation tests again (baselines auto-update on the run; review the diff) — now it also reflects the version wiring — plus `/eli-prebind-validation`; confirm the final diff matches the scope with nothing unexpected, and the C# premium == Excel across all indices.
 
 > Running the ByPeril Excel validation tests (the `ByPerilEAndSValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`) through `Run-DotnetTest.ps1` **must** include `-FilterTrait "TestGroup=ByPerilTests"` — omit it and the run also pulls the Commercial validation tests (900+, ~45 min) and the pre-tool hook blocks it. Scope to one state by AND-ing `-FilterNamespace "*{ST}.EAndS"`.
 
@@ -51,7 +51,7 @@ This is thorough — a rater rarely needs a surface not on it. But it isn't a cl
 - **Rater services** — `ByPerilHomeowner{RT}ExcelRaterService{ST}.cs` (+ `ByPerilCellNames`, version-cell mapping, `FeeNames`, factor/coverage names).
 - **Fees** — `QuoteFees/Homeowner/...` + `StateQuoteFeeFactoryHelper.cs`.
 - **Validation tests + baselines** — `ByPerilEAndSValidationTests*` + the `RaterFileContents` baselines.
-- **Captured asserts / config guards** — `/prebind-validation` (config ordering, quote-def index guards).
+- **Captured asserts / config guards** — `/eli-prebind-validation` (config ordering, quote-def index guards).
 
 ## Component → Excel-signal map
 

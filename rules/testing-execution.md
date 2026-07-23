@@ -52,13 +52,13 @@ See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance
 
 ## Validation surface is per product line — don't default to the HO suite
 
-`/prebind-validation` covers **Homeowner/residential only**
+`/eli-prebind-validation` covers **Homeowner/residential only**
 (`TestGroup=PreBindResidentialValidationTests`) — it is not a general validation suite. Match the
 surface to the product line before validating a change:
 
 | Product line | Validation surface |
 |---|---|
-| Homeowner / residential | `/prebind-validation` — captured asserts, config-ordering, quote-def index guards |
+| Homeowner / residential | `/eli-prebind-validation` — captured asserts, config-ordering, quote-def index guards |
 | Commercial | premium-parity tests `CommercialEAndSByPerilRaterValidation*` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) |
 
 Never assume a skill applies across product lines because it's the one you usually reach for.
@@ -100,8 +100,8 @@ pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
 Parameters: `-Project` or `-Solution` (one required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`.
 
 ### Existing skills that use the script
-- `/prebind-validation` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
-- `/byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
+- `/eli-prebind-validation` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
+- `/eli-byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
 
 ### `-Project` vs `-Solution`
 - Use `-Project` for a `.csproj` path, `-Solution` for a `.slnx` file. They are mutually exclusive.

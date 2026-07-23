@@ -44,7 +44,7 @@ if ($null -ne $r5h) {
     $parts += " | 5h: $([int]$r5h)%$(Format-RateLimit $r5h $j.rate_limits.five_hour.resets_at 5 $false $true)"
 }
 if ($null -ne $r7d) {
-    $parts += " | 7d: $([int]$r7d)%$(Format-RateLimit $r7d $j.rate_limits.seven_day.resets_at 168 $true $false)"
+    $parts += " | 7d: $([int]$r7d)%$(Format-RateLimit $r7d $j.rate_limits.seven_day.resets_at 168 $true $true)"
 }
 
 $cwd = $j.cwd

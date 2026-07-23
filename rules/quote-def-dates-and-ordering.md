@@ -22,11 +22,11 @@ date; don't assume the real one.
 Ordering tests that consume these dates: `Swyfft.Services/Common/Homeowner/CLAUDE.md` §§
 "QuoteDefinitions.txt Ordering" and "Seeder Override RenewalOn Must Be Monotonically Increasing".
 
-## Finding stale overrides — the `/quote-def-override-audit` skill
+## Finding stale overrides — the `/eli-quote-def-override-audit` skill
 
 Once a config's real prod `NewQuotesOn` is in the past, its override has done its job (early
 dev/beta testing before go-live) and is a removal candidate. Don't hand-compare the override array
-against `QuoteDefinitions.txt` to find these — run `/quote-def-override-audit`. It deterministically
+against `QuoteDefinitions.txt` to find these — run `/eli-quote-def-override-audit`. It deterministically
 lists every HO/Flood/DBB override whose config is already live in prod (the removal candidates),
 leaving alone the ones not yet live or with no prod row. Report-only; deciding to remove is a
 separate step.

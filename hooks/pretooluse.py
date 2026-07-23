@@ -69,7 +69,7 @@ BASH_RULES = [
     (r"gh\s+pr\s+review", "pr-theirs-review.md"),
     (r"gh\s+", "pr-mine-address-feedback.md"),
     (r"dotnet\s+test", "testing-execution.md"),
-    # Seed is now blocked below — use /seed skill instead.
+    # Seed is now blocked below — use /eli-seed skill instead.
     (r"sqlcmd", "db-querying.md"),
     (r"git\s+(merge|checkout\s+--(ours|theirs))", "merge-conflicts.md"),
     (r"yde2xj08jm", "beta-prod-db.md"),
@@ -161,16 +161,16 @@ def main():
         )
         sys.exit(2)
 
-    # BLOCK: YouTrack ticket reads — must use the /read-ticket skill instead.
-    # Reading a ticket is one usage: /read-ticket returns the full ticket (description, every
+    # BLOCK: YouTrack ticket reads — must use the /eli-read-ticket skill instead.
+    # Reading a ticket is one usage: /eli-read-ticket returns the full ticket (description, every
     # comment, custom fields incl. Stage, attachments) — the same complete view a human gets
     # opening it. get_issue / get_issue_comments invite partial reads that miss context.
-    # /read-ticket runs read-ticket.py (direct REST), not these MCP tools, so it's unaffected.
+    # /eli-read-ticket runs read-ticket.py (direct REST), not these MCP tools, so it's unaffected.
     # No bypass: an MCP call has no command string to carry a token (matches the SolarWinds block).
     if tool_name in ("mcp__YouTrackNative__get_issue", "mcp__YouTrackNative__get_issue_comments"):
         print(
             "BLOCKED: Do not read YouTrack tickets via the MCP get tools. "
-            "Use the /read-ticket skill — it returns the full ticket (description, all comments, "
+            "Use the /eli-read-ticket skill — it returns the full ticket (description, all comments, "
             "custom fields incl. Stage, attachments), the same view you get opening the ticket. "
             "It accepts the readable ID (SW-XXXXX) or the internal entity ID (2-XXXXX). "
             "search_issues and the write tools are unaffected.",
@@ -229,8 +229,8 @@ def main():
             )
             sys.exit(2)
 
-        # BLOCK: lazy YouTrack ticket reads via the REST API — must use /read-ticket.
-        # /read-ticket is the one-stop ticket read (description, comments, custom fields,
+        # BLOCK: lazy YouTrack ticket reads via the REST API — must use /eli-read-ticket.
+        # /eli-read-ticket is the one-stop ticket read (description, comments, custom fields,
         # attachments, field-change history, tags). A raw GET dodges it — both the by-id form
         # (/api/issues/{id}, /comments, /activities, ...) and the search/list form
         # (/api/issues?query=...&fields=description,comments(...)). Hence /api/issues[/?].
@@ -246,7 +246,7 @@ def main():
         if is_yt_issue_read and not is_yt_write and "read-ticket.py" not in cmd:
             print(
                 "BLOCKED: Do not read YouTrack tickets via the REST API directly. "
-                "Use the /read-ticket skill — the single source for everything about a ticket "
+                "Use the /eli-read-ticket skill — the single source for everything about a ticket "
                 "(description, all comments, custom fields incl. Stage, attachments, and "
                 "field-change history). It accepts SW-XXXXX or the internal 2-XXXXX id. "
                 "Writes (POST/PUT to the command/issue API) are unaffected.",
@@ -254,7 +254,7 @@ def main():
             )
             sys.exit(2)
 
-        # BLOCK: truncating /read-ticket output - the skill returns the FULL ticket on purpose.
+        # BLOCK: truncating /eli-read-ticket output - the skill returns the FULL ticket on purpose.
         # Piping read-ticket.py through head/tail/more/Select-Object -First clips the description,
         # ACs, or comments - the exact content the skill exists to deliver. If the JSON is large,
         # parse out the fields you need (python -c over the parsed object); never lop off the end.
@@ -263,7 +263,7 @@ def main():
             cmd,
         ):
             print(
-                "BLOCKED: Do not pipe /read-ticket output through head, tail, more, or "
+                "BLOCKED: Do not pipe /eli-read-ticket output through head, tail, more, or "
                 "Select-Object -First/-Last. The skill returns the full ticket on purpose; "
                 "clipping it drops the description, acceptance criteria, or comments, the exact "
                 "content the skill exists to deliver. If the JSON is large, parse out the fields "
@@ -283,14 +283,14 @@ def main():
                 "and prints the tail + exit code so completion is verifiable:\n\n"
                 "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-Seed.ps1\" -Mode database\n"
                 "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-Seed.ps1\" -Mode elements\n\n"
-                "The /seed skill instructions reflect this. Do NOT bypass this block — it exists "
+                "The /eli-seed skill instructions reflect this. Do NOT bypass this block — it exists "
                 "because direct invocation truncates output and hides failures.",
                 file=sys.stderr,
             )
             sys.exit(2)
 
-        # BLOCK: UI acceptance tests must go through the /run-ui-acceptance-tests-local skill.
-        # Skill: ~/.claude/skills/run-ui-acceptance-tests-local/SKILL.md
+        # BLOCK: UI acceptance tests must go through the /eli-run-ui-acceptance-tests-local skill.
+        # Skill: ~/.claude/skills/eli-run-ui-acceptance-tests-local/SKILL.md
         if (
             (re.search(r"dotnet\s+test", cmd) and re.search(r"Swyfft\.Web\.Ui\.AcceptanceTests", cmd))
             or (re.search(r"Run-DotnetTest\.ps1", cmd) and re.search(r"Swyfft\.Web\.Ui\.AcceptanceTests", cmd))
@@ -299,8 +299,8 @@ def main():
         ) and "# via-run-ui-acceptance-tests-local" not in cmd:
             print(
                 "BLOCKED: Do not run UI acceptance tests directly. "
-                "Use the /run-ui-acceptance-tests-local skill "
-                "(~/.claude/skills/run-ui-acceptance-tests-local/SKILL.md). "
+                "Use the /eli-run-ui-acceptance-tests-local skill "
+                "(~/.claude/skills/eli-run-ui-acceptance-tests-local/SKILL.md). "
                 "It kills the site, builds the solution, starts the site, "
                 "runs the test, and kills the site again — every time.",
                 file=sys.stderr,
@@ -349,8 +349,8 @@ def main():
                 "  pwsh -NoProfile -File \"$HOME/.claude/scripts/Run-DotnetTest.ps1\" "
                 "-Project \"Swyfft.Services.Excel.IntegrationTests\" "
                 "-FilterTrait \"TestGroup=ByPerilTests\"\n\n"
-                "For prebind validation: /prebind-validation skill\n"
-                "For audit diagnostics: /byperil-audit-diagnostic skill",
+                "For prebind validation: /eli-prebind-validation skill\n"
+                "For audit diagnostics: /eli-byperil-audit-diagnostic skill",
                 file=sys.stderr,
             )
             sys.exit(2)
@@ -447,30 +447,30 @@ def main():
                     )
                     sys.exit(2)
 
-        # BLOCK: Raw git diff calls — must use /diff skill.
+        # BLOCK: Raw git diff calls — must use /eli-diff skill.
         # The skill appends "# via-diff-skill" to bypass this block.
         if re.search(r"git\s+diff", cmd) and "# via-diff-skill" not in cmd:
             print(
                 "BLOCKED: Do not run git diff directly. "
-                "Use the /diff skill:\n\n"
-                "  /diff local   — uncommitted changes (working tree vs last commit)\n"
-                "  /diff branch  — committed changes vs development\n\n"
+                "Use the /eli-diff skill:\n\n"
+                "  /eli-diff local   — uncommitted changes (working tree vs last commit)\n"
+                "  /eli-diff branch  — committed changes vs development\n\n"
                 "You MUST choose one. No default.\n\n"
                 "Do NOT dodge this by reconstructing the same view another way "
                 "(git diff --name-only, git show <ref>:<file>, git log -p, etc.). "
                 "Those commands are fine for their OWN jobs — reading a specific commit, "
                 "a file at a ref, or history — but never to inspect the local or branch "
-                "changes /diff already covers. Use /diff.",
+                "changes /eli-diff already covers. Use /diff.",
                 file=sys.stderr,
             )
             sys.exit(2)
 
-        # BLOCK: Raw PR comment reply/resolve calls — must use /pr-feedback skill.
+        # BLOCK: Raw PR comment reply/resolve calls — must use /eli-pr-feedback skill.
         if re.search(r"gh\s+api.*pulls.*/comments.*replies|resolveReviewThread", cmd) \
            and not re.search(r"pr-feedback", cmd):
             print(
                 "BLOCKED: Do not reply to or resolve PR comments directly. "
-                "Use the /pr-feedback skill, which enforces research-then-draft-then-approve workflow.",
+                "Use the /eli-pr-feedback skill, which enforces research-then-draft-then-approve workflow.",
                 file=sys.stderr,
             )
             sys.exit(2)
@@ -499,7 +499,7 @@ def main():
 
         # BLOCK: unscoped `git log` — the whole-repo history sweep (research strategy, not safety).
         # git blame (file-scoped) and git show (object-scoped) are always fine; only an
-        # unscoped/unbounded `git log` is blocked. The /file-history skill appends
+        # unscoped/unbounded `git log` is blocked. The /eli-file-history skill appends
         # "# via-file-history-skill" to bypass. Allowed when scoped (path / -L) or bounded
         # (revision range / commit limit).
         if re.search(r"git\s+log\b", cmd) and "# via-file-history-skill" not in cmd:
@@ -512,7 +512,7 @@ def main():
             if (has_pickaxe and not has_path) or not scoped_or_bounded:
                 print(
                     "BLOCKED: unscoped `git log` walks the ENTIRE repo history (the wasteful sweep). "
-                    "Scope or bound it, or use the /file-history skill:\n"
+                    "Scope or bound it, or use the /eli-file-history skill:\n"
                     "  git log -L :Method:path/File.cs        (one method's history)\n"
                     "  git blame -L <a>,<b> -- path/File.cs    (who/when changed lines)\n"
                     "  git log -S \"<string>\" -- path/File.cs   (when a string entered/left a file)\n"

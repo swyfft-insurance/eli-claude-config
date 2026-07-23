@@ -7,7 +7,7 @@
     Excel rater, and compares AnnualPremium + AnnualFeesTotal against FinalTotalPremium —
     same comparison as the production ByPerilHomeownerExcelQuoteAuditService.
 
-    Prerequisites (the byperil-audit-diagnostic skill checks these):
+    Prerequisites (the eli-byperil-audit-diagnostic skill checks these):
     - Swyfft.Common/appsettings.json pointed at beta, dev, or prod-copy (not localhost, not prod)
 
 .PARAMETER QuoteIds
