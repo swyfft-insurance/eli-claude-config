@@ -25,7 +25,7 @@
     ConvertTo-Csv, Export-Csv, ForEach-Object, etc.
 
 .EXAMPLE
-    .\Parse-AuditLogs.ps1 -LogFile "$env:TEMP\swyfft-logs\solarwinds-search.txt"
+    .\Parse-AuditLogs.ps1 -LogFile "$HOME\.claude\tickets\<TicketFolder>\artifacts\solarwinds\solarwinds-search.txt"
 
 .EXAMPLE
     # Pipe to CSV

@@ -69,7 +69,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUs
 | Domain Reference | `swyfft-domain.md` | working with HomeownerStateConfig, carrier names, or PR descriptions |
 | Test Execution | `testing-execution.md` | running tests (filters, output capture, scope) |
 | Test Writing | `testing.md` | writing tests, TDD, investigation |
-| Seeding | `seeding.md` | seeding (BLOCKED — use `/eli-seed` skill instead) |
+| Seeding | `seeding.md` | seeding (BLOCKED — use `/eli--seed` skill instead) |
 | Captured Asserts | `captured-asserts.md` | running or regenerating captured assert tests |
 | Quote-def Dates & Ordering | `quote-def-dates-and-ordering.md` | editing QuoteDefinitions.txt / Seeder.cs overrides / HomeownerStateConfig versions, or reasoning about go-live dates, ordering, and which test enforces what |
 | DB Querying | `db-querying.md` | writing or running any SQL query |

@@ -7,7 +7,7 @@ Parses `ByPerilHomeownerExcelQuoteAuditService` audit-mismatch logs from SolarWi
 When investigating production audit mismatches — any ticket with the signature `ByPerilHomeownerExcelQuoteAuditService | GenerateAuditDocs - GenerateAuditDoc` — this script turns a raw SolarWinds log dump into a deduplicated list of affected quotes.
 
 Pairs with `Search-SolarWinds.ps1`:
-1. `Search-SolarWinds.ps1` → dumps raw logs to `$env:TEMP\swyfft-logs\`
+1. `Search-SolarWinds.ps1` → dumps raw logs to the ticket's `artifacts/solarwinds/` area (`~/.claude/tickets/<TicketFolder>/artifacts/solarwinds/`)
 2. `Parse-AuditLogs.ps1` → extracts the unique quote GUIDs + metadata for the ByPerilQuoteAuditDiagnosticTests env var
 
 ## Parameters
@@ -23,7 +23,7 @@ Pairs with `Search-SolarWinds.ps1`:
 ### Display a table
 
 ```powershell
-pwsh -NoProfile -File "$HOME\.claude\scripts\Parse-AuditLogs.ps1" -LogFile "$env:TEMP\swyfft-logs\solarwinds-search.txt"
+pwsh -NoProfile -File "$HOME\.claude\scripts\Parse-AuditLogs.ps1" -LogFile "$HOME\.claude\tickets\<TicketFolder>\artifacts\solarwinds\solarwinds-search.txt"
 ```
 
 Output columns: `Purchased | QuoteDefId | QuoteDef | Policy | Id | DbPrem | DbFees | Excel`.

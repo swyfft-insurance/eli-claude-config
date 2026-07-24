@@ -19,6 +19,8 @@
 #>
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory = $true)]
+    [string]$TicketFolder,
     [switch]$NoBuild
 )
 
@@ -30,6 +32,7 @@ $scriptPath = Join-Path $HOME ".claude" "scripts" "Run-DotnetTest.ps1"
 $env:QUOTE_DEF_OVERRIDE_AUDIT = 'true'
 
 $testArgs = @{
+    TicketFolder = $TicketFolder
     Project      = 'Swyfft.Services.UnitTests'
     FilterMethod = '*ReportStaleOverridesForLiveConfigs'
 }

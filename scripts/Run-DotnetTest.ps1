@@ -12,6 +12,10 @@
     The pretooluse hook blocks raw dotnet test commands. All test execution
     must go through this script.
 
+.PARAMETER TicketFolder
+    REQUIRED. The ticket work-folder name under ~/.claude/tickets/ (e.g. SW-52867-<title>).
+    Test output is written into that folder's gitignored artifacts/tests/ area.
+
 .PARAMETER Project
     A .csproj project path (passed to dotnet test --project). Mutually exclusive with -Solution.
 
@@ -55,6 +59,9 @@
 #>
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory = $true)]
+    [string]$TicketFolder,
+
     [string]$Project,
     [string]$Solution,
 
@@ -101,8 +108,8 @@ if ($IsCommercial -and -not $FilterTrait -and -not $FilterClass -and -not $Filte
     $FilterTrait = 'TestGroup=Commercial'
 }
 
-# --- Output directory ---
-$outputDir = Join-Path $env:TEMP 'swyfft-tests'
+# --- Output directory (the ticket's gitignored artifacts area) ---
+$outputDir = Join-Path $HOME ".claude/tickets/$TicketFolder/artifacts/tests"
 if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 }

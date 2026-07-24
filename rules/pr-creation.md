@@ -2,9 +2,9 @@
 
 > Gate 2 applies here — see `core-behavior.md`.
 
-- **Read the ticket first**: Before creating a PR, invoke `/eli-read-ticket` to read the YouTrack ticket(s) in the branch name.
+- **Read the ticket first**: Before creating a PR, invoke `/eli--read-ticket` to read the YouTrack ticket(s) in the branch name.
 - PR description from TWO sources: the ticket (already read above) + actual diff (`git diff development...HEAD`). Never from memory or plan files.
-- **"Actual diff" means the full content diff, read at draft time.** A `--stat`/`-StatOnly` file list is NOT the diff — it names files without showing a single change. Earlier-in-session content reads are not the diff either: investigation reads are scoped to what that investigation needed, and every file not re-read ends up described from memory or the plan — exactly what this rule exists to prevent. Pull `/eli-diff branch` fresh and read every file's hunks before drafting; only binaries and generated files (`*Designer.cs`, `*_Generated.cs`, LFS pointers) may be skipped.
+- **"Actual diff" means the full content diff, read at draft time.** A `--stat`/`-StatOnly` file list is NOT the diff — it names files without showing a single change. Earlier-in-session content reads are not the diff either: investigation reads are scoped to what that investigation needed, and every file not re-read ends up described from memory or the plan — exactly what this rule exists to prevent. Pull `/eli--diff branch` fresh and read every file's hunks before drafting; only binaries and generated files (`*Designer.cs`, `*_Generated.cs`, LFS pointers) may be skipped.
 - Treat as ONE combined diff, not commit-by-commit. Iterative commits are not logical units.
 - No Review Guide unless commits were structured via `/logical-commits`.
 - Never claim test status without running or checking — plan files go stale.

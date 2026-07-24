@@ -31,9 +31,9 @@ It's how you see what a suite or skill actually covers before you run it or rely
   verification skill already runs").
 
 **How to run it:**
-- Any project/trait: `Run-DotnetTest.ps1 -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
+- Any project/trait: `Run-DotnetTest.ps1 -TicketFolder <SW-XXXXX-title> -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
 - The PreBind (residential) set across its three projects, grouped by project:
-  `Run-PreBindValidation.ps1 -ListTests`
+  `Run-PreBindValidation.ps1 -TicketFolder <SW-XXXXX-title> -ListTests`
 - `-ListLevel`: `full` = complete discovery data; `tests` = display names; `methods` = class+method
   (default); also `classes`, `traits`.
 - `-NoBuild`: use it when the project is already built and unchanged since — the list is then
@@ -52,13 +52,13 @@ See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance
 
 ## Validation surface is per product line — don't default to the HO suite
 
-`/eli-prebind-validation` covers **Homeowner/residential only**
+`/eli--prebind-validation` covers **Homeowner/residential only**
 (`TestGroup=PreBindResidentialValidationTests`) — it is not a general validation suite. Match the
 surface to the product line before validating a change:
 
 | Product line | Validation surface |
 |---|---|
-| Homeowner / residential | `/eli-prebind-validation` — captured asserts, config-ordering, quote-def index guards |
+| Homeowner / residential | `/eli--prebind-validation` — captured asserts, config-ordering, quote-def index guards |
 | Commercial | premium-parity tests `CommercialEAndSByPerilRaterValidation*` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) |
 
 Never assume a skill applies across product lines because it's the one you usually reach for.
@@ -93,19 +93,20 @@ development_Swyfft.Services.UnitTests_filter-class-QuoteServiceTests_20260421-15
 
 ```bash
 pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
+  -TicketFolder "SW-XXXXX-title" \
   -Project "Swyfft.Services.Excel.IntegrationTests" \
   -FilterTrait "TestGroup=ByPerilTests"
 ```
 
-Parameters: `-Project` or `-Solution` (one required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`.
+Parameters: `-TicketFolder` (REQUIRED — the ticket work-folder name under `~/.claude/tickets/`; output lands in its `artifacts/tests/`), `-Project` or `-Solution` (one required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`.
 
 ### Existing skills that use the script
-- `/eli-prebind-validation` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
-- `/eli-byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
+- `/eli--prebind-validation` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
+- `/eli--byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
 
 ### `-Project` vs `-Solution`
 - Use `-Project` for a `.csproj` path, `-Solution` for a `.slnx` file. They are mutually exclusive.
-- Example: `Run-DotnetTest.ps1 -Solution "SwyfftCI.slnx" -NoBuild` runs the full CI suite.
+- Example: `Run-DotnetTest.ps1 -TicketFolder SW-XXXXX-title -Solution "SwyfftCI.slnx" -NoBuild` runs the full CI suite.
 
 ### Other rules
 - Never `| tail -N` that discards error details. If tests fail, you already have the output — don't re-run.

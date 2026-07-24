@@ -46,6 +46,8 @@
     pwsh -NoProfile -File ~/.claude/scripts/Run-WebUiAcceptanceTest.ps1 -FilterMethod "*RoofGeometry*" -NoBuild
 #>
 param(
+    [Parameter(Mandatory = $true)]
+    [string]$TicketFolder,
     [string]$FilterMethod,
     [string]$FilterClass,
     [string]$FilterTrait,
@@ -93,10 +95,10 @@ if (-not (Test-Path $runDotnetTest)) {
 }
 
 # --- Output paths ---
-# Test output is written by Run-DotnetTest.ps1 to %TEMP%\swyfft-tests\ (standard location).
-# Website stdout always goes to the same dir so future agents have one place to look.
+# Test output is written by Run-DotnetTest.ps1 into the ticket's artifacts/tests/ area.
+# Website stdout goes to the same place so future agents have one place to look.
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$webOutputDir = Join-Path $env:TEMP "swyfft-tests"
+$webOutputDir = Join-Path $HOME ".claude/tickets/$TicketFolder/artifacts/tests"
 if (-not (Test-Path $webOutputDir)) {
     New-Item -ItemType Directory -Path $webOutputDir -Force | Out-Null
 }
@@ -206,7 +208,7 @@ try {
 
     # --- Step 5: Run test ---
     Write-Host "`n=== Step 5: Run test ===" -ForegroundColor Cyan
-    $testArgs = @("-Project", $testProj, "-NoBuild")
+    $testArgs = @("-TicketFolder", $TicketFolder, "-Project", $testProj, "-NoBuild")
     if ($FilterMethod)    { $testArgs += @("-FilterMethod", $FilterMethod) }
     if ($FilterClass)     { $testArgs += @("-FilterClass", $FilterClass) }
     if ($FilterTrait)     { $testArgs += @("-FilterTrait", $FilterTrait) }

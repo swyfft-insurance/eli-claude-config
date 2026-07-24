@@ -2,7 +2,8 @@
 <#
 .SYNOPSIS
     Wraps Seed-Database-Local.ps1 / Seed-Elements-Local.ps1 with deterministic
-    full-output capture to a file in $env:TEMP\swyfft-seed\.
+    full-output capture to a file in the ticket's artifacts area
+    (~/.claude/tickets/<TicketFolder>/artifacts/seed/).
 
     Always prints the log file path and the last 30 lines of the log so the
     caller can verify completion without re-running.
@@ -11,12 +12,15 @@
 param(
     [Parameter(Mandatory)]
     [ValidateSet('database', 'elements')]
-    [string]$Mode
+    [string]$Mode,
+
+    [Parameter(Mandatory = $true)]
+    [string]$TicketFolder
 )
 
 $ErrorActionPreference = 'Stop'
 
-$logDir = Join-Path $env:TEMP 'swyfft-seed'
+$logDir = Join-Path $HOME ".claude/tickets/$TicketFolder/artifacts/seed"
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 
 $branch = (git branch --show-current 2>$null) -replace '[\\/]', '-'

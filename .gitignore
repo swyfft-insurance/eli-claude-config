@@ -28,6 +28,9 @@ projects/
 settings.local.json
 image-cache/
 
+# Ticket work folders: track plan.md, ignore the bulky per-ticket artifacts (dumps, test output, logs)
+tickets/**/artifacts/
+
 # Python bytecode
 __pycache__/
 *.pyc

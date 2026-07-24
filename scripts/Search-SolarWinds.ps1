@@ -24,13 +24,21 @@
 .PARAMETER PageSize
     Number of logs per API page. Default 100.
 
+.PARAMETER TicketFolder
+    REQUIRED. The ticket work-folder name under ~/.claude/tickets/ (e.g. SW-52867-<title>).
+    Log dumps are written into that folder's gitignored artifacts/solarwinds/ area.
+
 .PARAMETER OutputRoot
-    Folder under which the per-search subfolder is created. Default: $env:TEMP\swyfft-logs
+    Override for the folder under which the per-search subfolder is created.
+    Defaults to the ticket's artifacts/solarwinds/ area.
 
 .EXAMPLE
     .\Search-SolarWinds.ps1 -Filter "29bd85f2 ThrowIfExcelError" -StartDate 2026-03-28 -EndDate 2026-03-29
 #>
 param(
+    [Parameter(Mandatory = $true)]
+    [string]$TicketFolder,
+
     [Parameter(Mandatory)]
     [string]$Filter,
 
@@ -62,7 +70,7 @@ if ($start -eq $end) {
 
 # Each search gets its own subfolder (overwritten when the same filter+range is re-run), holding
 # the raw JSONL data and the JSON metadata. Splitting data from run-summary keeps logs.jsonl pure.
-if (-not $OutputRoot) { $OutputRoot = Join-Path $env:TEMP 'swyfft-logs' }
+if (-not $OutputRoot) { $OutputRoot = Join-Path $HOME ".claude/tickets/$TicketFolder/artifacts/solarwinds" }
 $safeName = ($Filter -replace '[^a-zA-Z0-9\-]', '_').Substring(0, [Math]::Min(50, $Filter.Length))
 $safeStartDate = $StartDate -replace '[:\s]', '_'
 $safeEndDate = $EndDate -replace '[:\s]', '_'

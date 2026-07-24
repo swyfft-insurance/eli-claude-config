@@ -25,7 +25,7 @@ Use the `/search-logs` skill. Do NOT use the MCP tool (`mcp__solarwinds__search_
 The skill calls `~/.claude/scripts/Search-SolarWinds.ps1` which:
 - Splits date ranges into single-day chunks (the REST API returns empty on wide ranges)
 - Paginates through all results per day
-- Writes all logs to a file in `$env:TEMP\swyfft-logs\`
+- Writes all logs to a file in the ticket's `artifacts/solarwinds/` area (`~/.claude/tickets/<TicketFolder>/artifacts/solarwinds/`)
 
 ## API Quirks
 

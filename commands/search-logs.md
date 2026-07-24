@@ -17,13 +17,13 @@ The user must provide:
 After the user approves the query, run:
 
 ```
-pwsh -NoProfile -File "$HOME/.claude/scripts/Search-SolarWinds.ps1" -Filter "SEARCH_TERMS" -StartDate "YYYY-MM-DD" -EndDate "YYYY-MM-DD"
+pwsh -NoProfile -File "$HOME/.claude/scripts/Search-SolarWinds.ps1" -TicketFolder "<SW-XXXXX-title>" -Filter "SEARCH_TERMS" -StartDate "YYYY-MM-DD" -EndDate "YYYY-MM-DD"
 ```
 
 The script:
 - Splits ranges into single-day chunks (the API returns empty on wide ranges)
 - Paginates through all results per day
-- Writes all logs to a file in `$env:TEMP\swyfft-logs\`
+- Writes all logs to a file in the ticket's `artifacts/solarwinds/` area (`~/.claude/tickets/<TicketFolder>/artifacts/solarwinds/`)
 - Prints a per-day summary to the console
 
 ## After Execution

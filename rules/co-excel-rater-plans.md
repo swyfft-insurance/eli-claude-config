@@ -19,7 +19,7 @@ For a **seeded factor sheet** the bar is stricter: there is no innocent "layout"
 ## Mandatory pre-reads — before authoring a Commercial rater plan
 
 - **Implementation / component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Commercial/CLAUDE.md` (CommercialStateConfig); `Swyfft.Services/Premium/CLAUDE.md` (ByPeril premium system **and** "Commercial: agent inputs rate via quote columns"); `Swyfft.Services/Elements/CLAUDE.md` (elements/constraint codes, and the Commercial "an element alone doesn't rate" note); `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`; `Swyfft.Services.Excel/Commercial/CLAUDE.md` (rater-service subclasses are validation-test-only).
-- **Excel test docs:** `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md`; `~/.claude/rules/testing-execution.md` § "Validation surface is per product line" (the Commercial validation surface — do **not** default to the HO `/eli-prebind-validation` suite).
+- **Excel test docs:** `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md`; `~/.claude/rules/testing-execution.md` § "Validation surface is per product line" (the Commercial validation surface — do **not** default to the HO `/eli--prebind-validation` suite).
 
 ## Plan shape (every Commercial rater ticket)
 

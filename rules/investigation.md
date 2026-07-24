@@ -15,7 +15,7 @@ know which file you're asking about, so there is no excuse for an unscoped sweep
 unscoped shapes; scoped/bounded reads — `git blame`, `git show <sha>`, `git show <ref>:<file>`,
 `git log <range>`, `git log --oneline -N`, `git log -- <path>` — stay free.)
 
-Prefer the `/eli-file-history` skill — it runs the right scoped command and traces the ticket for you.
+Prefer the `/eli--file-history` skill — it runs the right scoped command and traces the ticket for you.
 Canonical commands:
 - One method's history:        `git log -L :MethodName:path/to/File.cs`
 - Who/when changed lines:       `git blame -L <start>,<end> -- path/to/File.cs`
