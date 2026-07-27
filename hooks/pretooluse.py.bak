@@ -4,17 +4,89 @@
 Receives JSON on stdin with tool_name and tool_input.
 Exit 0 = allow, exit 2 + stderr = block.
 
-This hook only hard-blocks. Rules-file injection was removed: dumping a rules
-file alongside an allowed call does not change what the assistant does, so it
-spent tokens for nothing. Guidance belongs in a block that stops the call.
+Rules injection: when a tool call matches a known pattern, the corresponding
+rules file from ~/.claude/rules/ is read and injected via systemMessage.
+Rules are injected once per session per file (tracked via temp file),
+except files in ALWAYS_INJECT which bypass dedup and inject every time.
 """
 
 import json
 import os
 import re
 import sys
+import tempfile
 
 RULES_DIR = os.path.expanduser("~/.claude/rules")
+
+# Files that bypass session dedup — injected every time they match.
+ALWAYS_INJECT = {"core-behavior.md", "pre-pr-review.md"}
+
+# Session dedup: track which rules files have been injected.
+# Keyed by Claude Code's session ID if available, otherwise by date.
+# The CLAUDE_SESSION_ID env var is set by Claude Code; fall back to date for manual testing.
+SESSION_KEY = os.environ.get("CLAUDE_SESSION_ID", "")
+if not SESSION_KEY:
+    from datetime import date
+    SESSION_KEY = date.today().isoformat()
+DEDUP_FILE = os.path.join(tempfile.gettempdir(), f"claude-rules-injected-{SESSION_KEY}")
+
+
+def get_injected():
+    """Return set of already-injected rules filenames."""
+    try:
+        with open(DEDUP_FILE) as f:
+            return set(f.read().splitlines())
+    except FileNotFoundError:
+        return set()
+
+
+def mark_injected(filename):
+    """Record that a rules file has been injected."""
+    with open(DEDUP_FILE, "a") as f:
+        f.write(filename + "\n")
+
+
+def inject_rules(filename):
+    """Read a rules file and return its content, or None if already injected or missing."""
+    if filename not in ALWAYS_INJECT and filename in get_injected():
+        return None
+    path = os.path.join(RULES_DIR, filename)
+    try:
+        with open(path) as f:
+            content = f.read()
+        if filename not in ALWAYS_INJECT:
+            mark_injected(filename)
+        return content
+    except FileNotFoundError:
+        return None
+
+
+# Bash command → rules file mappings
+BASH_RULES = [
+    (r"git\s+(push|commit|checkout|branch|merge|rebase|reset|cherry-pick)", "git-safety.md"),
+    (r"git\s+(log|blame|show)", "investigation.md"),
+    (r"gh\s+pr\s+(create|edit)", "pr-creation.md"),
+    (r"gh\s+pr\s+review", "pr-theirs-review.md"),
+    (r"gh\s+", "pr-mine-address-feedback.md"),
+    (r"dotnet\s+test", "testing-execution.md"),
+    # Seed is now blocked below — use /eli--seed skill instead.
+    (r"sqlcmd", "db-querying.md"),
+    (r"git\s+(merge|checkout\s+--(ours|theirs))", "merge-conflicts.md"),
+    (r"yde2xj08jm", "beta-prod-db.md"),
+    (r"swyfftsqleastus2", "beta-prod-db.md"),
+]
+
+# Tool name → rules file mappings (for MCP tools and other non-Bash tools)
+TOOL_RULES = [
+    (r"^mcp__slack__slack_send_message$", "slack.md"),
+    (r"^mcp__YouTrackNative__(create_issue|update_issue|add_issue_comment)$", "youtrack.md"),
+    (r"^EnterPlanMode$", "plan-mode.md"),
+    (r"^EnterPlanMode$", "core-behavior.md"),
+    (r"^ExitPlanMode$", "coding-standards.md"),
+    (r"^ExitPlanMode$", "core-behavior.md"),
+    (r"^AskUserQuestion$", "talking-to-eli.md"),
+    (r"^AskUserQuestion$", "core-behavior.md"),
+]
 
 
 def check_askuserquestion_warnings(tool_input):
@@ -51,6 +123,22 @@ def check_askuserquestion_warnings(tool_input):
             )
             break
     return warnings
+
+# Skill name → rules file mappings (for the Skill tool, dispatched by skill parameter)
+SKILL_RULES = [
+    (r"^review-pr$", "pre-pr-review.md"),
+]
+
+# File path patterns for Edit/Write → rules file mappings
+FILE_RULES = [
+    (r"\.claude[/\\]CLAUDE\.md$", "meta.md"),
+    (r"\.claude[/\\]rules[/\\]", "meta.md"),
+    (r"\.claude[/\\]projects[/\\].*[/\\]memory[/\\]", "meta.md"),
+    (r"\.(cs|csproj)$", "coding-standards.md"),
+    (r"\.(cs|csproj|ts|tsx|ps1|sql)$", "core-behavior.md"),
+    (r"QuoteDefinitions\.txt$|[/\\]Seeder\.cs$|HomeownerStateConfig", "quote-def-dates-and-ordering.md"),
+]
+
 
 def main():
     try:
@@ -89,6 +177,22 @@ def main():
             file=sys.stderr,
         )
         sys.exit(2)
+
+    # Check tool name matches (MCP tools, EnterPlanMode, ExitPlanMode)
+    for pattern, rules_file in TOOL_RULES:
+        if re.search(pattern, tool_name):
+            content = inject_rules(rules_file)
+            if content:
+                messages.append(f"=== RULES: {rules_file} ===\n{content}")
+
+    # Skill tool: dispatch by skill parameter
+    if tool_name == "Skill":
+        skill_name = tool_input.get("skill", "")
+        for pattern, rules_file in SKILL_RULES:
+            if re.search(pattern, skill_name):
+                content = inject_rules(rules_file)
+                if content:
+                    messages.append(f"=== RULES: {rules_file} ===\n{content}")
 
     # AskUserQuestion-specific guardrail
     if tool_name == "AskUserQuestion":
@@ -439,6 +543,12 @@ def main():
             sys.exit(2)
 
         messages.extend(check_bash_warnings(cmd))
+        # Check bash command matches for rules injection
+        for pattern, rules_file in BASH_RULES:
+            if re.search(pattern, cmd):
+                content = inject_rules(rules_file)
+                if content:
+                    messages.append(f"=== RULES: {rules_file} ===\n{content}")
 
     elif tool_name in ("Write", "Edit"):
         file_path = tool_input.get("file_path", "")
@@ -460,6 +570,13 @@ def main():
                 file=sys.stderr,
             )
             sys.exit(2)
+
+        # Check file path matches for rules injection
+        for pattern, rules_file in FILE_RULES:
+            if re.search(pattern, file_path):
+                content = inject_rules(rules_file)
+                if content:
+                    messages.append(f"=== RULES: {rules_file} ===\n{content}")
 
     if messages:
         print(json.dumps({"systemMessage": "\n\n".join(messages)}))
