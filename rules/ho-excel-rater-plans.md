@@ -17,9 +17,15 @@ Always read the seeding/sheet-mapping, rater-service, and validation-test docs �
 2. **(You) place the rater(s).** Overwrite the canonical `Data/{State}/…/{Rater}.xlsm`. For a UnifiedRater (E&S HO ships one rater per state), propagate it byte-identical to each in-scope carrier file and hash-verify.
 3. **Scoping checkpoint — HARD STOP.** Run the ByPeril Excel validation tests for the affected leaves; the `RaterFileContents` baselines auto-update locally on the run (captured-assert update behavior: see `~/.claude/rules/captured-asserts.md`). Read the `ExpectedResults/` diff and reconcile against the provisional plan: diff ⊆ provisional → proceed; diff shows more (another factor, new input, fee, layout) → surface the delta and expand the plan before any C#. **This is where provisional becomes verified.**
 4. **Implement** the C# the diff dictates (map below).
-5. **Verify.** Run the ByPeril Excel validation tests again (baselines auto-update on the run; review the diff) — now it also reflects the version wiring — plus `/eli--prebind-validation`; confirm the final diff matches the scope with nothing unexpected, and the C# premium == Excel across all indices.
+5. **Verify.** Run the ByPeril Excel validation tests again (baselines auto-update on the run; review the diff) — now it also reflects the version wiring — plus `/eli--prebind-validation` and `MigrationCoverageTests` (always; see "Renewal migrations" below); confirm the final diff matches the scope with nothing unexpected, and the C# premium == Excel across all indices.
 
 > Running the ByPeril Excel validation tests (the `ByPerilEAndSValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`) through `Run-DotnetTest.ps1` **must** include `-FilterTrait "TestGroup=ByPerilTests"` — omit it and the run also pulls the Commercial validation tests (900+, ~45 min) and the pre-tool hook blocks it. Scope to one state by AND-ing `-FilterNamespace "*{ST}.EAndS"`.
+
+## Renewal migrations — always run the tests; cover changed option sets
+
+When a rater ticket changes a rated input's option set between config versions (values added, removed, or renamed), in-force quotes hold old-set values and cross onto the new config at renewal. HO's quote-migration system (`Swyfft.Services/QuoteMigrations`) translates element values across config boundaries; a plan that changes an option set MUST include the migration (or confirm an existing one covers the new boundary).
+
+Every HO rater plan runs `MigrationCoverageTests` in verification regardless of whether the plan believes any option set changed — the tests are the check on that belief, and they must be green.
 
 ## Why the baseline diff, not `DumpRater`
 

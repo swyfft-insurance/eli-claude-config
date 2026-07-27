@@ -28,13 +28,21 @@ For a **seeded factor sheet** the bar is stricter: there is no innocent "layout"
 3. **Implement the seeder and reseed first** (see `excel-rater-plans-common.md` § "Implement the seeder first"). The seeder is where layout and non-opt-in-carrier breakage surfaces concretely; nothing downstream runs until a full reseed is green.
 4. **Scoping checkpoint — HARD STOP.** `DumpRater` the old and new raters and diff the dumps. Reconcile against the provisional plan: diff ⊆ provisional → proceed; diff shows more → surface the delta and expand the plan before any further C#. **This is where provisional becomes verified.**
 5. **Implement** the C# the diff dictates (map below).
-6. **Verify.** Run the Commercial validation surface — the premium-parity tests `CommercialEAndSByPerilRaterValidation*` (`TestGroup=Commercial`) in `Swyfft.Services.Excel.IntegrationTests`, and the commercial captured asserts (`SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case in `Swyfft.Seeding.IntegrationTests`). Confirm C# premium == Excel across all indices for every affected leaf.
+6. **Verify.** Run the Commercial validation surface — the premium-parity tests `CommercialEAndSByPerilRaterValidation*` (`TestGroup=Commercial`) in `Swyfft.Services.Excel.IntegrationTests`, and the commercial captured asserts (`SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case in `Swyfft.Seeding.IntegrationTests`). Confirm C# premium == Excel across all indices for every affected leaf. When a rated input's option set changed, also run the renewal boundary test (see "Changed input option sets must cover renewals" below).
 
 > The full Commercial validation suite is 900+ tests (~45 min) and the pre-tool hook blocks an unscoped run. Scope to the affected state/carrier leaf via `-FilterNamespace` / `-FilterClass`.
 
 ## Versioning is mandatory — even with no live policies
 
 Commercial rater changes that move premium or fees must be gated so existing quotes and policies keep their original values — this is the constraint in `Swyfft.Services/Premium/CLAUDE.md` § "Changes must not alter what existing quotes or policies are charged", and it holds for Commercial even where a carrier has no active book, because the ABQ re-rates historical policies. If a delivered rater adds an unversioned premium-affecting factor (or puts real values on V1), that's a backwards-compat break to fix at the rater before wiring the C#.
+
+## Changed input option sets must cover renewals — Commercial migrations are bespoke per boundary
+
+Unlike HO — whose `QuoteMigrations` subsystem translates element values at every config crossing and whose `MigrationCoverageTests` dynamically flags any boundary without a migration — Commercial handles each config crossing with bespoke, hand-written code (or not at all). When a rated input's option set changes between config versions, nothing translates in-force quotes' stored values by default when they cross onto the new config at renewal (`InitiateRenewService` resolves the renewal quote def per `RenewalOn` and rates immediately); a stored value the new config can't rate fails the renewal outright, and no coverage test exists to catch the gap automatically.
+
+- **What happened:** SW-53711 — the SW-52867 LA/TX raters rated roof age for the first time, keyed by a different roof-type option set than the in-force book held; renewals onto `LA.TOPA.ByPeril.EAndS.V9`/`TX.TOPA.ByPeril.EAndS.V15` threw `EFByPerilRoofAgeFactor … Sequence contains no elements`.
+
+A Commercial plan that changes a rated input's option set MUST state how renewals crossing onto the new config handle stored old-set values — explicit code, scoped to the new configs by name (SW-53711's shape: reset the value in `UpdateTargetQuoteActor` and force agent re-selection via `CommercialElementNeedsConfirmation`) — and MUST include a renewal boundary test (`CommercialRenewalRoofTypeTests` pattern: create a purchased quote on the prior config holding an old-set value, initiate renewal, assert the renewal rates and the value/confirmation behavior).
 
 ## Know the three parallel Commercial hierarchies before touching a shared base
 
