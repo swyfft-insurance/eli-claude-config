@@ -143,7 +143,7 @@ Every plan must declare its type. The type determines the workflow and mandatory
 2. Reproduce — write a failing test that proves the hypothesis
 3. **HARD STOP** — TDD checkpoint. Test fails as expected. Wait for approval before writing the fix.
 4. Fix — write the code fix
-5. **HARD STOP** — Code complete. Show the full diff. Wait for approval before running tests.
+5. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
 6. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
 7. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
 
@@ -152,14 +152,14 @@ Every plan must declare its type. The type determines the workflow and mandatory
 1. Write safety-net test — covers the behavior being refactored
 2. **HARD STOP** — TDD checkpoint. Test passes. Wait for approval before refactoring.
 3. Refactor — make the changes
-4. **HARD STOP** — Code complete. Show the full diff. Wait for approval before running tests.
+4. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
 5. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
 6. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
 
 ### Feature
 
 1. Make code changes
-2. **HARD STOP** — Code complete. Show the full diff. Wait for approval before running tests.
+2. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
 3. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
 4. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
 
@@ -225,7 +225,7 @@ When a plan changes quote-def go-live dates, adds/recomputes seeder overrides, o
 Tests that should still pass without edits — list with a one-line "why this is relevant to this change". Never list a test suite without a reason.
 
 ### Code-complete self-audit (comments + ClosedSets) — REQUIRED in EVERY plan
-A written step in the execution sequence, before the code-complete "show the diff" HARD STOP, to re-read `~/.claude/rules/comments-docs-and-external-writing.md` and `Swyfft.Common/SetDefinitions/CLAUDE.md` and audit every comment and ClosedSet usage the diff adds or changes. This audit is already mandatory at execution time (Part C §§ "Comments", "ClosedSets") — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a missing test or seeder override.
+A written step in the execution sequence, before the code-complete HARD STOP, to re-read `~/.claude/rules/comments-docs-and-external-writing.md` and `Swyfft.Common/SetDefinitions/CLAUDE.md` and audit every comment and ClosedSet usage the diff adds or changes. This audit is already mandatory at execution time (Part C §§ "Comments", "ClosedSets") — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a missing test or seeder override.
 
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
@@ -331,13 +331,13 @@ When implementing non-trivial business logic, add an intent/business-reason comm
 is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
 is a default habit, not an afterthought.
 
-**Mandatory comment self-audit at code-complete.** Before the "Code complete — show the diff" HARD
+**Mandatory comment self-audit at code-complete.** Before the code-complete HARD
 STOP, re-read `~/.claude/rules/comments-docs-and-external-writing.md` (don't work from memory) and audit every comment the
 diff adds or changes against it. For each comment, confirm: it explains the business reason/intent
 rather than restating the code; it carries no plan-scoped framing, intra-PR commit references,
 jargon/notation, or word-slop; and it's concise (one or two plain sentences). Fix every violation
-*before* presenting the diff. This audit is part of reaching code-complete — not a step the user
-should ever have to request. The diff you show should already be clean.
+*before* announcing code-complete. This audit is part of reaching code-complete — not a step the user
+should ever have to request. The diff should already be clean before Eli opens it.
 
 ## ClosedSets
 
@@ -352,10 +352,10 @@ crossing a UI/API boundary — read `Swyfft.Common/SetDefinitions/CLAUDE.md` in 
 memory: having read it earlier in the session — even having *edited* it — does NOT keep its rules
 active while you later write unrelated code.
 
-**Mandatory ClosedSet self-audit at code-complete.** Before the "Code complete — show the diff" HARD
+**Mandatory ClosedSet self-audit at code-complete.** Before the code-complete HARD
 STOP, re-read `Swyfft.Common/SetDefinitions/CLAUDE.md` (don't work from memory) and audit every
 ClosedSet usage the diff adds or changes against it. Confirm in particular: new method parameters
 are typed as the ClosedSet, not `string`/`int`; `.Value` appears only at true system boundaries
 (external APIs, IMS, raw storage), never in internal calls that already accept the ClosedSet;
-comparisons and `.Switch()` follow the documented forms. Fix every violation before presenting the
-diff. This audit is part of reaching code-complete — not a step the user should ever have to request.
+comparisons and `.Switch()` follow the documented forms. Fix every violation before announcing
+code-complete. This audit is part of reaching code-complete — not a step the user should ever have to request.

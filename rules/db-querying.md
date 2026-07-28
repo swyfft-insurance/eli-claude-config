@@ -15,6 +15,19 @@
 - **ALWAYS use JOINs** when the data can be joined. Never hardcode IDs from one query into another.
 - **Multi-SELECT scripts: WAIT.** Multi-SELECT scripts are fine when a JOIN genuinely won't work (disjoint result shapes, different row counts, etc.) — but the user copy-pastes one result set at a time. After the first result set arrives, **STOP. Do not reason, do not search code, do not call tools.** Acknowledge receipt, then explicitly wait for the remaining result sets. Default to a JOIN whenever plausible; reach for multi-SELECT only when joining would contort the query.
 
+## Save every query and its results to the ticket folder
+
+When working a ticket, save each query's raw SQL and its results to the ticket's artifacts
+(`~/.claude/tickets/<TicketFolder>/artifacts/db-queries/`) as they come back. The evidence trail
+must survive the session; a query whose results live only in chat is lost on compact.
+
+What earns saving is whether the result is *evidence about the data* — a no-rows result from a
+well-formed query counts, because "this properly-scoped query found nothing" proves absence (and a
+seemingly-dud query that actually establishes a fact, e.g. a join that comes back empty because the
+join column is NULL on the subject row, counts too — save it with the explanation). Don't save a
+query that returned nothing or garbage because the query itself was defective — wrong join, wrong
+column, bad schema assumption; that result proves nothing about the data and pollutes the trail.
+
 ## Remote Database Queries
 
 - Never connect directly to remote databases via sqlcmd.

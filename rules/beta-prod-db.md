@@ -56,11 +56,16 @@ All three environments are **read-only** — any code path that writes to the DB
 
 ### Environment reference
 
-| Env | Server | Core DB | Rating DB |
-|---|---|---|---|
-| Dev | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreDev` | `SwyfftRatingDev` |
-| Beta | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreBeta` | `SwyfftRatingBeta` |
-| Prod-copy | `swyfftsqleastus2.database.windows.net` | `SwyfftCoreProd` | `SwyfftRatingProd` |
+| Env | Deployment branch | Server | Core DB | Rating DB |
+|---|---|---|---|---|
+| Dev | `development` | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreDev` | `SwyfftRatingDev` |
+| Beta | `beta` | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreBeta` | `SwyfftRatingBeta` |
+| Prod-copy | `master` | `swyfftsqleastus2.database.windows.net` | `SwyfftCoreProd` | `SwyfftRatingProd` |
+
+### Branch vs environment schema
+
+Each environment's schema is migrated by its deployment branch (table above; prod-copy carries prod's schema, so `master`'s). Code from a different branch runs fine against the environment until the branch's migrations are out of sync with the environment's schema. Migration drift can surface as a whole assortment of schema-mismatch failures anywhere an entity is queried or mapped — `IndexOutOfRangeException: <ColumnName>` (the generated `EF*_Generated.cs` mappers read result-set columns by name), `SqlException: Invalid column name` / `Invalid object name` (a column or table named in the SQL doesn't exist in the environment), type-conversion errors on a changed column, among others. When a run against a remote environment fails with any schema-shaped error, the fix is to check out the environment's deployment branch, rebuild, and re-run.
+  - **What happened:** `development` code against `SwyfftCoreBeta` threw `IndexOutOfRangeException: OfacMatchStatus` — a `development` migration beta didn't have yet.
 
 Prefer prod-copy over beta when the query needs *real* prod data (see Scenario 1 for when).
 

@@ -61,15 +61,22 @@ Rewrite all four connection strings — `SwyfftCore`, `SwyfftCoreSecondary`, `Sw
 (only `Data Source`, `Initial Catalog`, and the
 `Authentication=Active Directory Default;User ID=placeholder;` auth pair change):
 
-| Env | Server | Core / Rating catalogs |
-|---|---|---|
-| Beta | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreBeta` / `SwyfftRatingBeta` |
-| Prod-copy | `swyfftsqleastus2.database.windows.net` | `SwyfftCoreProd` / `SwyfftRatingProd` |
-| Dev | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreDev` / `SwyfftRatingDev` |
+| Env | Deployment branch | Server | Core / Rating catalogs |
+|---|---|---|---|
+| Beta | `beta` | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreBeta` / `SwyfftRatingBeta` |
+| Prod-copy | `master` | `swyfftsqleastus2.database.windows.net` | `SwyfftCoreProd` / `SwyfftRatingProd` |
+| Dev | `development` | `yde2xj08jm.database.windows.net,1433` | `SwyfftCoreDev` / `SwyfftRatingDev` |
 
 Prereqs for the connection to authenticate: **VPN connected** and **Azure AD signed in**
 (Visual Studio or `az login`). If the run fails with a login/connection error, that's the
 likely cause — surface it, don't silently retry.
+
+A run that fails while loading the quote (before any diagnostic comparison) with a
+schema-mismatch error — `IndexOutOfRangeException: <ColumnName>`, `SqlException: Invalid column
+name` / `Invalid object name`, or any other schema-shaped failure — means the current branch's
+migrations are out of sync with the environment's schema. Check out the environment's deployment
+branch (table above), rebuild, and re-run. See `~/.claude/rules/beta-prod-db.md` § "Branch vs
+environment schema".
 
 If the chosen env turns out to be missing the quote (beta snapshot too old), tell the user and
 offer to repoint to prod-copy and re-run.
