@@ -1,6 +1,6 @@
 ---
 name: eli--audit-doc-mismatch-investigation
-description: Investigate ByPeril Homeowner Excel audit-doc failures (ByPerilHomeownerExcelQuoteAuditService.GenerateAuditDoc — LogMonitor "audit service generation failure" / "premium/fee mismatch" tickets). Reproduce with the three-way diagnostic test, then compare against known prior root causes (examples below — NOT an exhaustive taxonomy; a new failure may not fit any of them). Use for any ByPeril audit crash or premium/fee mismatch.
+description: Investigate ByPeril Homeowner and Commercial Excel audit-doc failures (ByPerilHomeownerExcelQuoteAuditService/CommercialExcelQuoteAuditService GenerateAuditDoc — LogMonitor "audit service generation failure" / "premium/fee mismatch" tickets). Reproduce with the three-way diagnostic test, then compare against known prior root causes (examples below — NOT an exhaustive taxonomy; a new failure may not fit any of them). Use for any ByPeril audit crash or premium/fee mismatch.
 ---
 
 # Audit Doc Mismatch Investigation
@@ -19,6 +19,9 @@ tripwire — it usually surfaces an *upstream* bug (or a since-bind data change)
 `/eli--byperil-audit-diagnostic <quote GUIDs>` runs `ByPerilQuoteAuditDiagnosticTests` (origin: SW-49341) —
 a three-way compare of **DB(bind) / Excel(now) / Recompute(now)** that names the diverging factor or
 line. No DumpRater archaeology needed to localize. That skill handles the beta/prod-copy DB setup.
+For Commercial quotes the same skill runs `CommercialQuoteAuditDiagnosticTests` — pass `-Commercial`
+(both share `QuoteAuditDiagnosticTestBase`, which asserts via the audit service's own
+`ComparePremium`; added in SW-53865).
 
 ## Step 2 — Compare against the known prior root causes (EXAMPLES, not an exhaustive taxonomy)
 **These categories are past failures we have already diagnosed and acted on — a reference for
@@ -68,6 +71,7 @@ the policy was charged correctly for its inputs at bind; any fix is forward-only
 keep their values by design.**
 - property zip edited post-bind (36535→36532) → territory NonHurricaneWind/Hail re-rates higher: **SW-51664** (current; AL half)
 - CSR "ghost reprice" — second reprice against the parent left a stale `AnnualPremium`: SW-49774 (won't-fix; Dashboard Reprice eliminates it)
+- ghost reprice, Commercial variant — re-initiating a reprice preserves the first accept's `AcceptedOn` (`CopyQuoteToActor` excludes it from the copy), so `ShouldRecalculate()` skips all re-rating and the scalar premium totals go stale against the quote lines: SW-53826 (won't-fix per SW-49774's precedent)
 - CompetitiveFactor rounding — full precision in memory, `decimal(18,4)` truncates on save; audit re-reads the rounded value → $1 diff; forward-only fix, in-force keeps the mismatch: SW-49524, SW-50197, SW-49527, SW-50214
 
 ## Step 3 — Interpretation gotchas (READ — don't rediscover)
@@ -75,6 +79,10 @@ keep their values by design.**
   SAR hurricane cat model, so Recompute's total comes out ~$1k low. The *audit* (Excel vs DB) reproduces
   hurricane fine. Ignore Recompute's hurricane. ("Hurricane base rate X vs Excel 0" on the Base Rates
   sheet is also a downstream non-issue for SAR-hurricane states.)
+- **Commercial Recompute's hurricane is an artifact too** — the in-RAM recalc's SAR call fails
+  (`ApplySarResultActor … SAR data version: N but response has: 1`), collapsing Recompute's
+  hurricane premium and everything premium-banded downstream (policy fee tier, premium tax, SLSF).
+  Diagnose from DB vs Excel; use Recompute only for non-hurricane components.
 - Diagnose by **Excel(now) vs DB(bind)** — that's the audit. Recompute is supplementary.
 - The $ delta must **reconcile to the penny** via the changed factor. If it doesn't, you named the wrong one.
 - **No audit backoff:** a single failing quote re-fires every run → 100s of occurrences/day. Occurrence
@@ -91,6 +99,9 @@ no code at all — UW/data correction). Never bring C# "up to" a changed value o
 
 ## Key files
 - `Swyfft.Services.Excel/ExcelQuoteAuditServiceBase.cs` — GenerateAuditDoc flow.
-- `Swyfft.Services.Excel/Homeowner/ByPeril/Audit/ByPerilHomeownerExcelQuoteAuditService.cs` — ComparePremium (tolerance).
-- `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilQuoteAuditDiagnosticTests.cs` — the three-way diagnostic test.
+- `Swyfft.Services.Excel/Homeowner/ByPeril/Audit/ByPerilHomeownerExcelQuoteAuditService.cs` — HO ComparePremium (tolerance).
+- `Swyfft.Services.Excel/Commercial/CommercialExcelQuoteAuditService.cs` — Commercial ComparePremium (tolerance).
+- `Swyfft.Services.Excel.IntegrationTests/QuoteAuditDiagnosticTestBase.cs` — the shared three-way diagnostic base (asserts via the audit service's own ComparePremium).
+- `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilQuoteAuditDiagnosticTests.cs` — HO diagnostic subclass.
+- `Swyfft.Services.Excel.IntegrationTests/Commercial/CommercialQuoteAuditDiagnosticTests.cs` — Commercial diagnostic subclass.
 - `Swyfft.Seeding/ExcelLoaders/ByPeril/reading-rater-files.md` — DumpRater (recovering a bind-era rater: `git show <sha>:<path> | git lfs smudge > old.xlsm`).

@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Run the ByPeril Homeowner Excel audit diagnostic test against one or more quote IDs.
+    Run the Excel audit diagnostic test (Homeowner by default, Commercial with -Commercial)
+    against one or more quote IDs.
 
 .DESCRIPTION
     Loads each quote from the DB (per current Swyfft.Common/appsettings.json), runs the
@@ -13,6 +14,10 @@
 .PARAMETER QuoteIds
     Comma-, semicolon-, or whitespace-separated list of quote GUIDs.
 
+.PARAMETER Commercial
+    Run the Commercial diagnostic (CommercialQuoteAuditDiagnosticTests) instead of the
+    Homeowner one.
+
 .EXAMPLE
     Run-ByPerilAuditDiagnostic.ps1 -QuoteIds "f820d3a8-7290-495e-bbf1-ab22d5a8d2a8,2fbb65e4-22e2-443a-815d-56cdb7c39577"
 #>
@@ -22,7 +27,9 @@ param(
     [string]$QuoteIds,
 
     [Parameter(Mandatory = $true)]
-    [string]$TicketFolder
+    [string]$TicketFolder,
+
+    [switch]$Commercial
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,7 +52,8 @@ if ($badIds) {
     throw "Invalid quote ID format: $($badIds -join ', ')"
 }
 
-Write-Host "Running $($ids.Count) quote(s) through ByPerilQuoteAuditDiagnosticTests"
+$filterClass = $Commercial ? '*CommercialQuoteAuditDiagnosticTests' : '*ByPerilQuoteAuditDiagnosticTests'
+Write-Host "Running $($ids.Count) quote(s) through $($filterClass.TrimStart('*'))"
 Write-Host ""
 
 $env:EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS = ($ids -join ',')
@@ -61,5 +69,6 @@ $env:AZURE_TOKEN_CREDENTIALS = 'dev'
 & $scriptPath `
     -TicketFolder $TicketFolder `
     -Project 'Swyfft.Services.Excel.IntegrationTests' `
-    -FilterClass '*ByPerilQuoteAuditDiagnosticTests' `
+    -FilterClass $filterClass `
+    -IsCommercial:$Commercial `
     -Suffix "$($ids.Count)-quotes"

@@ -253,7 +253,8 @@ def main():
 
         # BELT-AND-SUSPENDERS: Excel integration tests must scope to ByPeril tests.
         # Unfiltered runs include commercial tests (45+ min). Allows --filter-trait ByPerilTests
-        # OR the specific ByPerilQuoteAuditDiagnosticTests class (which lost its ByPerilTests trait in PR #20002).
+        # OR the specific ByPerilQuoteAuditDiagnosticTests class (which lost its ByPerilTests trait in PR #20002)
+        # OR CommercialQuoteAuditDiagnosticTests (SW-53865).
         # Matches both raw `dotnet test` invocations and `Run-DotnetTest.ps1` wrapper calls;
         # accepts the trait passed as either `--filter-trait` (CLI) or `-FilterTrait` (PowerShell wrapper param).
         is_dotnet_test = re.search(r"dotnet\s+test|IntegrationTests\.exe|UnitTests\.exe|Run-DotnetTest\.ps1", cmd)
@@ -269,11 +270,11 @@ def main():
            and not has_byperil_trait \
            and not is_commercial_optin \
            and not is_readonly_test_query \
-           and not re.search(r"ByPerilQuoteAuditDiagnosticTests", cmd):
+           and not re.search(r"(ByPeril|Commercial)QuoteAuditDiagnosticTests", cmd):
             print(
                 "BLOCKED: Excel integration tests must include --filter-trait \"TestGroup=ByPerilTests\" "
                 "(or -FilterTrait via Run-DotnetTest.ps1), pass -IsCommercial for the commercial suite, "
-                "or target ByPerilQuoteAuditDiagnosticTests specifically. "
+                "or target the ByPeril/Commercial QuoteAuditDiagnosticTests classes specifically. "
                 "Running without this filter includes commercial tests which take an eternity. "
                 "If you truly need all tests, ask the user to confirm.",
                 file=sys.stderr,

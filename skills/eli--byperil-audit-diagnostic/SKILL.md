@@ -1,16 +1,19 @@
 ---
 name: eli--byperil-audit-diagnostic
-description: Run the ByPeril Homeowner Excel audit diagnostic test against one or more quote IDs to reproduce production audit mismatches. Use when investigating ByPerilHomeownerExcelQuoteAuditService.GenerateAuditDoc errors or verifying specific quote IDs against the Excel rater.
+description: Run the Excel audit diagnostic test against one or more quote IDs to reproduce production audit mismatches — Homeowner (ByPerilQuoteAuditDiagnosticTests) by default, Commercial (CommercialQuoteAuditDiagnosticTests) with the Commercial flag. Use when investigating ByPerilHomeownerExcelQuoteAuditService/CommercialExcelQuoteAuditService GenerateAuditDoc errors or verifying specific quote IDs against the Excel rater.
 ---
 
 # ByPeril Audit Diagnostic
 
-Runs `ByPerilQuoteAuditDiagnosticTests.ValidateQuoteAudit` against a list of quote GUIDs.
+Runs `ByPerilQuoteAuditDiagnosticTests.ValidateQuoteAudit` (Homeowner) or
+`CommercialQuoteAuditDiagnosticTests.ValidateQuoteAudit` (Commercial — pass `-Commercial` to the
+script) against a list of quote GUIDs.
 For each quote the test does a **three-way comparison** and prints per-factor diffs:
 
 - **DB(bind)** — stored `AnnualPremium + AnnualFeesTotal`, what the customer was charged.
 - **Excel(now)** — `FinalTotalPremium` from the current rater. `Excel ≠ DB` is the production
-  audit failure (same comparison as `ByPerilHomeownerExcelQuoteAuditService`).
+  audit failure — the diagnostic calls the audit service's own `ComparePremium`
+  (`ByPerilHomeownerExcelQuoteAuditService` / `CommercialExcelQuoteAuditService`).
 - **Recompute(now)** — current C# premium via an in-RAM clone reprice; supplementary.
 
 For interpreting the output (which column moved, the Hurricane clone-artifact, etc.), see the
@@ -90,6 +93,9 @@ After preflight passes:
 ```
 pwsh -NoProfile -File "$HOME/.claude/scripts/Run-ByPerilAuditDiagnostic.ps1" -TicketFolder "<SW-XXXXX-title>" -QuoteIds "<ids>"
 ```
+
+Add `-Commercial` for Commercial quotes (runs `CommercialQuoteAuditDiagnosticTests` and passes
+the `-IsCommercial` opt-in through to `Run-DotnetTest.ps1`).
 
 Set the Bash timeout to at least 300000ms. Cold build + 34 quotes took ~75s; single
 quote runs take ~5-10s after warmup.
