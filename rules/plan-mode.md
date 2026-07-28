@@ -82,7 +82,9 @@ folder holds:
 - **`plan.md`** — the plan, opened with a header block listing every `SW-XXXXX` (with YouTrack
   links) and the title(s). Tracked in git.
 - **`artifacts/`** — every dump the work produces (ticket dumps, test output, seed logs, SolarWinds
-  dumps). **Gitignored** (`tickets/**/artifacts/`), so the bulky output never bloats git.
+  dumps). Bulky dumps are gitignored; the small human-authored evidence — `artifacts/db-queries/`
+  (query SQL + results) and `artifacts/pr/` (PR body files) — is tracked in git along with
+  `plan.md`.
 
 Never scatter artifacts loose or in sibling folders. The `/eli--create-plan-from-ticket` skill
 creates this layout; the dump scripts (`read-ticket`, `Run-DotnetTest`, `Run-Seed`,

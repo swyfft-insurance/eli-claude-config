@@ -208,7 +208,7 @@ Path: `~/.claude/tickets/{ticket-ids}-{title-slug}/plan.md` — one folder per t
 
 **Everything for this ticket's work lives in the folder** — `plan.md` plus an `artifacts/`
 subfolder holding every dump the work produces (ticket dumps, test output, seed logs, SolarWinds
-dumps). `plan.md` is tracked in git; `artifacts/` is gitignored. Never scatter artifacts loose or
+dumps). `plan.md`, `artifacts/db-queries/`, and `artifacts/pr/` are tracked in git; the bulky dump subfolders are gitignored. Never scatter artifacts loose or
 in sibling folders.
 
 **Open `plan.md` with a header block** listing every associated `SW-XXXXX` (with YouTrack links)

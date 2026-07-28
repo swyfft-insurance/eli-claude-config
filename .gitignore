@@ -28,8 +28,14 @@ projects/
 settings.local.json
 image-cache/
 
-# Ticket work folders: track plan.md, ignore the bulky per-ticket artifacts (dumps, test output, logs)
-tickets/**/artifacts/
+# Ticket artifacts: ignore the bulky dumps, keep the small human-authored evidence
+# (contents-level ignore so the un-ignores below can re-include — git cannot re-include
+# inside an ignored directory)
+tickets/**/artifacts/**
+!tickets/**/artifacts/db-queries/
+!tickets/**/artifacts/db-queries/**
+!tickets/**/artifacts/pr/
+!tickets/**/artifacts/pr/**
 
 # Python bytecode
 __pycache__/
