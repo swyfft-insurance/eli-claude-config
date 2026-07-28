@@ -2,7 +2,9 @@
 
 ## Data Availability
 
-Prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy numbers, element states) that existed before the most recent Monday copy is in beta. Don't plan workarounds to extract prod data manually when the record predates last Monday — just point appsettings at beta.
+**Investigating prod records (quotes, policies, prod failures): point at prod-copy by default.** The prod-copy exists exactly for this — real prod data, read-only. Use beta only when the subject is the beta *environment itself* (beta-only bugs, pre-release verification), not as a stand-in for prod data.
+
+Beta refresh timing: prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy numbers, element states) that existed before the most recent Monday copy is in beta; records created after the most recent Monday copy are not.
 
 ## Scenario 1: Ad-hoc Queries Against Remote Databases
 
@@ -21,10 +23,7 @@ Prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy
 | Encrypt | Mandatory (Trust Server Certificate) |
 | Access | **read-only** |
 
-Prefer prod-copy over beta when the query needs *real* prod data and beta might not have it:
-- Record was created in the current week (beta is a weekly Monday snapshot)
-- Record is expected in beta but missing (beta-copy anomaly)
-- Verifying a prod-vs-beta discrepancy
+Prod-copy is the default target for any query about prod records (see "Data Availability" above). Beta is not a stand-in for prod data — beyond being a stale weekly snapshot, it can also miss records (beta-copy anomalies).
 
 Never ask the user to run a query against prod directly — Eli has no write access, and the prod-db hook blocks it anyway. Prod-copy is the right target.
 
@@ -67,7 +66,7 @@ All three environments are **read-only** — any code path that writes to the DB
 Each environment's schema is migrated by its deployment branch (table above; prod-copy carries prod's schema, so `master`'s). Code from a different branch runs fine against the environment until the branch's migrations are out of sync with the environment's schema. Migration drift can surface as a whole assortment of schema-mismatch failures anywhere an entity is queried or mapped — `IndexOutOfRangeException: <ColumnName>` (the generated `EF*_Generated.cs` mappers read result-set columns by name), `SqlException: Invalid column name` / `Invalid object name` (a column or table named in the SQL doesn't exist in the environment), type-conversion errors on a changed column, among others. When a run against a remote environment fails with any schema-shaped error, the fix is to check out the environment's deployment branch, rebuild, and re-run.
   - **What happened:** `development` code against `SwyfftCoreBeta` threw `IndexOutOfRangeException: OfacMatchStatus` — a `development` migration beta didn't have yet.
 
-Prefer prod-copy over beta when the query needs *real* prod data (see Scenario 1 for when).
+Prod-copy is the default for investigating prod records; beta only when the subject is the beta environment (see Scenario 1 § "Data Availability").
 
 ### Appsettings template
 

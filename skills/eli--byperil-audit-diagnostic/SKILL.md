@@ -49,10 +49,12 @@ the ticket's own environment context so the choice is informed:
   custom fields.
 - Present the env choice referencing that: e.g. *"This ticket's errors are from Console.Beta and
   Console.Prod. Which DB should I point at — beta, or prod-copy?"*
-- Decision guidance to include: **beta** is a weekly Monday snapshot — fine if the quote predates
-  last Monday; **prod-copy** (`swyfftsqleastus2.database.windows.net`, read-only) is required if
-  the quote was created in the current week, is missing from beta, or you're chasing a
-  prod-vs-beta discrepancy. See `~/.claude/rules/beta-prod-db.md`.
+- Decision guidance to include: quotes from prod errors → **prod-copy**
+  (`swyfftsqleastus2.database.windows.net`, read-only, `master` branch) by default — it's real
+  prod data, which is exactly what prod-copy is for. **Beta** (`beta` branch) only when the
+  ticket's errors are from the beta environment; note beta is a weekly Monday snapshot, so it
+  only has records that predate the most recent Monday copy. See
+  `~/.claude/rules/beta-prod-db.md` § "Data Availability".
 
 ### Repoint to the chosen environment
 
