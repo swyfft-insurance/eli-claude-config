@@ -32,19 +32,37 @@ Options", § "No Ambiguous References"):
 - Every question answerable with a single number+letter. No "X, or Y?" prose forks.
 - Repeat the noun instead of "it"/"this"/"that" when more than one antecedent is in scope.
 
-## 3. Audit the whole message against the rules — fix violations before presenting
+## 3. THE AUDIT — actually perform it, sentence by sentence
 
-Don't just reformat the questions; audit the entire re-presented message and rewrite anything that
-breaks the rules. Read these (don't work from memory):
-- `~/.claude/rules/comments-docs-and-external-writing.md` — your replies are written prose. Check:
-  concise (cut word-slop and throat-clearing), plain, no jargon/notation, **lead with the business
-  reason / what the code achieves and the business-rule context — don't name-drop file:line or
-  class/member names Eli may not have memorized**, no ambiguous references, and tense precision
-  (never state a future or hypothetical outcome as present fact).
-- `~/.claude/rules/talking-to-eli.md` — every option genuine (no filler/strawman decoys), each
-  question answerable with one number+letter, no invented closing caveats.
+**This skill exists because your last message likely violates the rules. The audit is the work;
+everything else is setup. The catastrophic failure mode is running the Reads, then pasting your
+message through untouched with a clean conscience — that is not an audit, it is theater.**
 
-Present the conforming version, not your original wording.
+First, issue actual `Read` tool calls, in this same turn, on BOTH files — they are the checklist
+the audit runs against:
+- `~/.claude/rules/comments-docs-and-external-writing.md`
+- `~/.claude/rules/talking-to-eli.md`
+
+"They're already in my context" / "I read them earlier" / "I remember the rules" do NOT count —
+this skill gets invoked when Eli suspects a violation, and trusting your memory at that exact
+moment is absurd. No Reads in this turn's transcript = skill failure.
+
+Then audit. **Treat your message as guilty until proven clean.** Go sentence by sentence — every
+sentence, not just the questions — and for each one actively ask "which rule does this break?",
+not "does this seem fine?". You are hunting for violations you already missed once; if the audit
+finds nothing to fix, be suspicious of the audit, not proud of the message. Recurring offenders to
+hunt hardest:
+
+- Bare ticket or PR numbers — every `SW-XXXXX` and `#NNNNN` glued to a plain-English shorthand
+  ("#21881, the SW-52867 Commercial rater PR"). Eli cannot decode an opaque number, ever.
+- Word slop, throat-clearing, creative-writing flourishes.
+- Ambiguous references — repeat the noun.
+- Business reason first; exact names ride alongside, never alone.
+- Tense precision — never state a future or hypothetical outcome as present fact.
+- Every option genuine; no filler, no strawman, no invented closing caveats.
+
+Rewrite every violation before presenting. Present the conforming version — fix silently, don't
+narrate the audit.
 
 ## 4. Constraints
 - **Only reformat what you already asked.** Don't invent new questions, expand scope, or add

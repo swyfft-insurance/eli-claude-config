@@ -129,8 +129,18 @@
       "Read(//c/Users/eli.koslofsky/**)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/sessionstart.py"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|PowerShell|Write|Edit|EnterPlanMode|ExitPlanMode|AskUserQuestion|mcp__slack__.*|mcp__YouTrackNative__.*|mcp__solarwinds__.*",

@@ -28,7 +28,12 @@ For a **seeded factor sheet** the bar is stricter: there is no innocent "layout"
 3. **Implement the seeder and reseed first** (see `excel-rater-plans-common.md` § "Implement the seeder first"). The seeder is where layout and non-opt-in-carrier breakage surfaces concretely; nothing downstream runs until a full reseed is green.
 4. **Scoping checkpoint — HARD STOP.** `DumpRater` the old and new raters and diff the dumps. Reconcile against the provisional plan: diff ⊆ provisional → proceed; diff shows more → surface the delta and expand the plan before any further C#. **This is where provisional becomes verified.**
 5. **Implement** the C# the diff dictates (map below).
-6. **Verify.** Run the Commercial validation surface — the premium-parity tests `CommercialEAndSByPerilRaterValidation*` (`TestGroup=Commercial`) in `Swyfft.Services.Excel.IntegrationTests`, and the commercial captured asserts (`SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case in `Swyfft.Seeding.IntegrationTests`). Confirm C# premium == Excel across all indices for every affected leaf. When a rated input's option set changed, also run the renewal boundary test (see "Changed input option sets must cover renewals" below).
+6. **Verify.** Run the Commercial validation surface:
+   - **Premium parity** — `CommercialEAndSByPerilRaterValidation*` (`TestGroup=Commercial`) in `Swyfft.Services.Excel.IntegrationTests`.
+   - **Seeded quote-def captured assert** — `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case in `Swyfft.Seeding.IntegrationTests`.
+   - **Export captured asserts** — every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests` in `Swyfft.Console.IntegrationTests` (`TestGroup=CapturedAssertTests`). Required on every Commercial rater ticket.
+
+   Confirm C# premium == Excel across all indices for every affected leaf. When a rated input's option set changed, also run the renewal boundary test (see "Changed input option sets must cover renewals" below).
 
 > The full Commercial validation suite is 900+ tests (~45 min) and the pre-tool hook blocks an unscoped run. Scope to the affected state/carrier leaf via `-FilterNamespace` / `-FilterClass`.
 
@@ -88,7 +93,7 @@ This is thorough — a rater rarely needs a surface not on it. But it isn't a cl
 - **Rater services** — `CommercialEAndSExcelRaterService.cs` (`SetInputs`, `SetVersions`, factor/coverage/fee name mappings); subclasses are validation-test-only.
 - **Fees** — `Swyfft.Services/Premium/Commercial/CommercialQuoteFees{ST}.cs`.
 - **Validation tests** — `CommercialEAndSByPerilRaterValidation*` (`TestGroup=Commercial`).
-- **Captured asserts** — `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case.
+- **Captured asserts** — `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case, plus every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests`.
 
 ## Component → Excel-signal map (Commercial)
 

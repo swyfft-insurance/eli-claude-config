@@ -43,11 +43,11 @@ When user says "stop" — ZERO more tool calls. Words only.
 
 ---
 
-Behavioral rules and detailed guidance live in `~/.claude/rules/`. The PreToolUse hook injects the right rules when it detects matching commands, but don't rely on the hook — read proactively.
+Behavioral rules and detailed guidance live in `~/.claude/rules/`. The SessionStart hook injects all of them at session start and after every compaction, but don't rely on that injection surviving a long session — re-read the relevant file before acting.
 
 | Section | File | Read before... |
 |---------|------|----------------|
-| Core Behavior | `core-behavior.md` | every action (injected automatically at key trigger points) |
+| Core Behavior | `core-behavior.md` | every action |
 | Talking to Eli | `talking-to-eli.md` | composing any response |
 | Git Safety | `git-safety.md` | any git push, commit, branch, merge, or rebase |
 | Windows / Tooling | `windows-tooling.md` | using sed, tee, mv, printenv, or pwsh with Unix paths |
