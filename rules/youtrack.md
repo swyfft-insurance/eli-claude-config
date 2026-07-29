@@ -26,6 +26,9 @@
     -d '{"query":"Release Stage NA","issues":[{"idReadable":"SW-XXXXX"}]}' \
     "https://swyfft.myjetbrains.com/youtrack/api/commands"
   ```
-  HTTP 200 with empty `{}` body = success.
+  HTTP 200 with empty `{}` body = success. Querying the ticket afterwards returns
+  `Release Stage: None` — `NA` and "no value" are the same thing, so that IS the value you just set,
+  not a failed command. Don't re-fire it or report failure. Had it actually failed, Release Stage
+  would read `Production`, from the auto-set that moving to Done applies.
 - **Activity history (field changes)**: Included in the /eli--read-ticket output as `fieldHistory` (Stage transitions, reassignments, priority changes — each with `on`, `author`, `field`, `from`, `to`). No separate call; the raw `/api/issues/{id}/activities` REST read is blocked like every other ticket read, and /eli--read-ticket is the source.
   - **What happened:** Set Stage to Done without overriding Release Stage on SW-48843, making it look like we released code to prod.
