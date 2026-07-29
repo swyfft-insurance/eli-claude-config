@@ -2,6 +2,22 @@
 
 Applies to both rater playbooks: HO (`ho-excel-rater-plans.md`) and Commercial (`co-excel-rater-plans.md`). Each inherits everything here.
 
+## Rater edits — when warranted, and the SharePoint flow (MANDATORY)
+
+**A rater edit is warranted for actual rater bugs — and only for actual rater bugs.** The actuaries absolutely make mistakes, and a genuine defect in the rater gets fixed in the rater — a lookup that can't resolve a valid input, a formula whose range doesn't cover the sheet's own data, a structural error. What a rater edit is NOT for: making the rater agree with C#. The C# is ours to change (a state-specific override, a conditional argument — see `coding-standards.md` § "We own this code"), and leaning on rater edits as the easy way out of a C#-vs-rater discrepancy is a known agent failure mode. The test: is the rater wrong on its own terms, or merely different from the code?
+
+**The repo `Data\` copy is NOT the source of truth — the actuaries' SharePoint copy is.** The actuaries don't work out of the Swyfft solution's `Data` folder; an edit made only in the repo gets blown away the next time they deliver a rater. `#dev-analytics-rater-handoff` exists to coordinate rater changes from both ends.
+
+The flow when a rater edit is warranted:
+
+1. **The edit is made on SharePoint, by a human.** Eli usually makes it himself directly on SharePoint; routing the change to the actuaries instead is always a valid option (some devs prefer it).
+2. **The agent prepares the edit; it NEVER applies one.** Programmatic edits of rater `.xlsm` files by the agent are banned.
+   - Big edits (a row, several rows, a whole sheet): write the paste-ready content to a txt file, and state the EXACT cell to select for the paste.
+   - Individual cell or named-range edits: PRECISE instructions — the exact cell address and the exact formula/value, or the exact named-range name and its target reference.
+   - In ALL cases, exact per-cell steps. Generic instructions ("fix the formula on the sheet") are banned.
+3. **Tell the actuaries and document the change in the rater's `version_history` tab.**
+4. **After the SharePoint edit, Eli downloads the file from SharePoint** and the agent places that download into the repo `Data` folder (the standard rater-placement step).
+
 ## MANDATORY plan header — the rater-parsing HARD RULE (physically insert into EVERY rater plan)
 
 Every Excel rater plan MUST reproduce the block below **verbatim, at the very top of the plan file**
