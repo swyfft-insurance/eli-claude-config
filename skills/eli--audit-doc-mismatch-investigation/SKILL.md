@@ -18,10 +18,10 @@ tripwire — it usually surfaces an *upstream* bug (or a since-bind data change)
 **Ticket-level workflow** (catch-all tickets, current-failing-set first, RCA per failure, spin-offs): `~/.claude/rules/plan-mode.md` § "Audit-Doc LogMonitor (catch-all)".
 
 ## Step 1 — Reproduce with the diagnostic test. Do this FIRST.
-`/eli--byperil-audit-diagnostic <quote GUIDs>` runs `ByPerilQuoteAuditDiagnosticTests` (origin: SW-49341) —
+`/eli--byperil-audit-diagnostic <quote GUIDs>` runs `HomeownerExcelQuoteAuditDiagnosticTests` (origin: SW-49341) —
 a three-way compare of **DB(bind) / Excel(now) / Recompute(now)** that names the diverging factor or
 line. No DumpRater archaeology needed to localize. That skill handles the beta/prod-copy DB setup.
-For Commercial quotes the same skill runs `CommercialQuoteAuditDiagnosticTests` — pass `-Commercial`
+For Commercial quotes the same skill runs `CommercialExcelQuoteAuditDiagnosticTests` — pass `-Commercial`
 (both share `QuoteAuditDiagnosticTestBase`, which asserts via the audit service's own
 `ComparePremium`; added in SW-53865).
 
@@ -104,6 +104,6 @@ no code at all — UW/data correction). Never bring C# "up to" a changed value o
 - `Swyfft.Services.Excel/Homeowner/ByPeril/Audit/ByPerilHomeownerExcelQuoteAuditService.cs` — HO ComparePremium (tolerance).
 - `Swyfft.Services.Excel/Commercial/CommercialExcelQuoteAuditService.cs` — Commercial ComparePremium (tolerance).
 - `Swyfft.Services.Excel.IntegrationTests/QuoteAuditDiagnosticTestBase.cs` — the shared three-way diagnostic base (asserts via the audit service's own ComparePremium).
-- `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilQuoteAuditDiagnosticTests.cs` — HO diagnostic subclass.
-- `Swyfft.Services.Excel.IntegrationTests/Commercial/CommercialQuoteAuditDiagnosticTests.cs` — Commercial diagnostic subclass.
+- `Swyfft.Services.Excel.IntegrationTests/Homeowner/HomeownerExcelQuoteAuditDiagnosticTests.cs` — HO diagnostic subclass.
+- `Swyfft.Services.Excel.IntegrationTests/Commercial/CommercialExcelQuoteAuditDiagnosticTests.cs` — Commercial diagnostic subclass.
 - `Swyfft.Seeding/ExcelLoaders/ByPeril/reading-rater-files.md` — DumpRater (recovering a bind-era rater: `git show <sha>:<path> | git lfs smudge > old.xlsm`).

@@ -15,7 +15,7 @@
     Comma-, semicolon-, or whitespace-separated list of quote GUIDs.
 
 .PARAMETER Commercial
-    Run the Commercial diagnostic (CommercialQuoteAuditDiagnosticTests) instead of the
+    Run the Commercial diagnostic (CommercialExcelQuoteAuditDiagnosticTests) instead of the
     Homeowner one.
 
 .EXAMPLE
@@ -52,7 +52,7 @@ if ($badIds) {
     throw "Invalid quote ID format: $($badIds -join ', ')"
 }
 
-$filterClass = $Commercial ? '*CommercialQuoteAuditDiagnosticTests' : '*ByPerilQuoteAuditDiagnosticTests'
+$filterClass = $Commercial ? '*CommercialExcelQuoteAuditDiagnosticTests' : '*HomeownerExcelQuoteAuditDiagnosticTests'
 Write-Host "Running $($ids.Count) quote(s) through $($filterClass.TrimStart('*'))"
 Write-Host ""
 

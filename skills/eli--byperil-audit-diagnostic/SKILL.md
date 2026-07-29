@@ -1,12 +1,12 @@
 ---
 name: eli--byperil-audit-diagnostic
-description: Run the Excel audit diagnostic test against one or more quote IDs to reproduce production audit mismatches — Homeowner (ByPerilQuoteAuditDiagnosticTests) by default, Commercial (CommercialQuoteAuditDiagnosticTests) with the Commercial flag. Use when investigating ByPerilHomeownerExcelQuoteAuditService/CommercialExcelQuoteAuditService GenerateAuditDoc errors or verifying specific quote IDs against the Excel rater.
+description: Run the Excel audit diagnostic test against one or more quote IDs to reproduce production audit mismatches — Homeowner (HomeownerExcelQuoteAuditDiagnosticTests) by default, Commercial (CommercialExcelQuoteAuditDiagnosticTests) with the Commercial flag. Use when investigating ByPerilHomeownerExcelQuoteAuditService/CommercialExcelQuoteAuditService GenerateAuditDoc errors or verifying specific quote IDs against the Excel rater.
 ---
 
 # ByPeril Audit Diagnostic
 
-Runs `ByPerilQuoteAuditDiagnosticTests.ValidateQuoteAudit` (Homeowner) or
-`CommercialQuoteAuditDiagnosticTests.ValidateQuoteAudit` (Commercial — pass `-Commercial` to the
+Runs `HomeownerExcelQuoteAuditDiagnosticTests.ValidateQuoteAudit` (Homeowner) or
+`CommercialExcelQuoteAuditDiagnosticTests.ValidateQuoteAudit` (Commercial — pass `-Commercial` to the
 script) against a list of quote GUIDs.
 For each quote the test does a **three-way comparison** and prints per-factor diffs:
 
@@ -94,7 +94,7 @@ After preflight passes:
 pwsh -NoProfile -File "$HOME/.claude/scripts/Run-ByPerilAuditDiagnostic.ps1" -TicketFolder "<SW-XXXXX-title>" -QuoteIds "<ids>"
 ```
 
-Add `-Commercial` for Commercial quotes (runs `CommercialQuoteAuditDiagnosticTests` and passes
+Add `-Commercial` for Commercial quotes (runs `CommercialExcelQuoteAuditDiagnosticTests` and passes
 the `-IsCommercial` opt-in through to `Run-DotnetTest.ps1`).
 
 Set the Bash timeout to at least 300000ms. Cold build + 34 quotes took ~75s; single
@@ -104,7 +104,7 @@ The script:
 - Normalizes the ID list (splits on comma/semicolon/whitespace, dedupes, validates GUID format)
 - Sets `EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS` and `GITHUB_ACTIONS=true` (bypasses the
   `GlobalPersistentCounter` write to `dbo.TestGlobalIds` so read-only DBs work)
-- Calls `Run-DotnetTest.ps1` with `-FilterClass '*ByPerilQuoteAuditDiagnosticTests'`
+- Calls `Run-DotnetTest.ps1` with `-FilterClass '*HomeownerExcelQuoteAuditDiagnosticTests'`
 - Output uses deterministic naming: `{branch}_{project}_{filters}_{suffix}_{timestamp}.txt`
 
 ## After the Run

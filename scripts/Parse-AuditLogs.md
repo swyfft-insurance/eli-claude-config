@@ -8,7 +8,7 @@ When investigating production audit mismatches — any ticket with the signature
 
 Pairs with `Search-SolarWinds.ps1`:
 1. `Search-SolarWinds.ps1` → dumps raw logs to the ticket's `artifacts/solarwinds/` area (`~/.claude/tickets/<TicketFolder>/artifacts/solarwinds/`)
-2. `Parse-AuditLogs.ps1` → extracts the unique quote GUIDs + metadata for the ByPerilQuoteAuditDiagnosticTests env var
+2. `Parse-AuditLogs.ps1` → extracts the unique quote GUIDs + metadata for the HomeownerExcelQuoteAuditDiagnosticTests env var
 
 ## Parameters
 
@@ -87,4 +87,4 @@ Captured fields:
 
 - `~/.claude/scripts/Search-SolarWinds.ps1` — produces the input log
 - `~/.claude/rules/solarwinds.md` — SolarWinds search rules and the `/search-logs` skill
-- `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilQuoteAuditDiagnosticTests.cs` — the diagnostic test that consumes `EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS`
+- `Swyfft.Services.Excel.IntegrationTests/Homeowner/HomeownerExcelQuoteAuditDiagnosticTests.cs` — the diagnostic test that consumes `EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS`

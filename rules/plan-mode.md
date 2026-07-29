@@ -179,6 +179,25 @@ For LogMonitor tickets on audit-doc generation failures (`GenerateAuditDocs - Ge
 
 The defense-in-depth model: the ByPeril Excel integration tests are the first line of defense — they're supposed to catch C#-vs-rater problems before anything ships. The production audit-doc job is the second line. So any failure that surfaces in audit docs is, by definition, a failure that got past the Excel tests — meaning the work on an audit-doc bug isn't done at "diagnose and fix the defect." It must also answer: why didn't the Excel integration tests catch this scenario? And where coverage is possible, extending the tests to cover that scenario class is part of the fix — so the same class of failure gets caught at the first line next time. The carve-out: some scenario classes genuinely can't be covered by the Excel tests — the ghost reprice, for example, is post-bind data mutation, not anything a rater-vs-C# comparison harness can exercise — so "when possible" is a real qualifier, not a loophole.
 
+#### "The errors stopped" is not a diagnosis — resolve which outcome it was
+
+`GenerateAuditDoc` has four outcomes and only one keeps logging. Read them off `ExcelQuoteAuditServiceBase.GenerateAuditDoc` before interpreting any gap in the logs:
+
+| Outcome | `AuditDocsGeneratedOn` | Logs every run? | Live defect? |
+|---|---|---|---|
+| **Failure** — exception thrown | left NULL | yes — hourly, forever | yes |
+| **MisMatch** — premium differs | **marked** | no — logs once, then never re-selected | **yes** |
+| **Success** — premium matches | marked | no | no |
+| **Skipped** — IMS record gone | marked | warns once | no |
+
+The marking happens **before** the premium comparison, so a MisMatch counts as marked. A signature that stops firing therefore means only that the crash stopped — it does **not** mean the audit passed. A quote can leave the queue still mis-priced: a defect that needs a fix and will never re-announce itself.
+
+Never write "the audit succeeded" or "this is fixed" from an absence of logs. Separate the outcomes with evidence: a MisMatch logs its own error carrying the quote id, so a quote-id-scoped search across the full window distinguishes MisMatch from Success-or-no-longer-selected; `AuditDocsGeneratedOn` plus the stored premium settles the remainder.
+
+**A quote can walk through several outcomes as code ships.** The table above is not a fixed property of a quote — the same quote can crash for days, then stop crashing once a fix lands and instead record a MisMatch (which marks it, ending the hourly errors), and then have the mismatch cause fixed later with nothing ever re-running to say so.
+
+The logs tell you history. A marked quote is never re-audited, so log reading won't establish whether a quote audits correctly now — run `/eli--byperil-audit-diagnostic` for that, since it executes the audit service's own `ComparePremium` against the live rater.
+
 Plan shape:
 1. **SolarWinds first** — search the ticket's own search-link terms, from the ticket's filing date ("First seen") to now. The ticket was filed for the quotes in its description, but the "still occurring" comments mean the ticket is still the catch-all for this signature right now — even if the quotes that got it filed have since been fixed. The work list is whatever the search shows still failing.
 2. **Group the current set by distinct failure** (config / state / error shape) and diagnose each group — `/eli--byperil-audit-diagnostic` per quote group, interpreted per the `eli--audit-doc-mismatch-investigation` skill.

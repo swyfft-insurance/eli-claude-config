@@ -55,7 +55,7 @@
     Run-DotnetTest.ps1 -Project "Swyfft.Services.UnitTests" -FilterTrait "TestGroup=PreBindResidentialValidationTests" -NoBuild
 
 .EXAMPLE
-    Run-DotnetTest.ps1 -Project "Swyfft.Services.Excel.IntegrationTests" -FilterClass "*ByPerilQuoteAuditDiagnosticTests" -Suffix "3-quotes"
+    Run-DotnetTest.ps1 -Project "Swyfft.Services.Excel.IntegrationTests" -FilterClass "*HomeownerExcelQuoteAuditDiagnosticTests" -Suffix "3-quotes"
 #>
 [CmdletBinding()]
 param(
