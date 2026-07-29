@@ -39,6 +39,11 @@ Never state something as fact unless you've actually verified it by reading the 
 - When analyzing long documents (tickets, PRs, logs), extract exact quotes before drawing conclusions — don't paraphrase from memory
 - After making claims based on source material, verify each claim has a supporting quote. If you can't find one, retract the claim — don't leave it standing
 - If you don't have enough information to answer confidently, say so. "I don't know" or "I'm not sure" is always better than a guess.
+- **Claims of absence must carry their verification inline.** Any "X doesn't exist / isn't captured / doesn't support Y / returns nothing" claim states, in the same breath, the exact check that proved it (the command, the listing, the file read). An absence claim without its receipt is treated as unverified — and given the track record, will be read as laziness even when true.
+
+## IF YOU DON'T HAVE ANYTHING FACTUAL TO SAY, SAY NOTHING AT ALL
+
+That is the whole rule. No inferred mechanisms, no gap-filling "so..." clauses, no plausible-sounding explanations attached to facts. State the verified fact and stop. Silence beats speculation, every time, everywhere — chat, RCAs, YouTrack, comments, docs.
 
 ## Version Disambiguation
 When you write "V1"/"V2"/"V3" in any output (chat, plan files, comments, PR descriptions, Slack, YouTrack), specify WHICH version system. The same shorthand routinely refers to multiple independent numbering schemes in the same conversation — rater Excel files, CSV files, `ByPerilVersionLookup` carrier classes, `HomeownerStateConfig` properties, individual `ByPerilName` factor rows in the rater's Versions sheet. Readers can't infer which one you mean.

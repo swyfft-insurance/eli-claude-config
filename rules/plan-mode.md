@@ -171,6 +171,19 @@ A distinct plan type for rater-update tickets: actuarial delivers a new rater `.
 
 It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig ticket-note requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading the matching playbook in full is **MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or `~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared `~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads, the plan shape, the component→Excel-signal map).
 
+### Audit-Doc LogMonitor (catch-all)
+
+For LogMonitor tickets on audit-doc generation failures (`GenerateAuditDocs - GenerateAuditDoc` signatures, HO or Commercial). These tickets are catch-alls: the LogMonitor matches the error *signature*, not specific quotes or root causes, so one ticket covers every quote currently failing the audit — often several distinct root causes at once. A failing quote re-fires on every audit run until an actual fix lands (failed audits are never marked audited); it never stops failing on its own.
+
+Plan shape:
+1. **SolarWinds first** — search the ticket's own search-link terms, from the ticket's filing date ("First seen") to now. The ticket was filed for the quotes in its description, but the "still occurring" comments mean the ticket is still the catch-all for this signature right now — even if the quotes that got it filed have since been fixed. The work list is whatever the search shows still failing.
+2. **Group the current set by distinct failure** (config / state / error shape) and diagnose each group — `/eli--byperil-audit-diagnostic` per quote group, interpreted per the `eli--audit-doc-mismatch-investigation` skill.
+3. **Post an RCA on the ticket for every distinct failure** — including the description's quotes when they no longer fail: that RCA states they now pass, and identifies when/what fixed them where findable (a bonus, not required).
+4. **Spin-off is dealer's choice** — distinct failures may be split into separate tickets (per-failure or per-QuoteDef: SW-48603 → SW-49434…SW-49439) or RCA'd in place on the umbrella ticket (SW-51664's three RCAs). Ask.
+5. The ticket is done only when every failure in the current set has an RCA and a disposition — fix shipped, spun off, or no-action-with-reason.
+
+Any code fix that emerges follows the Bug Fix HARD STOP sequence.
+
 ## Seeder Overrides — Required for every new not-yet-live state config
 
 Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig`, or `DbbStateConfig` whose production go-live date is in the future, the plan MUST include a corresponding seeder override entry — concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders — for every new config. The planner is responsible for computing dates that satisfy the strict-monotonic ordering rule. Skip this step only when prod go-live is in the past.

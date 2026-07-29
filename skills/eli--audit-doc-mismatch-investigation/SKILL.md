@@ -15,6 +15,8 @@ The audit job re-rates each purchased quote with the **current** Excel rater and
 Either way the current Excel-rater path can't reproduce what the quote was charged. **The audit is a
 tripwire — it usually surfaces an *upstream* bug (or a since-bind data change), not an audit bug.**
 
+**Ticket-level workflow** (catch-all tickets, current-failing-set first, RCA per failure, spin-offs): `~/.claude/rules/plan-mode.md` § "Audit-Doc LogMonitor (catch-all)".
+
 ## Step 1 — Reproduce with the diagnostic test. Do this FIRST.
 `/eli--byperil-audit-diagnostic <quote GUIDs>` runs `ByPerilQuoteAuditDiagnosticTests` (origin: SW-49341) —
 a three-way compare of **DB(bind) / Excel(now) / Recompute(now)** that names the diverging factor or
