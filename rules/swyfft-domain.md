@@ -45,6 +45,15 @@ Eli works pre-bind (quoting). The quote owns the rating config; the policy inher
 
 **Default: always add an override for every new config**. If you're adding a new state config that isn't already live in prod, the dev/beta database has no way to test it without an override — even if the prod go-live is "soon", QA still needs it earlier. Skip the override only when prod go-live is in the past.
 
+## What identifies a config/IStateConfig
+
+A config/IStateConfig is identified by state, carrier, calculation method, and version. In practice
+state, carrier, and version pin it down on their own: no Commercial config/IStateConfig collides at
+all, and the only Homeowner carrier that does is ClearBlue under the deprecated Iso calculation
+method, whose colliding versions were never live at the same time. So when state, carrier, and
+version are given, the reference is exact and there is literally zero ambiguity about which
+config/IStateConfig it refers to.
+
 ## Generator and Lookup vs Config Versions
 - Generator class version numbers (e.g., `DefaultElementGeneratorByPerilEAndSBenchmarkSpecialtyV6AL`) and `ByPerilVersionLookup` carrier class version numbers (e.g., `ByPerilVersionLookup.Homeowner.FL.EAndS.Hiscox.V1`) do NOT correspond to HomeownerStateConfig version numbers (e.g., `ALByPerilEAndSBenchmarkSpecialtyV6`). They are independent numbering schemes.
 - Always check the factory mapping in `HomeownerDefaultElementGeneratorFactory.cs` to find which generator serves which config version.

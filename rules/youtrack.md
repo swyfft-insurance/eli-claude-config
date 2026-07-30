@@ -32,3 +32,13 @@
   would read `Production`, from the auto-set that moving to Done applies.
 - **Activity history (field changes)**: Included in the /eli--read-ticket output as `fieldHistory` (Stage transitions, reassignments, priority changes — each with `on`, `author`, `field`, `from`, `to`). No separate call; the raw `/api/issues/{id}/activities` REST read is blocked like every other ticket read, and /eli--read-ticket is the source.
   - **What happened:** Set Stage to Done without overriding Release Stage on SW-48843, making it look like we released code to prod.
+- **Tickets must be self-contained — attach the evidence, never point at a machine.** Everything a
+  ticket relies on (dumps, logs, outputs, screenshots) gets attached to the ticket itself at filing
+  time. A reference to a file on a particular dev machine — a local path, "staged locally", "will
+  attach later" — is not evidence; it's invisible to every other reader and to the filer themselves
+  on any other machine or any later date. If something can't be attached yet (needs an elevated
+  copy, too big, still being produced), the ticket isn't ready to file. Capture first, file second —
+  volatile artifacts (crash dumps, rotating logs) may not survive the wait.
+  - **What happened:** SW-53981 filed with "minidumps to be attached as soon as they're copied out;
+    staged locally meanwhile" — at filing time Windows had already deleted 3 of the 4 dumps, and the
+    last one survived only because an elevated copy ran the same hour.

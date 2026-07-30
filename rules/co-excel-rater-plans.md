@@ -33,21 +33,51 @@ For a **seeded factor sheet** the bar is stricter: there is no innocent "layout"
    - **Seeded quote-def captured assert** — `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case in `Swyfft.Seeding.IntegrationTests`.
    - **Export captured asserts** — every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests` in `Swyfft.Console.IntegrationTests` (`TestGroup=CapturedAssertTests`). Required on every Commercial rater ticket.
 
-   Confirm C# premium == Excel across all indices for every affected leaf. When a rated input's option set changed, also run the renewal boundary test (see "Changed input option sets must cover renewals" below).
+   Confirm C# premium == Excel across all indices for every affected leaf. When the rater change touched anything about a rated input, also run the renewal boundary test (see "Every element-affecting rater change needs a renewal guard" below).
 
 > The full Commercial validation suite is 900+ tests (~45 min) and the pre-tool hook blocks an unscoped run. Scope to the affected state/carrier leaf via `-FilterNamespace` / `-FilterClass`.
+
+## Commercial validation runs: sample configs like HO does
+
+HO's `ByPerilValidationTestBase.GetConfigsForGroup` runs at most five configs per
+State/Carrier/RatingType group — the oldest, a midpoint, and the three newest. Commercial has no
+such machinery, so pick the equivalent handful of leaf classes by hand instead of sweeping a
+group's full per-config class list. Any prior-config leaf you run must actually pin its config
+(`SetCommercialQuoteDefinitionGetter(..., applyAtQuoteCreation: true)`).
 
 ## Versioning is mandatory — even with no live policies
 
 Commercial rater changes that move premium or fees must be gated so existing quotes and policies keep their original values — this is the constraint in `Swyfft.Services/Premium/CLAUDE.md` § "Changes must not alter what existing quotes or policies are charged", and it holds for Commercial even where a carrier has no active book, because the ABQ re-rates historical policies. If a delivered rater adds an unversioned premium-affecting factor (or puts real values on V1), that's a backwards-compat break to fix at the rater before wiring the C#.
 
-## Changed input option sets must cover renewals — Commercial migrations are bespoke per boundary
+## Every element-affecting rater change needs a renewal guard — Commercial has no automatic coverage
 
-Unlike HO — whose `QuoteMigrations` subsystem translates element values at every config crossing and whose `MigrationCoverageTests` dynamically flags any boundary without a migration — Commercial handles each config crossing with bespoke, hand-written code (or not at all). When a rated input's option set changes between config versions, nothing translates in-force quotes' stored values by default when they cross onto the new config at renewal (`InitiateRenewService` resolves the renewal quote def per `RenewalOn` and rates immediately); a stored value the new config can't rate fails the renewal outright, and no coverage test exists to catch the gap automatically.
+HO has an automatic safety net: `QuoteMigrations` translates element values when a quote crosses a
+config boundary, and `MigrationCoverageTests` fails on boundaries it can't migrate. Commercial has
+neither — `QuoteMigrations` covers Homeowner and Flood only, so each Commercial crossing is bespoke
+hand-written code or nothing at all.
 
-- **What happened:** SW-53711 — the SW-52867 LA/TX raters rated roof age for the first time, keyed by a different roof-type option set than the in-force book held; renewals onto `LA.TOPA.ByPeril.EAndS.V9`/`TX.TOPA.ByPeril.EAndS.V15` threw `EFByPerilRoofAgeFactor … Sequence contains no elements`.
+Renewal is the path that matters, because it is the only one that moves a quote forward onto a newer
+config: `TryGetQuoteDefinitionForRenewal` picks the newest quote def whose `RenewalOn` is on or before
+the renewal effective date, and the same pipeline rates the quote immediately. Whatever the expiring
+quote stored is what the new config rates.
 
-A Commercial plan that changes a rated input's option set MUST state how renewals crossing onto the new config handle stored old-set values — explicit code, scoped to the new configs by name (SW-53711's shape: reset the value in `UpdateTargetQuoteActor` and force agent re-selection via `CommercialElementNeedsConfirmation`) — and MUST include a renewal boundary test (`CommercialRenewalRoofTypeTests` pattern: create a purchased quote on the prior config holding an old-set value, initiate renewal, assert the renewal rates and the value/confirmation behavior).
+So any rater change that changes what a rated input may hold — an option added, removed, or renamed;
+an input rated for the first time; a default changed — needs an explicit renewal guard. An in-force
+quote arrives carrying either a value the new config can't rate (SW-53711, roof type) or a null for a
+column that was never populated (SW-53916, Roof Systems Payment Schedule).
+
+**A create-path default is never a guarantee.** `ICreateDefaultQuote` is wired only into the Create
+actor collections — never into Copy, CopyTo, or InitiateRenew — and those paths shallow-copy every
+rated column verbatim, nulls included. No read may assume a column is populated because a create
+actor defaults it.
+
+A Commercial plan that touches a rated input MUST state how renewals crossing onto the new config
+handle the stored value, as explicit code scoped to the new configs by name. SW-53711's shape:
+`UpdateTargetQuoteActor` resets the value to the create default for the configs listed in
+`QuoteFactoryHelper.RenewalRoofTypeResetConfigs`. The plan MUST also include a renewal boundary test
+(`CommercialRenewalRoofTypeTests` pattern: purchase a quote on the prior config holding the old
+value, initiate renewal, assert it lands on the expected config, rates above zero, and holds the
+expected value).
 
 ## Know the three parallel Commercial hierarchies before touching a shared base
 

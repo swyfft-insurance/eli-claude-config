@@ -58,6 +58,10 @@ See `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" �
 
 Filler options during planning are particularly toxic: they slow the discussion, confuse the user into doubting their own reading of the ticket, and erode trust in subsequent genuine concerns.
 
+## Stop Being Pedantic
+
+See `~/.claude/rules/talking-to-eli.md` § "Stop being pedantic" — **especially relevant while reading a ticket and drafting a plan from it.** When you know what the author intended, that is the end of it: act on it and say nothing. It is blatantly obvious — a human reads it and immediately knows exactly what was meant, and it did not trip you up either. So the correction gains nothing and costs multiple turns, time, and tokens. Something that is genuinely wrong and confusing is a different thing — that gets raised.
+
 ## Other planner discipline
 
 - Don't call ExitPlanMode while actively discussing — wait for conversation to conclude.
