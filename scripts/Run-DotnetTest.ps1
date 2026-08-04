@@ -114,6 +114,25 @@ if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 }
 
+# --- Anchor the target to the repo root ---
+# dotnet resolves a relative --project/--solution against the caller's working directory, so a caller
+# sitting in a subdirectory fails with "The provided project file has an invalid extension". Make the
+# path absolute up front instead of depending on where the script happened to be invoked from.
+$repoRoot = git rev-parse --show-toplevel 2>$null
+if ($repoRoot) {
+    $repoRoot = $repoRoot.Trim() -replace '/', [IO.Path]::DirectorySeparatorChar
+
+    if ($Project -and -not [IO.Path]::IsPathRooted($Project)) {
+        $projectCandidate = Join-Path $repoRoot $Project
+        if (Test-Path -LiteralPath $projectCandidate) { $Project = $projectCandidate }
+    }
+
+    if ($Solution -and -not [IO.Path]::IsPathRooted($Solution)) {
+        $solutionCandidate = Join-Path $repoRoot $Solution
+        if (Test-Path -LiteralPath $solutionCandidate) { $Solution = $solutionCandidate }
+    }
+}
+
 # --- Deterministic filename ---
 
 # Branch (replace / with -)
