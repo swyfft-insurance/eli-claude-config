@@ -69,7 +69,8 @@ NEVER `git checkout`.
 
 PROCESS:
 1. Read the ticket(s) with the read-ticket script — full ticket (description, all comments, custom fields, attachments). The MCP get tools are blocked by the pretooluse hook; use the script:
-   python ~/.claude/skills/eli--read-ticket/read-ticket.py {TICKET}
+   python ~/.claude/skills/eli--read-ticket/read-ticket.py {TICKET} pr-review-{TICKET}
+   The second argument is required here. These are other people's tickets being reviewed, not Eli's own work, so their dumps go in `pr-review-` prefixed folders. Without it every reviewed ticket creates a folder that looks identical to Eli's ticket work under `~/.claude/tickets/`.
    It accepts the readable ID (SW-XXXXX) or the internal entity ID (2-XXXXX). Form a one-sentence understanding of each. Flag scope mismatch with the PR.
 
 2. Fetch PR:
