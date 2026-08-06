@@ -7,6 +7,12 @@
   - **Bugs**: code pointers help the dev start the investigation — file paths, methods, line numbers, SolarWinds log queries.
   - **Technical refactors / specific implementation tickets**: code references are warranted — the ticket itself is about the technical change.
   - **What happened:** Behavioral-feature draft included code samples and implementation mechanics. Flagged as overstepping Agile discipline.
+- **After creating a PR, move its ticket(s) to Review immediately. Never ask.** Creating the PR IS
+  the decision; once the PR is up the ticket is by definition in Review. This is workflow
+  bookkeeping, not a publishing decision, so Gate 2 does not apply and there is nothing to approve.
+  Asking burns a turn after the user reasonably believes the work is finished. Do it as part of the
+  same turn that creates the PR, then report both together. (Same class as the Step 0a move to
+  Develop in `plan-mode.md`.) Leave the Stage alone if it is already Review or later.
 - Use `create_issue`, never `create_draft_issue`. Drafts cause duplicates.
 - Read ALL custom fields (Carrier, USState, ProductLine, RatingType) — they scope the work.
 - Read tickets FIRST before exploring code, always via the /eli--read-ticket skill — it returns the full ticket (description, all comments, custom fields, attachments). get_issue/get_issue_comments are blocked by the pretooluse hook; /eli--read-ticket is the only ticket-read path. Bug tickets contain error messages with the root cause.

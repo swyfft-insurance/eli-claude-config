@@ -171,6 +171,11 @@ def resolve_images(text, image_map):
     so Claude can read each image in context rather than cross-referencing
     a separate map.
     """
+    # A comment can carry attachments and no body at all, in which case YouTrack returns a
+    # null text. Treat that as empty rather than letting re.sub choke on it.
+    if not text:
+        return ""
+
     def replace_match(m):
         alt = m.group(1)
         filename = m.group(2).split("/")[-1]  # strip any path prefix

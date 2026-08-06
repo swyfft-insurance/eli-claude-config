@@ -55,6 +55,35 @@ Register still varies by reader: business-facing writing (YouTrack user stories)
 ## The test
 Read what you wrote as if you've never seen the PR or plan. Does it still mean something concrete? If the meaning requires knowing what this specific work session was about, rewrite. If it would still make sense to a reader who's never met the codebase, leave it.
 
+## Fixing a failed claim means deleting it — rewrites create new unverified claims
+
+When a claim in written prose fails fact-checking — wrong, overstated, unverifiable — the fix is to **delete it**, or to replace it with something already verified: the verbatim quote, the literal name, the exact thing read or run. Never fix by rephrasing. A rewrite is a brand-new claim smuggled in under the banner of a fix, and it arrives unverified — so each editing pass plants the errors the next pass harvests. Deleting cannot create a falsehood; rewriting can. Not writing the sentence at all is always an option, and always better than an unverified replacement.
+
+| Bad (rewrite creates a new claim) | Good (delete or quote) |
+|---|---|
+| "all five variants" fails verification → rewrite to "every variant that matters" | → "five variants" (the verified count), or cut the clause |
+| paraphrase of a code comment is off → re-paraphrase it | → quote the comment verbatim |
+
+## No em-dashes. Write real sentences.
+
+Don't bolt a clause onto a sentence with an em-dash or a spaced hyphen. End the sentence and start a
+new one, or use a comma, a colon, or a separate bullet.
+
+The dash lets you append a thought without deciding how it relates to what it's attached to. Cause?
+Example? Qualification? A separate fact entirely? The reader has to work that out. Sentences that
+keep growing dashed-on clauses get long, read as stream of thought rather than a considered
+statement, and bury the point the sentence was supposed to make.
+
+Verbatim quotes are the exception. They keep whatever punctuation the source used.
+
+| Bad | Good |
+|---|---|
+| "That flag is set in exactly one place — `GetCommercialClaimHistoryFactors` — during premium calculation." | "That flag is set in exactly one place, `GetCommercialClaimHistoryFactors`, during premium calculation." |
+| "Admitted keeps it — every config is `[Obsolete]` — so it was left alone." | "`CommercialSoftDeclineAdmittedRisks` still lists it. Admitted is retired, so it was left alone." |
+
+Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
+PR descriptions, Slack, YouTrack, RCAs.
+
 ## How to write one (when warranted)
 
 **Why these rules exist:** developers can already read code — a comment explaining what `Math.Clamp` does is noise. What code *can't* tell you is the **business reason** it was written and **what the developer was trying to achieve**. That intent is the entire value: it lets a future reader confirm the code actually does what was intended — and it matters most precisely when the code turns out to be *wrong*, because the comment is the only record of what it was *supposed* to do while you're debugging it.
@@ -110,5 +139,19 @@ Say what is true *now* in the present tense, and what *will* be true in the futu
 |---|---|
 | "every prod quote shows 0.03%" (said before the product is live and before the cutover) | "once it launches 7/6 — past the cutover — every production quote will rate at 0.03%" |
 | "the fee is fixed" (when the fix is unmerged) | "the fix is on the branch; once merged the fee will be correct" |
+
+**Writing that describes a change — PR descriptions, RCAs, commit messages, ticket comments — uses
+past tense for pre-change behavior and present tense for post-change behavior.** A present-tense
+sentence about the old behavior tells the reader the bug is still there; a present-tense sentence
+about something the change removed is simply false once merged. The reader has no other signal for
+which world a sentence describes.
+
+The trap is the sentence that mixes a durable fact with a fixed defect — half of it stays present,
+half must go past. Split the sentence rather than picking one tense for both halves.
+
+| Bad | Good |
+|---|---|
+| "the rule reads the flag before premium sets it" (in a PR that fixes exactly that) | "the rule read the flag before premium set it" |
+| "those risks get a 1.0 factor and no referral" (factor unchanged; referral is what the PR adds) | "those risks got no referral, and still get a 1.0 factor" |
 
 Applies to all prose: chat, comments, RCAs, YouTrack/Slack, PR descriptions.

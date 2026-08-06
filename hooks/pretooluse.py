@@ -52,6 +52,271 @@ def check_askuserquestion_warnings(tool_input):
             break
     return warnings
 
+APPROVAL_STATE_PATH = os.path.expanduser("~/.claude/.post-approval-state.json")
+APPROVAL_OVERRIDE_PATH = os.path.expanduser("~/.claude/.approve-next-post")
+
+# Tools that publish to a human outside this conversation.
+GATED_POST_TOOLS = {
+    "mcp__YouTrackNative__add_issue_comment",
+    "mcp__YouTrackNative__create_issue",
+    "mcp__YouTrackNative__update_issue",
+    "mcp__slack__slack_send_message",
+}
+
+GATED_POST_COMMAND_PATTERNS = (
+    (r"\bgh\s+pr\s+(create|comment|edit|review)\b", "gh pr create/comment/edit/review"),
+    (r"\bgh\s+issue\s+(create|comment|edit)\b", "gh issue create/comment/edit"),
+    (r"\bcurl\b[^|;]*\b(POST|PUT)\b[^|;]*youtrack", "curl POST/PUT to the YouTrack API"),
+    (r"\bcurl\b[^|;]*youtrack[^|;]*\b(POST|PUT)\b", "curl POST/PUT to the YouTrack API"),
+)
+
+# The whole message must BE an approval. "yes but reword the second paragraph" is an edit,
+# so anything carrying extra content deliberately fails to match.
+#
+# Three shapes count. A bare affirmation ("yes"). A short imperative naming the action
+# ("create the pr", "post the comment") — a direct order is at least as explicit as "yes".
+# And an /eli--ask-properly answer ("1a", "1a, 2b"), since that skill instructs the user to
+# reply in exactly that form and a gate the sanctioned reply format can't satisfy is a trap.
+APPROVAL_RE = re.compile(
+    r"^("
+    r"(y|yes|yep|yeah|yup|ya|ok|okay|k|sure|go|go ahead|do it|send|send it|post|post it|"
+    r"ship it|approved|approve|lgtm|sounds good|please do|yes please|looks good)"
+    r"|"
+    r"(create|make|open|post|send|submit|file|add|update|move|do)\s+(the\s+|it\s*)?"
+    r"(pr|pull request|comment|reply|message|msg|issue|ticket|it)"
+    r"|"
+    r"\d+[a-z](\s*[, ]\s*\d+[a-z])*"
+    r")[\s.!]*$",
+    re.IGNORECASE,
+)
+
+
+def last_human_message(transcript_path):
+    """Return (uuid, text) of the most recent message a human actually typed.
+
+    Tool results also arrive as type 'user' records, but they carry tool_result blocks and
+    no text, so they're skipped — otherwise the newest "user message" would almost always
+    be a tool result rather than anything the user said.
+    """
+    if not transcript_path or not os.path.exists(transcript_path):
+        return (None, None)
+    found = (None, None)
+    try:
+        with open(transcript_path, encoding="utf-8-sig") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                if rec.get("type") != "user" or rec.get("isMeta"):
+                    continue
+                content = rec.get("message", {}).get("content")
+                if isinstance(content, str):
+                    text = content
+                elif isinstance(content, list):
+                    text = "".join(
+                        b.get("text", "") for b in content
+                        if isinstance(b, dict) and b.get("type") == "text"
+                    )
+                else:
+                    continue
+                text = re.sub(r"<system-reminder>.*?</system-reminder>", "", text, flags=re.DOTALL)
+                if text.strip():
+                    found = (rec.get("uuid"), text.strip())
+    except Exception:
+        return (None, None)
+    return found
+
+
+def read_spent_approvals():
+    try:
+        with open(APPROVAL_STATE_PATH, encoding="utf-8-sig") as fh:
+            return json.load(fh).get("spent", [])
+    except Exception:
+        return []
+
+
+def spend_approval(uuid):
+    """Mark an approval consumed so one go-ahead authorizes exactly one publish."""
+    max_remembered = 50
+    spent = read_spent_approvals()
+    spent.append(uuid)
+    try:
+        with open(APPROVAL_STATE_PATH, "w", encoding="utf-8") as fh:
+            json.dump({"spent": spent[-max_remembered:]}, fh)
+    except Exception:
+        pass
+
+
+def check_post_approval(data, tool_name, tool_input):
+    """Block anything that publishes outside this conversation without an explicit go-ahead.
+
+    Gate 2 asks for a draft and a clear approval before posting. Stating that rule in the
+    prompt has not held — the failure is always the same shape: the user sends an edit to
+    the draft and the edit gets read as consent. This checks the one fact that settles it,
+    outside the model's own judgment: did a human type an approval since the last publish?
+    Returns a block message, or None to allow.
+    """
+    label = None
+    if tool_name in GATED_POST_TOOLS:
+        label = tool_name
+    elif tool_name in ("Bash", "PowerShell"):
+        cmd = tool_input.get("command", "") or ""
+        for pattern, description in GATED_POST_COMMAND_PATTERNS:
+            if re.search(pattern, cmd, re.IGNORECASE):
+                label = description
+                break
+    if not label:
+        return None
+
+    # Moving a ticket to Review is workflow bookkeeping, not a publishing decision: the PR is
+    # already up, so the ticket is in Review by definition. Asking wastes a turn after the user
+    # believes the work is done. Scoped to a Stage->Review update carrying nothing else.
+    if tool_name == "mcp__YouTrackNative__update_issue":
+        fields = tool_input.get("customFields") or {}
+        stage_only = list(fields.keys()) == ["Stage"] and fields.get("Stage") == "Review"
+        carries_nothing_else = not tool_input.get("summary") and not tool_input.get("description")
+        if stage_only and carries_nothing_else:
+            return None
+
+    # One-shot manual release, for when the transcript can't be read.
+    if os.path.exists(APPROVAL_OVERRIDE_PATH):
+        try:
+            os.remove(APPROVAL_OVERRIDE_PATH)
+        except Exception:
+            pass
+        return None
+
+    uuid, text = last_human_message(data.get("transcript_path"))
+    if not uuid:
+        return (
+            f"BLOCKED ({label}): the transcript could not be read, so the hook cannot confirm "
+            "the user approved this. Ask for approval, then have the user create "
+            f"{APPROVAL_OVERRIDE_PATH} to release a single send."
+        )
+    if not APPROVAL_RE.match(text):
+        max_preview = 80
+        preview = text if len(text) <= max_preview else text[:max_preview] + "..."
+        return (
+            f"BLOCKED ({label}): the user's most recent message is not an approval. It reads:\n"
+            f"  {preview!r}\n"
+            "An edit to the draft, a question, or a correction is NOT consent. Put the draft in "
+            "your response and wait for an explicit go-ahead. See core-behavior.md § Gate 2."
+        )
+    if uuid in read_spent_approvals():
+        return (
+            f"BLOCKED ({label}): that approval was already used for an earlier publish. "
+            "One approval authorizes one send — ask again before publishing anything else."
+        )
+    spend_approval(uuid)
+    return None
+
+
+# The PR title is the only input to the YouTrack stage automation
+# (.github/workflows/youtrack-update-on-merge.yml reads it and nothing else), so a ticket the PR
+# covers but leaves out of the title never advances, and the wrong stage surfaces weeks later.
+PRODUCT_LINE_RE = re.compile(
+    r"\(\s*(?:HO|CO|Flood|DBB)(?:\s*,\s*(?:HO|CO|Flood|DBB))*\s*\)",
+    re.IGNORECASE,
+)
+PARTIAL_TICKET_MARKER = "(partially delivered)"
+
+
+def extract_flag_value(cmd, flag):
+    """Return a CLI flag's value with any surrounding quotes stripped, or None if absent."""
+    match = re.search(rf"{re.escape(flag)}(?:=|\s+)(\"[^\"]*\"|'[^']*'|\S+)", cmd)
+    if not match:
+        return None
+    value = match.group(1)
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1]
+    return value
+
+
+def covered_tickets(body):
+    """Ticket IDs the PR covers, read from the body's '## Ticket Link' section.
+
+    A line tagged '(partially delivered)' names a ticket this PR does not finish — an epic whose
+    children aren't all here — so it is excluded: it stays out of the title and its stage stays put.
+    Returns the ticket list in document order, deduplicated.
+    """
+    section = re.search(r"^##\s+Ticket Link\s*$(.*?)(?=^##\s|\Z)", body, re.M | re.S)
+    if not section:
+        return []
+    tickets = []
+    for line in section.group(1).splitlines():
+        if PARTIAL_TICKET_MARKER in line.lower():
+            continue
+        for ticket in re.findall(r"\bSW-\d+\b", line):
+            if ticket not in tickets:
+                tickets.append(ticket)
+    return tickets
+
+
+def check_pr_create_title(cmd):
+    """Block `gh pr create` when the title omits a covered ticket or the product line."""
+    if not re.search(r"\bgh\s+pr\s+create\b", cmd) or "--help" in cmd:
+        return None
+
+    title = extract_flag_value(cmd, "--title")
+    if title is None:
+        return (
+            "BLOCKED (gh pr create): no --title. The YouTrack automation reads ticket IDs out of "
+            "the PR title, so it has to be explicit. See ~/.claude/rules/pr-creation.md."
+        )
+
+    body = extract_flag_value(cmd, "--body")
+    body_file = extract_flag_value(cmd, "--body-file")
+    if body_file:
+        try:
+            with open(os.path.expanduser(body_file), encoding="utf-8-sig") as fh:
+                body = fh.read()
+        except Exception as exc:
+            return (
+                f"BLOCKED (gh pr create): could not read --body-file {body_file!r} ({exc}). "
+                "The title check needs the body to know which tickets the PR covers."
+            )
+    if not body:
+        return (
+            "BLOCKED (gh pr create): no --body-file. pr-creation.md requires the body in a file "
+            "under the ticket's artifacts/pr/, and the title check reads it to find covered tickets."
+        )
+
+    tickets = covered_tickets(body)
+    if not tickets:
+        return (
+            "BLOCKED (gh pr create): the body has no '## Ticket Link' section listing SW- tickets, "
+            "so which tickets the PR covers can't be verified. Follow "
+            ".github/pull_request_template.md."
+        )
+
+    missing = [ticket for ticket in tickets if f"[{ticket}]" not in title]
+    if missing:
+        return (
+            "BLOCKED (gh pr create): the title omits "
+            f"{len(missing)} of the {len(tickets)} tickets the body says this PR covers: "
+            f"{', '.join(missing)}.\n"
+            "youtrack-update-on-merge.yml moves stages off the title alone, so an omitted ticket "
+            "silently never advances. Add each as [SW-XXXXX].\n"
+            "A ticket this PR does NOT finish (an epic whose children aren't all here) belongs out "
+            f"of the title — tag its Ticket Link line '{PARTIAL_TICKET_MARKER}' instead."
+        )
+
+    if not PRODUCT_LINE_RE.search(title) and "# no-product-line" not in cmd:
+        return (
+            "BLOCKED (gh pr create): the title names no product line. Add it in parens after the "
+            "ticket brackets: (HO), (CO), (Flood), (DBB), or (HO, CO) for several.\n"
+            "  [SW-54114] [SW-54115] (HO) Aug 8, 2026 base rate updates for AL and FL\n"
+            "If the PR genuinely has no product line (build, CI, tooling), append "
+            "'# no-product-line' to the command."
+        )
+
+    return None
+
+
 def main():
     try:
         data = json.load(sys.stdin)  # utf8-ok: stdin JSON from Claude Code, never a file/BOM
@@ -62,6 +327,12 @@ def main():
     tool_input = data.get("tool_input", {})
 
     messages = []
+
+    # BLOCK: publishing outside this conversation without an explicit, unspent approval.
+    post_block = check_post_approval(data, tool_name, tool_input)
+    if post_block:
+        print(post_block, file=sys.stderr)
+        sys.exit(2)
 
     # BLOCK: SolarWinds MCP tools — must use /search-logs skill instead.
     if re.search(r"^mcp__solarwinds__", tool_name):
@@ -111,6 +382,26 @@ def main():
                     "Example with the PowerShell tool:\n"
                     "  command: & \"$HOME/.claude/scripts/Build-Solution.ps1\"\n\n"
                     "If bash semantics are genuinely required, append \"# via-bash-pwsh\" to the command.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+
+        # BLOCK: PowerShell here-strings (@'...'@ / @"..."@) in a Bash command. Bash does not
+        # parse them, so the @ delimiters land inside the payload. This has silently corrupted
+        # git commit messages more than once.
+        if tool_name == "Bash":
+            opens_herestring = re.search(r"@['\"]\s*$", cmd, re.M)
+            closes_herestring = re.search(r"^['\"]@\s*$", cmd, re.M)
+            if opens_herestring and closes_herestring:
+                print(
+                    "BLOCKED: PowerShell here-string syntax (@'...'@) in a Bash command. Bash does "
+                    "not parse it, so the @ delimiters end up inside your text — this has corrupted "
+                    "commit messages before.\n\n"
+                    "For a multi-line git commit message, write the message to a file first:\n"
+                    "  git commit -F <path-to-message-file>\n\n"
+                    "For other multi-line text in Bash, use a real heredoc:\n"
+                    "  cat <<'EOF' > file\n  ...\n  EOF\n\n"
+                    "Or run the command with the PowerShell tool, where @'...'@ is valid.",
                     file=sys.stderr,
                 )
                 sys.exit(2)
@@ -392,6 +683,12 @@ def main():
                 "are not blocked.",
                 file=sys.stderr,
             )
+            sys.exit(2)
+
+        # BLOCK: a `gh pr create` title that omits a covered ticket or the product line.
+        pr_title_block = check_pr_create_title(cmd)
+        if pr_title_block:
+            print(pr_title_block, file=sys.stderr)
             sys.exit(2)
 
         # BLOCK: unscoped `git log` — the whole-repo history sweep (research strategy, not safety).

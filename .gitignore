@@ -46,12 +46,10 @@ __pycache__/
 remote-settings.json
 policy-limits.json
 
-# Daemon runtime state (locks, logs, keys, PIDs, roster)
-daemon.lock
-daemon.log
-daemon.status.json
-daemon/
+# Daemon runtime state (locks, logs, keys, PIDs, roster, auth). All of it is machine-local.
+daemon*
 
 # Local caches
 gh-pr-status-cache.json
 jobs/
+.post-approval-state.json
