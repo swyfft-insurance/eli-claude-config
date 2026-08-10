@@ -77,6 +77,19 @@ GATED_POST_COMMAND_PATTERNS = (
 # ("create the pr", "post the comment") — a direct order is at least as explicit as "yes".
 # And an /eli--ask-properly answer ("1a", "1a, 2b"), since that skill instructs the user to
 # reply in exactly that form and a gate the sanctioned reply format can't satisfy is a trap.
+# Appended to every Gate 2 block. Getting blocked reliably triggers a hunt for another way
+# through — a different transport (MCP vs curl vs gh), a read of this file to find a phrase that
+# matches, asking the user to run the publish by hand. Every one of those defeats the gate, and
+# reaching for one after being blocked is worse than the original attempt.
+NO_WORKAROUND = (
+    "\n\nDo NOT try to get around this block. No switching transport (MCP, curl, gh, a script), "
+    "no reading this hook to find wording that passes, no handing the command to the user to run. "
+    "STOP and ASK.\n"
+    "Ask for ONE action, in a question short enough that a bare 'yes' answers it. Bundling "
+    "several actions into one request is what causes this: the user's reply then has to name them, "
+    "so it carries extra content and cannot match a bare approval."
+)
+
 APPROVAL_RE = re.compile(
     r"^("
     r"(y|yes|yep|yeah|yup|ya|ok|okay|k|sure|go|go ahead|do it|send|send it|post|post it|"
@@ -195,7 +208,7 @@ def check_post_approval(data, tool_name, tool_input):
         return (
             f"BLOCKED ({label}): the transcript could not be read, so the hook cannot confirm "
             "the user approved this. Ask for approval, then have the user create "
-            f"{APPROVAL_OVERRIDE_PATH} to release a single send."
+            f"{APPROVAL_OVERRIDE_PATH} to release a single send." + NO_WORKAROUND
         )
     if not APPROVAL_RE.match(text):
         max_preview = 80
@@ -205,11 +218,13 @@ def check_post_approval(data, tool_name, tool_input):
             f"  {preview!r}\n"
             "An edit to the draft, a question, or a correction is NOT consent. Put the draft in "
             "your response and wait for an explicit go-ahead. See core-behavior.md § Gate 2."
+            + NO_WORKAROUND
         )
     if uuid in read_spent_approvals():
         return (
             f"BLOCKED ({label}): that approval was already used for an earlier publish. "
             "One approval authorizes one send — ask again before publishing anything else."
+            + NO_WORKAROUND
         )
     spend_approval(uuid)
     return None
@@ -389,10 +404,11 @@ def main():
         # BLOCK: PowerShell here-strings (@'...'@ / @"..."@) in a Bash command. Bash does not
         # parse them, so the @ delimiters land inside the payload. This has silently corrupted
         # git commit messages more than once.
+        # The opening delimiter alone is the block signal: `@'` ending a line is never valid Bash,
+        # so how the text closes is irrelevant. Requiring a matching close let a command through
+        # whenever anything followed the closing delimiter (`'@ 2>&1 | tail -20`).
         if tool_name == "Bash":
-            opens_herestring = re.search(r"@['\"]\s*$", cmd, re.M)
-            closes_herestring = re.search(r"^['\"]@\s*$", cmd, re.M)
-            if opens_herestring and closes_herestring:
+            if re.search(r"@['\"]\s*$", cmd, re.M):
                 print(
                     "BLOCKED: PowerShell here-string syntax (@'...'@) in a Bash command. Bash does "
                     "not parse it, so the @ delimiters end up inside your text — this has corrupted "

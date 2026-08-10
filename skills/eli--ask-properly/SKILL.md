@@ -64,9 +64,24 @@ hunt hardest:
 Rewrite every violation before presenting. Present the conforming version — fix silently, don't
 narrate the audit.
 
-## 4. Constraints
-- **Only reformat what you already asked.** Don't invent new questions, expand scope, or add
-  decisions Eli never faced.
+## 4. Blocked on a decision? That IS the question. Ask it.
+
+**"I'm waiting on your direction" is a failure of this skill, not an outcome of it.** If you cannot
+proceed until Eli chooses something, you owe him that choice as a numbered question with lettered
+options, right now, in this reply. Naming the blocker and stopping there forces him to do the work
+of turning your blocker into a decision, which is exactly what this skill exists to prevent.
+
+This is not the same as fabricating a question. The test is simple: **would you start working the
+moment Eli answered?** If yes, it is a real decision and it gets asked. If you would proceed
+identically whatever he said, there is no question, and you say so plainly instead of inventing one.
+
+When the blocker is open-ended and you have no candidate options yet, that does not excuse stopping.
+Go find the options first — read the code, run the query — then present the real ones you found.
+"I don't know the options" means you have research to do, not a question to skip.
+
+## 5. Constraints
+- **Only reformat what you already asked** — plus any decision that is genuinely blocking you per
+  section 4. Don't expand scope or invent decisions neither of you faced.
 - **Don't answer the questions yourself**, and don't start or continue any work until Eli answers.
-- If your last message contained **no** real question, say so plainly — don't fabricate one.
-  State what (if anything) you're waiting on.
+- If your last message contained no question **and** nothing is blocking you, say so plainly. Don't
+  fabricate a question, and don't manufacture a blocker to have something to ask.

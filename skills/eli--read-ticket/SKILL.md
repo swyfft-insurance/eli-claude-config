@@ -52,10 +52,23 @@ Walk through the description and comments in order. When you hit an `[IMAGE: pat
 
 ### 4. View non-image attachments
 
-Check the `attachments` map in the JSON output. For each non-image attachment:
-- **Text/log files** (`.txt`, `.log`, `.csv`): Use the **Read** tool to view the file contents
-- **PDF files**: Use the **Read** tool with a page range
-- **Binary files** (`.xlsx`, `.zip`, etc.): Mention the file path to the user so they can open it manually
+Check the `attachments` map in the JSON output. Every attachment gets read. An attachment left
+unopened is context the reporter deliberately attached and you ignored.
+
+- **Text/log files** (`.txt`, `.log`, `.csv`): the **Read** tool.
+- **PDF files**: **Read** with no `pages` argument. That path hands the PDF over natively —
+  rendered pages plus text, tables intact — and needs no external binary. This is the default for
+  any PDF of 10 pages or fewer, which is most attachments.
+    - **Over 10 pages**, `pages` is required (max 20 per call). Don't read 100 pages blind:
+      `pdftotext -layout "<file>" - | grep -n "<term>"` to find the page, then Read that range.
+      Extracted text is a *locator*, never the read itself — it interleaves multi-column tables
+      into wrong label/value pairs and drops every embedded image and screenshot.
+    - **`pdftoppm is not installed`** means poppler is missing, or Claude Code's PATH predates its
+      install. Install: `winget install --id oschwartz10612.Poppler`. Already installed → restart
+      Claude Code so the process inherits the new PATH. Never report the error as a result; a
+      no-`pages` Read still works meanwhile.
+- **Excel/binary** (`.xlsm`, `.xlsx`, `.zip`): give the user the path. A rater workbook goes through
+  the sanctioned dump path only (`~/.claude/rules/excel-rater-plans-common.md`).
 
 These attachments often contain critical context (SolarWinds logs, error dumps, repro data) that isn't in the ticket description.
 
@@ -75,3 +88,6 @@ Summarize the ticket with:
 - If the script fails with `YOUTRACK_API_TOKEN not found`, the user needs to set the environment variable
 - If attachment downloads fail, the JSON will show `DOWNLOAD_FAILED: <reason>` — report this but continue with the text content
 - If the script times out, try again with a longer timeout (60000ms)
+- A tool failure is not a result to report. The reader wants the attachment's contents; why a binary
+  was missing is worth nothing to them. Fix the tool or change methods until you have the content.
+  Only report something as unread after exhausting the alternatives, naming what you ran.
