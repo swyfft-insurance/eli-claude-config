@@ -47,7 +47,7 @@ use). Never ask the user which address to use, and never eyeball one out of the 
 ```csharp
 var address = TestAddressHelper.GetTestAddressesFiltered(
     productLine: ProductLine.Homeowner, carrierCode: CarrierCode.Qbe,
-    ratingType: RatingType.EAndS, state: nameof(StateCode.NY)).First();
+    ratingType: RatingType.EAndS, state: StateCode.NY).First();
 ```
 
 ## Setup asserts — verify the arrange before testing behavior

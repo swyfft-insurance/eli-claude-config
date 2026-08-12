@@ -2,6 +2,23 @@
 
 > Gate 2 applies here — see `core-behavior.md`.
 
+## A ticket is its description, comments, and attachments, together
+
+**The acceptance criteria are frequently not in the description.** A later comment routinely
+extends, narrows, or overrides it, and the deciding detail often sits in an attachment or in a
+screenshot of a conversation held somewhere else. When a comment and the description disagree, the
+later comment wins.
+
+Never treat the description as the scope and the comments as commentary. That is how work starts on
+half a ticket.
+
+Order carries meaning. Read the comments oldest to newest, since each is written against the state
+of the ticket at that moment, and read every image at the point in the text where its marker sits
+rather than in a batch at the end.
+
+Before acting on scope, state which requirements came from a comment or an attachment rather than
+the description, so a scope extension buried in a screenshot cannot go missing.
+
 - Match implementation detail to ticket type:
   - **User stories / behavioral features**: WHAT and WHY only — requirement, business reason / constraint, acceptance criteria. No code samples, file paths, class names, internal mechanisms, or named refactors. Implementation details belong in the plan file or PR description; they rot the moment the code changes. Tickets are read by Biz, UW, QA, and devs across teams — none need the implementation surface.
   - **Bugs**: code pointers help the dev start the investigation — file paths, methods, line numbers, SolarWinds log queries.

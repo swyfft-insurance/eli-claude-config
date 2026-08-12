@@ -242,6 +242,10 @@ When a mandatory convention lives in a repo doc (a `CLAUDE.md`, etc.), do NOT du
 
 Every plan carries a **Progress** section recording, as execution proceeds, which steps are complete and what actually happened — outcomes and any deviation from the plan (a reused version, a scope change, a discovered constraint). Update it at each step boundary, not at the end. A plan with executed steps but a stale Progress record is out of date — fix it before continuing. This is what lets a post-compact or fresh reader know the real state without re-deriving it.
 
+Every Progress entry carries a **timestamp in the user's local time, 12-hour format** (e.g.
+`2026-08-12 2:47 PM`). A bare date is not enough — most tickets complete within a single day, so
+the date alone cannot order the entries or show where time went.
+
 ## Verification Section Structure
 
 Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material.
@@ -255,6 +259,17 @@ Numbered steps in order, derived from the AC walk-through and canonical-checklis
 List each new/extended test file with: filename, base class, and a case table (input → expected). One row per scenario. See `~/.claude/rules/testing.md` for TDD workflow and test-writing patterns.
 
 Tests that iterate over multiple inputs (configs, indices, sheets, theory rows) must aggregate failures into a list and throw `AggregateException` at the end — never stop at the first failure. See `testing.md` § "Failure Aggregation".
+
+**Distribute tests per the pyramid — unit tests carry the load.** When planning a feature's tests,
+exhaustive assertion of business logic (every element value, age, config version, quote purpose,
+and their combinations) belongs in unit tests. Integration and acceptance tests are smoke tests:
+one happy path each, proving the wired-up end-to-end behavior, never re-asserting the combos the
+unit tests already cover. Pick the lowest test class that proves each behavior — the class table
+and the pyramid rule live in the repo's `.claude/rules/dotnet-testing.md` § "Cover new features
+across the testing pyramid". Occasionally the lowest class that proves a behavior is an
+integration test (the behavior only exists wired up — real DB, real pipeline); that's legitimate,
+just uncommon — default to unit tests. A verification section that proposes combo coverage in an
+integration or acceptance test is mis-planned — push the combos down to units.
 
 ### Captured asserts to regenerate
 List the expected diffs by file, including which files should have **zero** diff (these are the negative-confirmation guards). The actual `/eli--prebind-validation` invocation lives in the execution sequence — this section just describes what the diffs should look like. See `~/.claude/rules/captured-asserts.md`.
@@ -373,13 +388,40 @@ When implementing non-trivial business logic, add an intent/business-reason comm
 is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
 is a default habit, not an afterthought.
 
-**Mandatory comment self-audit at code-complete.** Before the code-complete HARD
-STOP, re-read `~/.claude/rules/comments-docs-and-external-writing.md` (don't work from memory) and audit every comment the
-diff adds or changes against it. For each comment, confirm: it explains the business reason/intent
-rather than restating the code; it carries no plan-scoped framing, intra-PR commit references,
-jargon/notation, or word-slop; and it's concise (one or two plain sentences). Fix every violation
-*before* announcing code-complete. This audit is part of reaching code-complete — not a step the user
-should ever have to request. The diff should already be clean before Eli opens it.
+### Mandatory comment self-audit at code-complete
+
+Before the code-complete HARD STOP, re-read `~/.claude/rules/comments-docs-and-external-writing.md`
+(don't work from memory) and audit every comment the diff adds or changes. This is real work. It is
+not a checklist to skim and declare passed, and reporting the audit as done without having deleted
+anything is the most common way it gets faked.
+
+**Walk every added or changed comment one at a time and record a verdict for each: keep, trim, or
+delete.** No sampling, no "the rest are fine". A comment with no recorded verdict has not been
+audited.
+
+**Question 1 is always "should this comment exist at all?", and the default answer is no.** Ask it
+before judging the wording, because a well-worded comment that shouldn't exist still gets deleted.
+Delete on sight:
+- Anything restating what the adjacent code already says.
+- Anything a nearby assertion message, `because` string, test name, or method name already says.
+- Any second or third statement of one fact inside the same file. Repetition across separate code
+  sites is correct (§ "Sibling-as-substitute" in the writing rules); repetition stacked inside one
+  file, class, or method is slop.
+
+**Only then judge the survivors** against the writing rules: business reason rather than mechanism,
+no plan-scoped framing, no intra-PR commit references, no jargon or notation, and one or two plain
+sentences. A comment running past two sentences is over budget and gets cut down, not excused.
+
+**Verify a comment's claims the way you would verify prose.** A comment asserting "never", "always",
+"only", or "every" is a factual claim: confirm it against the code or delete the quantifier. A
+confident false comment is worse than no comment.
+
+**Never argue a duplicate into staying.** Reaching for a rule to justify keeping a comment is the
+tell that it should go. Deleting is always available and never introduces an error.
+
+Fix every violation *before* announcing code-complete. This audit is part of reaching code-complete,
+never a step the user has to request, and it applies to every code change, not only plan-driven
+work. The diff should already be clean before Eli opens it.
 
 ## ClosedSets
 

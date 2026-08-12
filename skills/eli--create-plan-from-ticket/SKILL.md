@@ -37,7 +37,7 @@ Then read each one with the `Read` tool.
 
 ## Step 2 — Read the ticket
 
-Invoke `/eli--read-ticket SW-XXXXX` to fetch the ticket's full content: description, all comments, custom fields, linked issues, and downloaded attachments. Walk through it carefully — do NOT skim. The ticket is the source of truth for ACs, scope, and most architectural decisions.
+Invoke `/eli--read-ticket SW-XXXXX` to fetch the ticket's full content: description, all comments, custom fields, linked issues, and downloaded attachments. Walk through it carefully. Do NOT skim. Scope comes from the description, the comments, and the attachments together, never the description alone: see `~/.claude/rules/youtrack.md` § "A ticket is its description, comments, and attachments, together", which Step 1 already loaded.
 
 After reading, perform plan **Step 0a** (per `plan-mode.md`) — if the ticket's Stage is earlier than Develop (Backlog, Ready for Dev), move it to Develop; leave it if already Develop or later.
 

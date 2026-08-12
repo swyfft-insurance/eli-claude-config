@@ -69,7 +69,6 @@
       "Bash(winget search:*)",
       "Bash(unzip:*)",
       "Edit(~/Desktop/standups/**)",
-      "Write(~/Desktop/standups/**)",
       "WebFetch(domain:medium.com)",
       "WebFetch(domain:freedium.cfd)",
       "WebFetch(domain:webcache.googleusercontent.com)",
@@ -129,7 +128,7 @@
       "Read(//c/Users/eli.koslofsky/**)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionStart": [
       {
