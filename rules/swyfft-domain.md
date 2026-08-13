@@ -32,6 +32,8 @@ Eli works pre-bind (quoting). The quote owns the rating config; the policy inher
 
 **Default rule for every new override**: `NewQuotesOn` should be **today or earlier** so the new config is the active version for new quotes the moment the override seeds. `RenewalOn` is constrained by the ordering rule (strictly > predecessor's effective DB RenewalOn) but should also be as early as possible — set it equal to `NewQuotesOn` if the predecessor's RenewalOn is in the past, or one day after the predecessor's RenewalOn if the predecessor's is in the future.
 
+**Override comments: the ticket number, nothing else.** A quote-def override entry's comment is `// SW-XXXXX` — the user story the overrides belong to. Never explain the date math, the ordering rule, or why overrides exist: the mechanism is identical for every entry, so the ticket is the only information a comment can add.
+
 **Two separate mechanisms** — different product lines override in different files:
 
 | Product line | Override location | Mechanism |

@@ -48,6 +48,8 @@ The JSON contains:
 
 ### Building the standup
 
+The rules below describe how to interpret the work items and combine them into bullets. The daily two-section layout is the **Slack format's** layout; the **Spoken format** regroups the same material story-by-story (see its section in Step 3).
+
 Group work items by date into EXACTLY two sections:
 
 1. **Last working day** — items where `date == lastWorkingDay`
@@ -90,9 +92,13 @@ Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). The directo
 
 **Speech notes, NOT a script.** Eli glances at these while talking — they are not read verbatim. Write fragments, not paragraphs.
 
-- Bulleted list, one bullet per piece of work
+**Story-by-story, not day-by-day.** This matches how Eli presents when speaking: each story is told once, from start through current state — never split across day sections.
+
+- One entry per story (a ticket / piece of work): a short plain-English story name on its own line, then bullet(s) underneath covering what was done yesterday and today combined, ending with the current state (merged, in review, resolved, blocked, ...). The current state is stated even when the state-changing event itself wasn't Eli's work (e.g. a PR that merged with no further commits — the story still ends "merged").
+- Two groups, split by the day the story was **started**: `Started yesterday:` first, then `Started today:` (after a weekend, use the day name, e.g. `Started Friday:`). A story already in flight before the window goes in the first group.
+- A story started today says so explicitly in its bullet, in addition to sitting in the `Started today:` group.
+- Within a group, sort by earliest start. The data only carries dates, not times, so same-day stories keep the order the data provides.
 - Sentence fragments / shorthand only — no full prose, no narrative paragraphs
-- Two sections, each headed with the day label followed by a colon (e.g., `Yesterday:` / `Today:`), bullets underneath
 - Plain text, no links or formatting
 - No ticket numbers — nobody knows what SW-49541 means out loud. Describe the actual work in plain English.
 - Don't explain what the ticket IS, just what you DID

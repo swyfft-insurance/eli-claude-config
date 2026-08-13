@@ -164,6 +164,124 @@ def spend_approval(uuid):
         pass
 
 
+def assistant_text_window(transcript_path):
+    """Return (last_uuid, last_text, window) where window is all assistant text between the
+    previous human message and the last human message — i.e., exactly what the assistant
+    showed the user in the turn the user then replied to."""
+    if not transcript_path or not os.path.exists(transcript_path):
+        return (None, None, "")
+    records = []
+    try:
+        with open(transcript_path, encoding="utf-8-sig") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                if rec.get("isSidechain"):
+                    continue
+                content = rec.get("message", {}).get("content")
+                if isinstance(content, str):
+                    text = content
+                elif isinstance(content, list):
+                    text = "".join(
+                        b.get("text", "") for b in content
+                        if isinstance(b, dict) and b.get("type") == "text"
+                    )
+                else:
+                    continue
+                if rec.get("type") == "user" and not rec.get("isMeta"):
+                    text = re.sub(
+                        r"<system-reminder>.*?</system-reminder>", "", text, flags=re.DOTALL)
+                    if text.strip():
+                        records.append(("human", rec.get("uuid"), text.strip()))
+                elif rec.get("type") == "assistant" and text:
+                    records.append(("assistant", rec.get("uuid"), text))
+    except Exception:
+        return (None, None, "")
+    human_idx = [i for i, r in enumerate(records) if r[0] == "human"]
+    if not human_idx:
+        return (None, None, "")
+    last = human_idx[-1]
+    start = human_idx[-2] + 1 if len(human_idx) > 1 else 0
+    window = "\n".join(r[2] for r in records[start:last] if r[0] == "assistant")
+    return (records[last][1], records[last][2], window)
+
+
+YOUTRACK_BATCH_CMD_RE = re.compile(r"YouTrack-Batch\.ps1|youtrack_batch(\.py)?", re.IGNORECASE)
+YOUTRACK_BATCH_HASH_RE = re.compile(r"[-/]{1,2}hash[\s:=]+[\"']?([0-9a-f]{6,64})", re.IGNORECASE)
+
+
+def check_youtrack_batch(data, tool_name, tool_input):
+    """Gate YouTrack-Batch.ps1 -Execute: one approval covers the whole batch because the
+    approval is provably bound to its exact content. Allows only when ALL hold:
+      1. the staged file exists, validates, and matches the hash on the command line;
+      2. the canonical rendering of that staged file appears VERBATIM in the assistant
+         text the user was replying to (so what runs is exactly what was shown);
+      3. the user's latest message is a bare approval, not yet spent.
+    Stage mode is read-only and passes freely. Returns a block message, or None to allow."""
+    if tool_name not in ("Bash", "PowerShell"):
+        return None
+    cmd = tool_input.get("command", "") or ""
+    if not YOUTRACK_BATCH_CMD_RE.search(cmd):
+        return None
+    if not re.search(r"-Execute\b|(^|\s)execute(\s|$)", cmd, re.IGNORECASE):
+        return None
+    label = "YouTrack batch execute"
+
+    m = YOUTRACK_BATCH_HASH_RE.search(cmd)
+    if not m:
+        return f"BLOCKED ({label}): no -Hash argument found on the command." + NO_WORKAROUND
+    batch_hash_arg = m.group(1).lower()
+
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        import youtrack_batch
+    except Exception as ex:
+        return f"BLOCKED ({label}): cannot load youtrack_batch.py to verify the batch: {ex}"
+    actions, err = youtrack_batch.load_staged(batch_hash_arg)
+    if err:
+        return f"BLOCKED ({label}): {err}" + NO_WORKAROUND
+    rendered = youtrack_batch.render(actions)
+
+    uuid, text, window = assistant_text_window(data.get("transcript_path"))
+    if not uuid:
+        return (
+            f"BLOCKED ({label}): the transcript could not be read, so the hook cannot confirm "
+            "the batch was shown and approved." + NO_WORKAROUND
+        )
+
+    def norm(s):
+        return s.replace("\r\n", "\n").strip()
+
+    if norm(rendered) not in norm(window):
+        return (
+            f"BLOCKED ({label}): the staged batch's canonical rendering does not appear "
+            "verbatim in the assistant message the user replied to. The user must see the "
+            "EXACT batch before approving it. Re-stage if needed, paste the rendered block "
+            "verbatim (unedited, unformatted) in your response, and ask for approval."
+            + NO_WORKAROUND
+        )
+    if not APPROVAL_RE.match(text):
+        max_preview = 80
+        preview = text if len(text) <= max_preview else text[:max_preview] + "..."
+        return (
+            f"BLOCKED ({label}): the user's most recent message is not an approval. It reads:\n"
+            f"  {preview!r}\n"
+            "Wait for an explicit go-ahead on the rendered batch." + NO_WORKAROUND
+        )
+    if uuid in read_spent_approvals():
+        return (
+            f"BLOCKED ({label}): that approval was already used. One approval authorizes one "
+            "batch execute — re-stage and ask again." + NO_WORKAROUND
+        )
+    spend_approval(uuid)
+    return None
+
+
 def check_post_approval(data, tool_name, tool_input):
     """Block anything that publishes outside this conversation without an explicit go-ahead.
 
@@ -342,6 +460,12 @@ def main():
     tool_input = data.get("tool_input", {})
 
     messages = []
+
+    # BLOCK: a YouTrack batch execute whose content wasn't shown verbatim and approved.
+    batch_block = check_youtrack_batch(data, tool_name, tool_input)
+    if batch_block:
+        print(batch_block, file=sys.stderr)
+        sys.exit(2)
 
     # BLOCK: publishing outside this conversation without an explicit, unspent approval.
     post_block = check_post_approval(data, tool_name, tool_input)

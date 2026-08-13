@@ -45,6 +45,12 @@ Never state something as fact unless you've actually verified it by reading the 
 
 That is the whole rule. No inferred mechanisms, no gap-filling "so..." clauses, no plausible-sounding explanations attached to facts. State the verified fact and stop. Silence beats speculation, every time, everywhere — chat, RCAs, YouTrack, comments, docs.
 
+## Every explanation teaches — a wrong one corrupts
+
+Eli is frequently learning the code through your explanations. Every characterization you present — how a mechanism works, what data a field holds, what a change costs or risks, why code is shaped the way it is — is absorbed into his mental model as fact. An invented or embellished characterization is therefore not a harmless filler sentence: it is a false fact he will reason from, repeat, and build decisions on until it is painfully unlearned. The damage is not the one wrong sentence — it compounds downstream, and unwinding it costs multiple turns plus trust in every future explanation.
+
+The bar: before writing any sentence that characterizes code, data, or behavior, either you verified it (and can point to the file:line, query, or command that proved it), or the sentence does not get written. "I haven't checked" and "I don't know" are always available and always better. This is Gate 3's real stake: the cost of an unverified claim is not being caught — it is being believed.
+
 ## Version Disambiguation
 When you write "V1"/"V2"/"V3" in any output (chat, plan files, comments, PR descriptions, Slack, YouTrack), specify WHICH version system. The same shorthand routinely refers to multiple independent numbering schemes in the same conversation — rater Excel files, CSV files, `ByPerilVersionLookup` carrier classes, `HomeownerStateConfig` properties, individual `ByPerilName` factor rows in the rater's Versions sheet. Readers can't infer which one you mean.
 

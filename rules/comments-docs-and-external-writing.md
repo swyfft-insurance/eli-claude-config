@@ -115,11 +115,36 @@ Name each thing by its exact term and repeat that exact term every time you mean
 
 Broader than "No Ambiguous References" above: that rule bans pronouns and demonstratives when two or more antecedents are in scope. This rule bans the synonym or umbrella swap even when nothing is ambiguous, because the vaguer word is still less precise than the exact term.
 
+**Product and domain terms are exact names too.** Every product surface and domain concept has one
+established name (the printed quote, the quote page, the confirmation page, an element, a soft
+decline), and that name is the only word for it. Never coin a variant: "printout" for the printed
+quote, "the confirm view" for the confirmation page. A coined variant reads as a different thing,
+and the reader has to stop and work out whether it is one.
+
+| Bad (coined variant) | Good (established term) |
+|---|---|
+| "the printout would hide the confirmed years" | "the printed quote would hide the confirmed years" |
+
 Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages, PR descriptions, Slack, YouTrack, RCAs.
 
 | Bad (term varied) | Good (exact term repeated) |
 |---|---|
 | "a change could re-rate existing business; that business keeps its premium" | "a change could re-rate existing quotes and policies; those quotes and policies keep their premium" |
+
+## Scenarios get an opener plus bullets — never a run-on sentence
+
+When prose enumerates parallel cases — scenarios, surfaces, outcomes, options, before/after
+worlds — write a one-sentence opener naming what the list covers, then one bullet per case, then
+the conclusion (if any) as its own sentence after the list. Never chain the cases through one
+sentence with commas and "and"/"so": the run-on hides the parallel structure, and each added case
+makes the sentence harder to parse.
+
+Sits beside § "Consistent bullet granularity": that rule governs the bullets once written (same
+unit per bullet); this rule governs when bullets are required.
+
+| Bad (run-on) | Good (opener + bullets) |
+|---|---|
+| "The quote page would still have hidden the sliders, the confirmation page would have stopped rendering them, and the printed quote would have hidden them too, so the confirmed years would not have displayed anywhere." | "Under that filter, after the agent confirmed the years:<br>• the quote page would still have hidden the sliders<br>• the confirmation page would have stopped rendering them<br>• the printed quote would have hidden them too<br>So the confirmed years would not have displayed on any of those three surfaces." |
 
 ## Consistent bullet granularity — don't mix single- and multi-item bullets
 
@@ -155,3 +180,28 @@ half must go past. Split the sentence rather than picking one tense for both hal
 | "those risks get a 1.0 factor and no referral" (factor unchanged; referral is what the PR adds) | "those risks got no referral, and still get a 1.0 factor" |
 
 Applies to all prose: chat, comments, RCAs, YouTrack/Slack, PR descriptions.
+
+### The tense map — pick the world first, then the tense
+
+Every clause describes exactly one world: the old code, the shipped change, a hypothetical, an
+event. Pick which world before writing the clause; a sentence that needs two worlds gets split
+into two sentences. Inside a hypothetical (any "would"/"would have" scenario), no clause may take
+the simple present, even a clause that is also true of the shipped code: mid-scenario, present
+tense is indistinguishable from a claim about what the code does now.
+
+| What the clause describes | Tense / mood | Example |
+|---|---|---|
+| Behavior before the change (the old code) | Simple past | "The sliders defaulted to Year Built, so a 30+ year-old home started soft-declined." |
+| Behavior after the change (what the PR ships) | Simple present, with "now" to mark the change | "The quote page now hides the sliders." |
+| A durable fact the change doesn't touch | Simple present, in its own sentence | "`SupportedConfigs` gates every risk rule." |
+| Deterministic behavior of shipped code under a scenario | Zero conditional: when/if + present, then present | "When the agent answers No, the quote soft-declines." |
+| A future event (go-live, deploy, effect of an unmerged fix) | Future ("will"), with the trigger or date named | "Once the configs go live 8/22, new quotes will land on FL.QBE.ByPeril.EAndS.V13." |
+| A design under consideration now, not built | Conditional ("would") | "A conditional filter would add logic and would diverge from the quote page." |
+| A design that was considered and abandoned | Past counterfactual ("would have"), every clause of the scenario | "The filter would have hidden the confirmed years, and the confirmation page would have stopped rendering them." |
+| Events of the work itself (edits, reverts, test runs) | Simple past | "We started the filter and reverted it." |
+| Two past events in sequence | Past perfect ("had") for the earlier one | "The quote had already been purchased when the audit ran." |
+
+Present perfect ("the errors have cleared") is the sneakiest offender: it smuggles a present-tense
+claim into scenario narration. Inside a hypothetical, replace it with the scenario's own mood
+("the errors would have cleared"); elsewhere, prefer simple past with the event named ("the errors
+cleared on recalc").

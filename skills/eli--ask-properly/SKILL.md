@@ -64,6 +64,11 @@ hunt hardest:
 Rewrite every violation before presenting. Present the conforming version — fix silently, don't
 narrate the audit.
 
+Factual claims get more than the rules checklist: invoke `/eli--fact-check-writing` (Skill tool)
+and run its waves against the message before re-presenting. A claim that fails verification is
+retracted explicitly in the re-presented message — quoted, then corrected with evidence — never
+silently reworded.
+
 ## 4. Blocked on a decision? That IS the question. Ask it.
 
 **"I'm waiting on your direction" is a failure of this skill, not an outcome of it.** If you cannot

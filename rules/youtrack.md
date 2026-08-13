@@ -2,6 +2,28 @@
 
 > Gate 2 applies here — see `core-behavior.md`.
 
+## Batching YouTrack actions under one approval
+
+For multi-action closeouts (comment + link + Stage + Release Stage), use the batch flow instead of
+asking for per-action approvals:
+
+1. Write a batch JSON: `{"actions": [...]}` with action types `comment`, `link`, `setStage`,
+   `setReleaseStage`. Allowed values are enumerated in `~/.claude/hooks/youtrack_batch.py` (the
+   single source of truth for validation and rendering).
+2. Stage it: `& "$HOME/.claude/scripts/YouTrack-Batch.ps1" -Stage -File <batch.json>` (read-only,
+   never gated). It prints a canonical block and a content hash.
+3. Paste the canonical block in the response **verbatim, unedited** and ask for approval.
+4. On a bare approval, run `& "$HOME/.claude/scripts/YouTrack-Batch.ps1" -Execute -Hash <hash>`.
+
+The `pretooluse.py` gate allows the execute only when the staged file matches its hash, its
+rendering appears verbatim in the message the user replied to, and the reply is a fresh bare
+approval. A stage is single-use: execution moves it to `executed/` with per-action results, even on
+partial failure, so a retry can't re-post actions that already succeeded — restage the remainder
+and get a fresh approval. Gate 2 still applies in full: the pasted block IS the draft.
+
+Single actions keep the existing per-action flow (MCP tools / command API) — don't batch a lone
+comment.
+
 ## A ticket is its description, comments, and attachments, together
 
 **The acceptance criteria are frequently not in the description.** A later comment routinely

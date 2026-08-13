@@ -38,6 +38,7 @@ or sent anywhere until Eli explicitly approves the text.
 ## Rules
 
 - Approval applies to the text approved — a later edit, however small, resets to unapproved.
-- If the draft contains factual claims, they carry the same verification bar as any doc: a claim
-  that can't be verified is deleted before the draft is ever presented (run `/eli--fact-check-writing`
-  on drafts with factual content).
+- **Invoke `/eli--fact-check-writing` (Skill tool) before the first presentation, and again after
+  any revision round that adds or changes a factual claim.** Rules matter, but an unverified claim
+  presented as fact is worse than any rule violation — it gets absorbed as truth. A claim that
+  can't be verified is deleted before the draft is ever presented.
