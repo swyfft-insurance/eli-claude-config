@@ -84,6 +84,42 @@ Verbatim quotes are the exception. They keep whatever punctuation the source use
 Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
 PR descriptions, Slack, YouTrack, RCAs.
 
+## Causal connectors are claims — verify them or delete them
+
+"because", "so", "therefore", "since", "which is why", "hence", "that's why": each one asserts that
+one fact causes another. The connector is a claim in its own right, separate from the two facts it
+joins, and it is the easiest kind to fabricate — two verified facts read as a single considered
+thought the moment a "because" sits between them, and nothing in either source says the link exists.
+
+Never write a connector to make prose flow. Write one only when the causation itself is verified.
+Otherwise the facts stand as separate sentences, which is always available and never wrong.
+
+| Bad (fabricated link) | Good (facts, no invented causation) |
+|---|---|
+| "The form audit had no environment-aware handling because `QuoteNotFoundException` derives from `SwyfftException`, not `BusinessException`." | "The form audit had no environment-aware handling. #20624 added the handling to the premium audit's class only." |
+
+Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
+PR descriptions, Slack, YouTrack, RCAs.
+
+## One sentence, one subject, one moment
+
+Never join clauses with "and", "while", or "as" when the clauses have different subjects or happen at
+different times. A sequence of events gets one sentence per event, in the order the events occur.
+Coordinating connectors are for genuine peers: same actor, same moment, same role in what is being
+described.
+
+"and" is the laziest connector for the same reason it is the most common — it asserts only addition,
+which is never wrong enough to notice, and it lets the writer skip deciding how the two facts relate.
+The reader is the one who then has to work out that the subject changed and that the second event
+happens later.
+
+| Bad (different subjects and times joined by "and") | Good (one event per sentence, in order) |
+|---|---|
+| "When that record goes away, both audits throw `QuoteNotFoundException` reading the renewal term, and the IMS sync soft-deletes the orphaned Core quote, which ends the errors." | "When that record goes away, both audits throw `QuoteNotFoundException` reading the renewal term. The IMS sync soft-deletes the orphaned Core quote 10–32 hours later, which ends the errors." |
+
+Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
+PR descriptions, Slack, YouTrack, RCAs.
+
 ## How to write one (when warranted)
 
 **Why these rules exist:** developers can already read code — a comment explaining what `Math.Clamp` does is noise. What code *can't* tell you is the **business reason** it was written and **what the developer was trying to achieve**. That intent is the entire value: it lets a future reader confirm the code actually does what was intended — and it matters most precisely when the code turns out to be *wrong*, because the comment is the only record of what it was *supposed* to do while you're debugging it.

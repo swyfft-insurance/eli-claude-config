@@ -51,6 +51,10 @@ Run in order. Within a wave, walk every sentence — no sampling.
 2. **Strength** — does the source carry the claim *as phrased*? A doc comment or ticket supports
    only an attributed claim ("per its doc: …"). A sample supports no universal. A folder-scoped
    search supports no repo-wide conclusion — widen the search or narrow the claim.
+   **Causal connectors are claims.** "A because B", "A so B", "A therefore B", "A since B" assert
+   causation on top of A and B, so each connector is a third thing to verify. Verifying A and B and
+   moving on is how a fabricated link survives an audit. Unverified causation → delete the
+   connector and leave the facts as separate sentences.
 3. **Quantifiers** — every "each / every / all / only / never / the two" is a separate
    verification obligation. Verify it exhaustively or delete the quantifier.
 4. **Paraphrase** — interpretations of names, comments, and docs are replaced with the literal
