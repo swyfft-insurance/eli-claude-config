@@ -508,6 +508,24 @@ def main():
     if tool_name in ("Bash", "PowerShell"):
         cmd = tool_input.get("command", "")
 
+        # BLOCK: any GitHub-posting command carrying a copilot mention. An @copilot mention in a
+        # posted body (even inside quoted text) spawns a coding-agent session on the PR under Eli's
+        # account. Belt-and-suspenders with the body guards inside pr-feedback.py / pr-review.py,
+        # which also catch bodies sourced from files the command line never shows.
+        posting_surface = re.search(
+            r"pr-feedback\.py|pr-review\.py|gh\s+pr\s+(comment|review|create|edit)"
+            r"|gh\s+api\s+(?=.*(-X\s*(POST|PATCH)|--method\s*(POST|PATCH)))(?=.*(/comments|/reviews))",
+            cmd,
+        )
+        if posting_surface and re.search(r"@copilot", cmd, re.IGNORECASE):
+            print(
+                "BLOCKED: this command posts to GitHub and contains a copilot mention. "
+                "Tagging copilot is BANNED — it spawns a coding-agent session on the PR. "
+                "Remove the mention (including inside quoted text). No bypass.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         # BLOCK: pwsh/powershell/.ps1 invocations through Bash — use the PowerShell tool instead.
         # CLAUDE_CODE_USE_POWERSHELL_TOOL is set, so the PowerShell tool is available.
         # Append "# via-bash-pwsh" to bypass for the rare case bash semantics are required.

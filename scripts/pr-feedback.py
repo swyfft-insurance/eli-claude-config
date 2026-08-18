@@ -10,6 +10,7 @@ Uses `gh` CLI for GitHub API calls. Must be on PATH.
 """
 
 import json
+import re
 import subprocess
 import sys
 
@@ -147,8 +148,21 @@ def fetch(pr_number):
     print(json.dumps(result, indent=2))
 
 
+COPILOT_BAN_MSG = (
+    "BLOCKED: body contains a copilot mention. Tagging copilot is banned -- it spawns a "
+    "coding-agent session on the PR. Remove the mention (including inside quoted text) and retry."
+)
+
+
+def block_copilot_mentions(body):
+    """Tagging copilot spawns a coding-agent session on the PR under Eli's account. Banned."""
+    if body and re.search(r"@copilot", body, re.IGNORECASE):
+        sys.exit(COPILOT_BAN_MSG)
+
+
 def reply(pr_number, comment_id, body):
     """Reply to a review comment."""
+    block_copilot_mentions(body)
     result = gh(
         "api",
         f"repos/{OWNER}/{REPO}/pulls/{pr_number}/comments/{comment_id}/replies",
@@ -174,6 +188,7 @@ def resolve(thread_id):
 
 def review_reply(pr_number, body):
     """Post an issue comment on the PR conversation tab (for replying to top-level reviews)."""
+    block_copilot_mentions(body)
     result = gh(
         "api",
         f"repos/{OWNER}/{REPO}/issues/{pr_number}/comments",

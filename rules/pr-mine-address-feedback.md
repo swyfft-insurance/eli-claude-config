@@ -51,3 +51,14 @@ gh api graphql -f query='query { repository(owner:"swyfft-insurance",name:"swyff
 # Resolve each:
 gh api graphql -f query='mutation { resolveReviewThread(input:{threadId:"THREAD_ID"}) { thread { isResolved } } }'
 ```
+
+## NEVER tag copilot — and post only what was approved, byte for byte
+
+An `@copilot` mention anywhere in a posted body — including inside quoted text — spawns a
+coding-agent session on the PR under Eli's account. Tagging copilot is BANNED. Enforced by guards
+in pr-feedback.py / pr-review.py and the pretooluse hook; do not work around them.
+
+The posted body must be the approved draft byte for byte. Never regenerate an approved text from a
+parse, template, or script at posting time: read the exact body back and compare it to what Eli
+approved before any post. A machine-assembled body nobody re-read is how a copilot mention shipped
+inside a blockquote.

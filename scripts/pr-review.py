@@ -29,6 +29,7 @@ Usage:
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 
@@ -101,7 +102,22 @@ def read_body_file(path):
         return fh.read()
 
 
+COPILOT_BAN_MSG = (
+    "BLOCKED: body contains a copilot mention. Tagging copilot is banned -- it spawns a "
+    "coding-agent session on the PR. Remove the mention (including inside quoted text) and retry."
+)
+
+
+def block_copilot_mentions(body):
+    """Tagging copilot spawns a coding-agent session on the PR under Eli's account. Banned."""
+    if body and re.search(r"@copilot", body, re.IGNORECASE):
+        sys.exit(COPILOT_BAN_MSG)
+
+
 def post_review(repo, pr, event, body, comments):
+    block_copilot_mentions(body)
+    for c in comments or []:
+        block_copilot_mentions(c.get("body"))
     sha = head_sha(repo, pr)
     payload = {"commit_id": sha, "event": event}
     if body is not None:
