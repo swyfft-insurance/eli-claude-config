@@ -358,6 +358,9 @@ When a captured-assert regen produces diffs, you MUST individually open and asse
 
 If a regen touches 30+ files, that's 30+ individual reads. There is no shortcut. Skipping this step is a Gate 3 violation by another name (extrapolating from partial data).
 
+This is the inverse of `pr-creation.md` § "Skip generated files by default." There the baselines are
+noise around the change; here the regenerated baselines are the change under review.
+
 ## Line Length
 
 C# code lines must stay at or below **120 characters** including leading indent. This is a hard rule — wrap longer lines at natural punctuation: after commas, before operators, between method-chain links, or after the opening paren of a method call. Applies to `.cs` files only (production code AND tests). Markdown, `.txt` data files, JSON, YAML, etc. are exempt — prose and config wrap differently than code. No exceptions for "readability" within `.cs` — if the line is over, it gets wrapped.

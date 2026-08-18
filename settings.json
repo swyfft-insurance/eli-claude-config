@@ -16,9 +16,6 @@
       "Bash(/mnt/c/Program Files/dotnet/dotnet.exe build:*)",
       "Bash(pwsh:*)",
       "Bash(powershell:*)",
-      "Bash(python:*)",
-      "Bash(python3:*)",
-      "Bash(python3 -c \":*)",
       "Bash(git:*)",
       "Bash(gh pr:*)",
       "Bash(gh search:*)",
@@ -42,10 +39,8 @@
       "Bash(mount:*)",
       "Bash(findstr:*)",
       "Bash(date:*)",
-      "Bash(env:*)",
       "Bash(printenv:*)",
       "Bash(npm search:*)",
-      "Bash(npx:*)",
       "Bash(npm view:*)",
       "Bash(claude mcp:*)",
       "Bash(Select-Object -Last 30)",
@@ -54,7 +49,6 @@
       "Bash(curl:*)",
       "Bash(echo:*)",
       "Bash(cp:*)",
-      "Bash(rm:*)",
       "Bash(cd:*)",
       "Bash(az account:*)",
       "Bash(bun:*)",
@@ -118,7 +112,6 @@
       "Skill(run-ui-acceptance-tests)",
       "Skill(update-config)",
       "Read(//c/Users/eli.koslofsky/Downloads/**)",
-      "PowerShell",
       "Skill(prebind-validation)",
       "Skill(prebind-validation:*)",
       "Skill(review-pr)",
@@ -172,5 +165,44 @@
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "preferredNotifChannel": "iterm2_with_bell",
-  "fileCheckpointingEnabled": false
+  "fileCheckpointingEnabled": false,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(sqlcmd:*) scoped to local/dev/beta Swyfft databases in this project",
+      "Bash(teamcity:*) read/status queries in this project",
+      "Bash(dotnet test:*) and Bash(dotnet build:*) in this project"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(sqlcmd:*) against SwyfftImsProd, prod-copy, or any *Prod* database name",
+      "Writes/pushes to protected branches (`beta`, rulesets-protected `development`) in swyfft_web without review"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: Swyfft (github.com/swyfft-insurance)",
+      "**Cloud provider(s)**: Azure (Azure SQL — database.windows.net contacted in this project's transcripts)",
+      "**Repository visibility**: private (swyfft-insurance/swyfft_web, confirmed via gh)",
+      "**Internal sharing / snippet hosting**: swyfft2.sharepoint.com (SharePoint, contacted in this project's transcripts)",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: Default branch `development`; branch protection via rulesets (`Branch name length limit`, `Copilot review for default branch`, `Master/Beta Branch Protection` — all active) plus a large explicit protected-branch list including `beta` and many `bug/*`, `beta-cherry-pick/*` branches (100+ entries, first 100 shown, more may exist) — treat rulesets as authoritative even though this list doesn't enumerate `development` itself",
+      "**CI/CD deploy targets**: TeamCity (teamcity CLI used in this project; `.claude/rules/teamcity.md` present)",
+      "**Network posture**: None configured",
+      "**Source control**: The swyfft_web repo and its origin remote (github.com/swyfft-insurance/swyfft_web) only",
+      "**Trusted internal domains**: swyfft.myjetbrains.com (YouTrack, 9× in this project's transcripts), swyfft2.sharepoint.com (1×)",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: swyfft.myjetbrains.com (YouTrack), TeamCity CI, database.windows.net (Azure SQL)",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar. Prod/prod-copy DBs and IMS databases (per `.claude/rules/beta-prod-db.md`, `.claude/rules/ef-patterns.md`) are sensitive; `Scripts/AgentHooks/block-prod-db.ps1` suggests prod DB access is already gated",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (e.g. SwyfftImsProd); beta/dev environments (beta.swyfft.com, dev.swyfft.com) are lower-sensitivity per `.claude/agents/website-qa.md` but still remote-deployed targets",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (.NET/C# and TypeScript/React work on the Swyfft insurance platform, per CLAUDE.md/AGENTS.md and rule files)",
+      "**Trusted repo**: C:\\Users\\eli.koslofsky\\Documents\\GitHub\\swyfft_web (github.com/swyfft-insurance/swyfft_web, private) and its origin remote",
+      "**Org-specific CLIs**: teamcity (TeamCity CLI), sqlcmd (Azure SQL), pdftotext, az (Azure CLI)",
+      "routine under this repo's working tree: dotnet build/test, sqlcmd against non-prod DBs, teamcity CLI queries, pwsh build scripts (Build-Local.ps1, RunSwyfftWeb.ps1)"
+    ]
+  }
 }

@@ -160,6 +160,13 @@ Mandatory, every comment, no exceptions:
   non-negotiable: skipping it once shipped a review whose "strongest case" asserted a danger the
   ticket explicitly ruled out — destroying the credibility of the entire triage and wasting the
   user's time. NEVER let this happen again.
+- **Read the PR's full diff, fresh, before forming any recommendation.** Every comment is anchored
+  to a hunk, so triaging without the diff means judging code you have not seen. Pull it with
+  `/eli--diff branch`. Generated files are skipped by default per
+  `~/.claude/rules/pr-creation.md` § "Skip generated files by default" — the exception here is a
+  comment that explicitly targets one, and then you read only that file. A `--stat` file list is not
+  the diff. Neither are reads you did earlier in the session: those were scoped to whatever that
+  investigation needed, so every file not re-read ends up described from memory.
 - **Read the actual code.** Open the method the comment points at, its callers, and its callees — using Read/Grep. Not from memory. Not from the diff alone. If you assert anything about the code, you must have *just read the lines that prove it*.
 - **Read the governing docs.** Find and read the relevant `CLAUDE.md` and `.claude/rules/*.md` for the touched subsystem (use the "Namespace-Specific Documentation" and "Conditional Rules" tables in the root `CLAUDE.md` as the index). A comment is frequently right or wrong on the basis of a documented convention you have not loaded. Reading the diff does NOT auto-load path-scoped rule files — you must open them yourself.
 - **Verify every factual claim — the reviewer's AND your own.** Before you write "this can't happen" / "this is fine" / "this is wrong", point to the specific code or doc that establishes it. See the Important § ban on overstated absolutes.
