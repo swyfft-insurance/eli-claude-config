@@ -61,6 +61,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
 
 **Rules:**
 - **MANDATORY — check comments before describing any active ticket or stage change.** Before writing a bullet for an `active_ticket` or `stage_change`, read that ticket's `comments` in `ticketDetails`. A ticket's real status (tabled, reprioritized, waiting on someone, blocked-because) frequently lives in a recent comment, not in the Stage field — a ticket sitting in Develop may actually be paused. Use the comment `date` to judge which comments are recent and relevant. If a comment changes the true status, the bullet must reflect that (e.g. "tabled X until Y is done"), not just the raw stage.
+- **Comments tell you a ticket's STATUS, never what Eli did.** Check each comment's `author`. Most are written by someone else: an investigation writeup, a QA test plan, a triage note. Mine a comment for status and nothing else: tabled, blocked, superseded, waiting on someone. Never turn another author's findings into a description of Eli's work, and never restate a comment's technical detail as the day's progress. The work items are the record of what Eli did; the comments are not.
 - Merges are NOT separate bullets. If a PR was opened on the last working day and merged, just mention it was merged in the same bullet.
 - `pr_merged` = a PR that predates the window but merged inside it. Say it was merged (and approved, from `reviews`). If the SAME PR also has a `pr_feedback_addressed` item on that day, collapse both into ONE bullet — "addressed feedback and merged" — never two.
 - `pr_feedback_addressed` = "addressed PR feedback on #XXXX" — don't over-explain.
@@ -82,6 +83,10 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
 
 Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). The directory already exists — don't pre-check or `mkdir`, just Write.
 
+The draft contains only the format chosen in Step 0 — never both.
+
+**Then print the full draft verbatim in your response.** Writing the file does not show it to Eli, and neither does `cat`-ing the file back: tool output is invisible to him. The file is the artifact; the response is where he reads it.
+
 ### Slack format
 
 - Section headers in bold (`**...**`), using the label chosen above ("Yesterday"/"Today" or the day names). The `slack_send_message` tool takes standard markdown, not Slack mrkdwn — use `**bold**` and `[text](url)` links, which the tool converts to Slack formatting on send.
@@ -95,10 +100,17 @@ Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). The directo
 **Story-by-story, not day-by-day.** This matches how Eli presents when speaking: each story is told once, from start through current state — never split across day sections.
 
 - One entry per story (a ticket / piece of work): a short plain-English story name on its own line, then bullet(s) underneath covering what was done yesterday and today combined, ending with the current state (merged, in review, resolved, blocked, ...). The current state is stated even when the state-changing event itself wasn't Eli's work (e.g. a PR that merged with no further commits — the story still ends "merged").
-- Two groups, split by the day the story was **started**: `Started yesterday:` first, then `Started today:` (after a weekend, use the day name, e.g. `Started Friday:`). A story already in flight before the window goes in the first group.
+- **"Started" means the day the ticket moved to Develop.** Read it from `ticketDetails[ticket].developedOn`, never from the day the PR opened. `reviewOn` is the day the coding was finished. Both are read from the ticket's full Stage history, so they are populated even for a story that started long before the window. Either can be `null` when the transition has not happened.
+- **A merge is not work, and neither is waiting for reviews.** When a story's `reviewOn` falls before the window, its coding finished before the window, so the merge landing inside the window earns no entry at all. Overrides the `pr_merged` rule in Step 2, which is the Slack format's. Give such a story a line only when Eli pushed commits for it in the window (`pr_feedback_addressed`), and then only a one-liner about clearing review feedback.
+- Three groups, in this order, each header dropped entirely when it has no stories:
+  - `In flight from earlier:` for a story whose `developedOn` predates the window and which is still in Develop or Review. These are the multi-day stories: what moved yesterday and today, ending in "continuing".
+  - `Started yesterday:` for a story whose `developedOn` is the last working day (after a weekend, use the day name, e.g. `Started Friday:`).
+  - `Started today:` for a story whose `developedOn` is today.
+  - `Also yesterday:` last, for a feedback-only story: `reviewOn` before the window, but Eli pushed commits inside it. One line each, nothing more. Use the day name after a weekend, matching the `Started` header.
 - A story started today says so explicitly in its bullet, in addition to sitting in the `Started today:` group.
-- Within a group, sort by earliest start. The data only carries dates, not times, so same-day stories keep the order the data provides.
+- Within a group, sort by `developedOn`, earliest first. The data carries dates but not times, so same-day stories keep the order the data provides.
 - Sentence fragments / shorthand only — no full prose, no narrative paragraphs
+- **Two bullets per story, three at the absolute most.** These are notes Eli glances at while speaking the detail from his own memory of the work, not a briefing he reads. Say what moved and where it stands, then stop. A story that seems to need five bullets is carrying ticket content rather than work done; cut the extras.
 - Plain text, no links or formatting
 - No ticket numbers — nobody knows what SW-49541 means out loud. Describe the actual work in plain English.
 - Don't explain what the ticket IS, just what you DID

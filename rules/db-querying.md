@@ -31,5 +31,14 @@ column, bad schema assumption; that result proves nothing about the data and pol
 ## Remote Database Queries
 
 - Never connect directly to remote databases via sqlcmd.
+- **Paste every query into chat in a ```sql block.** The user copies it from chat into SSMS —
+  never send them navigating a folder to find what you just wrote. Only when a query is genuinely
+  too long to paste (hundreds of embedded VALUES rows), give the full clickable file path instead,
+  so one click opens it. Naming the folder or file without pasting or linking is never acceptable.
+- **Bulk result sets travel by file path, never through the agent's output.** When a query's
+  result feeds a follow-up artifact (a point list, a key list), ask for it saved to a file and
+  take the path; a script assembles the artifact from the file. Never re-type or heredoc data
+  that already exists in chat or on disk — when pasted bulk data needs to become a file, ask for
+  the file instead.
 - Draft and validate on localhost → present to user → user runs it on dev/beta/prod-copy.
 - **Always specify which environment to run against** when presenting a query. Don't leave it to the user to figure out. State "Run this on prod-copy" or "Run this on beta" explicitly. See `beta-prod-db.md` for when to use which environment.

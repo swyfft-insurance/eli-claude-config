@@ -181,6 +181,35 @@ def activity_value_names(val):
     return []
 
 
+
+def stage_span(activities):
+    """Return (developedOn, reviewOn) for the ticket's current work stretch.
+
+    A story starts when it moves to Develop and its coding is done when it
+    moves to Review. Both dates are read from the full Stage history with no
+    window filter, so a story that started days ago still reports when it
+    started. A ticket that bounces back (Failed Test -> Develop) reports its
+    latest stretch, not its original one. Either value is None when the
+    transition has not happened yet.
+    """
+    developed = None
+    review = None
+    for act in activities:  # YouTrack returns activities oldest-first
+        if (act.get("field") or {}).get("name") != "Stage":
+            continue
+        added = activity_value_names(act.get("added"))
+        if not added:
+            continue
+        act_date = to_date(ms_to_et(act.get("timestamp")))
+        if not act_date:
+            continue
+        if added[0] == "Develop":
+            developed = act_date
+            review = None
+        elif added[0] == "Review" and review is None:
+            review = act_date
+    return developed, review
+
 # ── Data Gathering ───────────────────────────────────────────────────
 
 def gather_github_prs(lwd):
@@ -267,7 +296,7 @@ def gather_youtrack(yt_token, lwd, today):
         activities = yt_get(
             f"/api/issues/{iid}/activities?"
             f"fields=id,timestamp,author(login,name),added(name),removed(name),field(name)"
-            f"&categories=CustomFieldCategory&$top=30",
+            f"&categories=CustomFieldCategory&$top=200",
             yt_token,
         )
         all_issues[iid]["_activities"] = activities or []
@@ -523,10 +552,14 @@ def main():
             })
         comments.sort(key=lambda c: c["date"] or "")
 
+        developed_on, review_on = stage_span(issue.get("_activities", []))
+
         ticket_details[iid] = {
             "summary": issue.get("summary", ""),
             "url": yt_url(iid),
             "stage": extract_yt_field(issue, "Stage"),
+            "developedOn": developed_on.isoformat() if developed_on else None,
+            "reviewOn": review_on.isoformat() if review_on else None,
             "comments": comments,
         }
 

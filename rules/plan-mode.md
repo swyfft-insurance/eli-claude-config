@@ -143,15 +143,60 @@ have explained — that's a planner discipline failure.
 
 Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.
 
+<!-- Restructured 2026-08-19 while planning SW-54482/SW-54691 — Eli: a bug plan can't be cemented
+     before the defect is diagnosed AND proven, and the proof may disprove the bug. The old shape put
+     Investigate/Reproduce inside execution, i.e. after the plan was already written. -->
 ### Bug Fix
 
-1. Investigate — read ticket, logs, code to form a hypothesis
-2. Reproduce — write a failing test that proves the hypothesis
-3. **HARD STOP** — TDD checkpoint. Test fails as expected. Wait for approval before writing the fix.
-4. Fix — write the code fix
-5. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
-6. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
-7. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
+Diagnose first, then plan the fix. There is no plan for the investigation. Writing one is ceremony
+that delays the work.
+
+1. Investigate. Whatever settles which mechanism fired: reading code, a log search, a SQL query, a
+   diagnostic harness run, a throwaway test, or a test that becomes the regression guard. No form is
+   privileged.
+2. **HARD STOP** — Report the mechanism, its evidence, and a disposition: fix, spin off, not a
+   defect, or already fixed. The last two end the work with no fix plan written. Wait for approval.
+3. Write a **minimal** fix plan: what changes, the test that guards it, how it's verified. Part B's
+   full apparatus does not apply to a bug. Include only what the fix actually touches.
+4. **HARD STOP** — Fix plan approved. Wait before writing code.
+5. Fix — write the code fix
+6. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
+7. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
+8. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
+
+#### What the diagnosis must establish
+
+- **The defect**: the line or branch where behavior diverges from intent. Short of naming it, say so
+  and name what would settle it.
+- **Evidence per claim**, with hypothesis and proven labeled separately. An uncited causal chain is a
+  story.
+- **The proving test's fate**, if one was written: kept as the regression guard, or discarded.
+- **Noticed, not diagnosed**: one line each for findings outside the defect. Never investigate one to
+  decide whether it belongs, and never bolt one onto another finding as a caveat.
+
+Scope is the mechanism the ticket reports plus whatever is reasonably part of that same defect; an
+incomplete bug report doesn't narrow the defect. A diagnosis posted by someone else is where yours
+starts, never where it ends: verify each claim against the code before building on it.
+
+#### Code tracing is only evidence when a stack trace anchors it
+
+With an explicit stack trace, code tracing is great evidence: the runtime named the path and the
+line, so following the frames is fact rather than inference. A trivial cause is provable the same way.
+
+Without either, it is a poor form of evidence and a waste of time. It also does not self-terminate:
+each disproof spawns the next theory, so it loops, announcing a discovered cause every round. Don't
+rely on noticing that happening. No stack trace and no trivial cause means the next action is
+empirical, not another read.
+
+Plenty of upfront research on a non-obvious bug is still wanted. It just has to be a log search, a
+SQL query, or a test, whichever fits.
+
+Never pair a discovery with a claim that the next thing will prove it. Say what the evidence would
+rule out.
+
+**What happened:** SW-54482 shipped a stack trace, and every conclusion inside those frames held up.
+Four causes were then announced for why the census column was empty, which no frame covered, each
+from tracing alone and each with a promise the next query would prove it. All four were wrong.
 
 ### Refactoring
 
@@ -425,6 +470,12 @@ tell that it should go. Deleting is always available and never introduces an err
 Fix every violation *before* announcing code-complete. This audit is part of reaching code-complete,
 never a step the user has to request, and it applies to every code change, not only plan-driven
 work. The diff should already be clean before Eli opens it.
+
+**A comment-only change never justifies a build or a test run.** Comments, XML docs, and
+encoding fixes cannot change behavior, so re-running tests to "confirm" them proves nothing.
+After a comment-audit pass, check whether the diff since the last green run contains a single
+executable change. If it does not, the prior run still stands — say so and move on. If it does,
+run only the suites that executable change can affect.
 
 ## ClosedSets
 

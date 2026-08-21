@@ -86,7 +86,19 @@ Prefer prose with numbered options over AskUserQuestion when the evidence is sub
 
 **MANDATORY before presenting ANY question — `Read` `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" (don't work from memory).** Every option must be genuinely plausible. You must NEVER present "follow the acceptance criteria" vs "violate them" as a choice — implement the AC. A ticket-deviating path is raised only as an evidenced concern, never as a neutral A/B. Offering a fake choice confuses the user and burns trust for when a real concern surfaces.
 
-Two interleaved passes:
+Bug Fix plans start with Pass 0. Every plan then runs Passes 1 and 2, interleaved:
+
+### Pass 0 — Diagnose (Bug Fix plans only, and it gates the rest)
+
+`Read` `~/.claude/rules/plan-mode.md` § Plan Types § Bug Fix. Architecture questions are
+unanswerable until the defect is named, so nothing in Pass 1 or Pass 2 runs first.
+
+**Just investigate. Do not write a plan for the investigation, and do not run Q&A about how to
+investigate.** Go read the code, run the query, search the logs. Then report the mechanism, its
+evidence, and a disposition, and stop for approval.
+
+Passes 1 and 2 run only after that, scoped to the fix and kept minimal. If the disposition is "not a
+defect" or "already fixed", there are no further passes and no fix plan.
 
 ### Pass 1 — Ticket-derived questions (do this FIRST)
 
@@ -111,7 +123,6 @@ After Pass 1 feels exhausted, sweep the canonical category checklist as a final 
 | Data shape / determinism | Feature with data output | Deterministic ordering, canonical inputs? |
 | Failure modes | All | What happens when X fails? How is it surfaced? |
 | Backward compat / rollout | Feature, Refactoring | Migration path? Phased rollout? Baseline commit? |
-| Root cause analysis | Bug Fix | Why did this happen? What's the actual defect? |
 
 Plan-type-conditional. Bug Fix plans don't need API-shape questions; Refactoring plans need safety-net coverage questions; Feature plans need all of these.
 
@@ -230,6 +241,10 @@ The plan file must contain every section defined in `plan-mode.md` Part B, in th
 file specifies — including § Plan Types for the HARD STOP sequence matching the chosen plan type.
 Read Part B and follow it directly; don't restate the structure here — it drifts.
 
+**Bug Fix plans are minimal.** The file records the diagnosis with its evidence, what changes, the
+test that guards it, and how it's verified. Part B's full apparatus does not apply. Every section the
+fix doesn't touch is `N/A`, and the gate below reads it that way.
+
 ### Mandatory full-coverage verification gate — the plan is NOT "written" until this passes
 
 Per `plan-mode.md` § "FULL-COVERAGE MANDATE", every plan must incorporate EVERY rule in that file —
@@ -240,7 +255,8 @@ and add it before proceeding to Step 9:
 
 - **Part A honored:** co-designed via Q&A; no deferred-decision phrases; options were genuine.
 - **Part B sections present (written in):** Preamble block · Step 0a (→Develop) · Subsystem
-  pre-reads · Step 0b (branch) · Plan type + matching HARD STOP sequence · Seeder overrides (or
+  pre-reads · Step 0b (branch) · Plan type + matching HARD STOP sequence · Diagnosis reported (Bug
+  Fix only) · Seeder overrides (or
   N/A + reason) · HomeownerStateConfig fold-vs-stack + feature-doc list (or N/A + reason) ·
   Verification: execution sequence · tests to add/modify · captured asserts · existing-test
   regressions · **code-complete self-audit (comments + ClosedSets)** · AC coverage map · transition

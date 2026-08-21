@@ -145,6 +145,15 @@ Applies to all written prose: chat replies, plan files, code and doc comments, c
 | "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
 | "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
 
+## Never name Eli's personal tooling in anything published
+
+Skills, scripts, rules files, and ticket-folder artifacts under `~/.claude/` are private to one
+machine. A PR description, YouTrack comment, or Slack message naming one — `/eli--prebind-validation`,
+`Run-DotnetTest.ps1`, a query filename under `artifacts/` — is undecodable to every reader but Eli,
+and it leaks personal workflow into a team artifact. Name the repo-level thing instead: the trait the
+tests carry, the test class, the project, the command from the repo's own docs. If the only name you
+have is a personal one, describe what it did in plain terms.
+
 ## Call things by their exact name — repeat it, don't vary it
 
 Name each thing by its exact term and repeat that exact term every time you mean it. Never swap in a synonym, a broader category word, or a vaguer umbrella term to avoid repetition. Varying vocabulary so prose doesn't feel repetitive ("elegant variation") is a creative-writing habit; in technical writing the substitute is always less precise than the exact term, so it trades accuracy for style and manufactures ambiguity. Repeating the precise term is correct — not a flaw to fix.
