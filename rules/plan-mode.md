@@ -16,7 +16,7 @@ This file is organized into three parts by lifecycle stage:
 - **Part B** — every mandated section is written into the file (or marked `N/A — <reason>` for the conditional ones).
 - **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the comment self-audit, the ClosedSet self-audit, line-length, magic-number extraction, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
 
-If a rule appears anywhere in this file, it must be reflected in the plan. A plan that silently drops any rule is incomplete — the same as a missing test or seeder override. This is exactly why the skill mandates re-reading the rules between every step: so nothing falls out of working memory and gets dropped after a couple of actions. The skill's Step 8 verification gate (below) enforces this full-coverage mandate before any plan is considered written.
+If a rule appears anywhere in this file, it must be reflected in the plan. A plan that silently drops any rule is incomplete — the same as a missing test or seeder override. This is exactly why the skill mandates re-reading the rules between every step: so nothing falls out of working memory and gets dropped after a couple of actions. `/eli--plan-audit` enforces this mandate. It runs on every plan before the plan counts as written, whether the plan came from `/eli--create-plan-from-ticket` or was written by hand.
 
 ---
 

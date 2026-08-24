@@ -41,6 +41,10 @@ Invoke `/eli--read-ticket SW-XXXXX` to fetch the ticket's full content: descript
 
 After reading, perform plan **Step 0a** (per `plan-mode.md`) — if the ticket's Stage is earlier than Develop (Backlog, Ready for Dev), move it to Develop; leave it if already Develop or later.
 
+### A hook block is a STOP, never permission to proceed
+
+When a hook blocks an action this skill mandates, the mandate does not lapse and the work does not continue around it. The Step 0a move to Develop is the recurring case. A hook block means: stop every other line of work, and ask Eli for that one action in a question a bare "yes" answers. Never report the block as "parked" or "pending approval" and carry on to the next step. Never bundle the request with another question, because the reply then cannot be a bare approval and the hook blocks again.
+
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
 ## Step 3 — Subsystem pre-reads
@@ -245,29 +249,16 @@ Read Part B and follow it directly; don't restate the structure here — it drif
 test that guards it, and how it's verified. Part B's full apparatus does not apply. Every section the
 fix doesn't touch is `N/A`, and the gate below reads it that way.
 
-### Mandatory full-coverage verification gate — the plan is NOT "written" until this passes
+### Mandatory plan audit — the plan is NOT "written" until it passes
 
-Per `plan-mode.md` § "FULL-COVERAGE MANDATE", every plan must incorporate EVERY rule in that file —
-Parts A, B, AND C — not just Part B's section list. After writing the plan, **re-read
-`plan-mode.md` in full** and verify the plan reflects all three parts. Confirm each item below is
-present (or `N/A — <reason>` for conditional ones); any gap means the plan is not done — go back
-and add it before proceeding to Step 9:
+Invoke `/eli--plan-audit <ticket-folder-name>` (Skill tool). It walks every rule that governs the
+plan, records a verdict per rule, fact-checks every claim, and fixes what it finds.
 
-- **Part A honored:** co-designed via Q&A; no deferred-decision phrases; options were genuine.
-- **Part B sections present (written in):** Preamble block · Step 0a (→Develop) · Subsystem
-  pre-reads · Step 0b (branch) · Plan type + matching HARD STOP sequence · Diagnosis reported (Bug
-  Fix only) · Seeder overrides (or
-  N/A + reason) · HomeownerStateConfig fold-vs-stack + feature-doc list (or N/A + reason) ·
-  Verification: execution sequence · tests to add/modify · captured asserts · existing-test
-  regressions · **code-complete self-audit (comments + ClosedSets)** · AC coverage map · transition
-  out of verification.
-- **Part C reflected:** HARD STOP sequence matches the plan type; the comment + ClosedSet
-  self-audit is a written step before the code-complete diff; line-length, magic-number extraction,
-  build-once-then-parallel test runs, "read every changed captured-assert file," and the
-  post-test-approval sequence are all honored where they apply.
+Don't hand-roll this check, and don't report its result without running it. The audit is what enforces
+`plan-mode.md` § "FULL-COVERAGE MANDATE". A checklist written here would be a second copy of Part B
+that goes stale as Part B changes.
 
-A plan that silently drops any plan-mode.md rule is incomplete — treat it exactly like a missing
-test or seeder override.
+The plan is not written until the audit reports clean. Only then proceed to Step 9.
 
 ### Banned in plan files
 
