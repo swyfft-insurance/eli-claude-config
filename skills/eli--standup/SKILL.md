@@ -39,7 +39,7 @@ The JSON contains:
 
 | Type | Meaning | Key fields |
 |------|---------|------------|
-| `pr_opened` | Eli opened a PR on this date | `tickets`, `pr`, `prTitle`, `prUrl`, `prState`, `mergedOn`, `reviews` |
+| `pr_opened` | Eli opened a PR on this date | `tickets`, `pr`, `prTitle`, `prUrl`, `prState`, `mergedOn`, `reviews` (each carries `reviewer`, `state`, `date`, `body`) |
 | `pr_merged` | A PR opened before the window merged on this date | `tickets`, `pr`, `prTitle`, `prUrl`, `reviews` |
 | `pr_feedback_addressed` | Eli pushed commits addressing review feedback | `tickets`, `pr`, `prTitle`, `prUrl` |
 | `stage_change` | Eli changed a ticket's field | `ticket`, `ticketSummary`, `ticketUrl`, `field`, `from`, `to` |
@@ -95,24 +95,22 @@ The draft contains only the format chosen in Step 0 — never both.
 
 ### Spoken format
 
-**Speech notes, NOT a script.** Eli glances at these while talking — they are not read verbatim. Write fragments, not paragraphs.
+**Speech notes, NOT a script.** Eli glances at these while talking, he does not read them out. Write fragments, not paragraphs.
 
-**Story-by-story, not day-by-day.** This matches how Eli presents when speaking: each story is told once, from start through current state — never split across day sections.
+**Two sections, same as the Slack format: last working day, then Today.** Use the day labels chosen in Step 2 ("Yesterday"/"Today", or the day names after a weekend). Those two are the only headers the file ever contains. Never add a group, bucket, or category heading of any kind.
 
-- One entry per story (a ticket / piece of work): a short plain-English story name on its own line, then bullet(s) underneath covering what was done yesterday and today combined, ending with the current state (merged, in review, resolved, blocked, ...). The current state is stated even when the state-changing event itself wasn't Eli's work (e.g. a PR that merged with no further commits — the story still ends "merged").
-- **"Started" means the day the ticket moved to Develop.** Read it from `ticketDetails[ticket].developedOn`, never from the day the PR opened. `reviewOn` is the day the coding was finished. Both are read from the ticket's full Stage history, so they are populated even for a story that started long before the window. Either can be `null` when the transition has not happened.
-- **A merge is not work, and neither is waiting for reviews.** When a story's `reviewOn` falls before the window, its coding finished before the window, so the merge landing inside the window earns no entry at all. Overrides the `pr_merged` rule in Step 2, which is the Slack format's. Give such a story a line only when Eli pushed commits for it in the window (`pr_feedback_addressed`), and then only a one-liner about clearing review feedback.
-- Three groups, in this order, each header dropped entirely when it has no stories:
-  - `In flight from earlier:` for a story whose `developedOn` predates the window and which is still in Develop or Review. These are the multi-day stories: what moved yesterday and today, ending in "continuing".
-  - `Started yesterday:` for a story whose `developedOn` is the last working day (after a weekend, use the day name, e.g. `Started Friday:`).
-  - `Started today:` for a story whose `developedOn` is today.
-  - `Also yesterday:` last, for a feedback-only story: `reviewOn` before the window, but Eli pushed commits inside it. One line each, nothing more. Use the day name after a weekend, matching the `Started` header.
-- A story started today says so explicitly in its bullet, in addition to sitting in the `Started today:` group.
-- Within a group, sort by `developedOn`, earliest first. The data carries dates but not times, so same-day stories keep the order the data provides.
-- Sentence fragments / shorthand only — no full prose, no narrative paragraphs
+- Under each day, one entry per story (a ticket / piece of work): a short plain-English story name on its own line, then bullet(s) for what moved that day.
+- **A story appears exactly once, under the day it was picked up.** Never repeat a story under both days. Its bullets cover everything that happened across the whole window and end with where it stands now (in review, merged, continuing).
+- A story picked up before the window goes under the earlier day, with the bullet saying when it actually started ("started last Tuesday").
+- **Say when the story started, in the bullet.** "picked up Friday", "started today", "been going since last week". That framing is what the reader needs, and it belongs in the words, not in a heading.
+- **Every story bullet says when it started and when it finished.** "Started" is the day the ticket moved to Develop, read from `ticketDetails[ticket].developedOn`, never the day the PR opened. "Finished" is the day the PR went up, read from the `pr_opened` item's `date`. A story with no PR yet has no finish; say what it is doing instead ("still going", "continuing"). `developedOn` comes from the ticket's full Stage history, so it is populated even for a story that started long before the window, and can be `null` when the transition has not happened.
+- **A merge is not work, and neither is waiting for reviews.** When a story's PR went up before the window (no `pr_opened` item inside it, and `reviewOn` earlier than the window), the work finished before the window, so the merge landing inside it earns no entry at all. Overrides the `pr_merged` rule in Step 2, which is the Slack format's. Give such a story a line only when Eli pushed commits for it in the window (`pr_feedback_addressed`), and then only a one-liner about clearing review feedback.
+- **The second bullet is the comment traffic since Eli picked the story up.** Two sources, summarized together in one line: ticket comments in `ticketDetails[ticket].comments` dated on or after `developedOn` and written by someone other than Eli, and the review bodies on the story's PR (`reviews[].body`). Say what the reviewer or stakeholder actually raised, in a few words. Drop this bullet entirely when there is nothing, and never write "nothing since" or any other placeholder. Eli's own comments are his own writing and are never reported back to him. A Copilot review body is a restatement of the diff, an overview paragraph plus a per-file table, so it is never comment traffic no matter how long it is. Copilot's actual findings are inline comments, which this data does not carry. An approval with an empty body is not traffic either.
+- Within a day, sort by `developedOn`, earliest first. The data carries dates but not times, so same-day stories keep the order the data provides.
+- Sentence fragments / shorthand only, no full prose, no narrative paragraphs
 - **Two bullets per story, three at the absolute most.** These are notes Eli glances at while speaking the detail from his own memory of the work, not a briefing he reads. Say what moved and where it stands, then stop. A story that seems to need five bullets is carrying ticket content rather than work done; cut the extras.
 - Plain text, no links or formatting
-- No ticket numbers — nobody knows what SW-49541 means out loud. Describe the actual work in plain English.
+- **Prefix the story-name line with the ticket ID(s)**, e.g. `SW-55072 / SW-55074 - Removing the MEP acknowledgement and direct repair elements`. It is there only so Eli can answer if someone in standup asks which ticket a story is; he does not read it out. Everything after the prefix, and every bullet, stays plain English with no ticket numbers in it.
 - Don't explain what the ticket IS, just what you DID
 
 ## Step 4: Post (Slack only)

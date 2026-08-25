@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/Homeowner/ByPeril/**/*.xlsm"
+  - "**/ByPerilSeederHomeowner*.cs"
+  - "**/ByPerilHomeowner*ExcelRaterService*.cs"
+  - "**/HomeownerStateConfig/**"
+---
 # Excel Rater (ByPeril) — Homeowner Implementation Tickets
 
 This is the **Homeowner** playbook for the **Excel Rater (ByPeril)** plan type (defined in `plan-mode.md` § "Plan Types"). It inherits every general rule in `plan-mode.md` — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig feature-doc requirements, and the full Verification structure — plus the shared rater conventions in `excel-rater-plans-common.md` (the HARD RULE, the dump tasks, the provisional-scope carve-out, the `version_history` caveat, seeder-first, and blast radius). This file holds the HO-specific pieces below: pre-reads, the plan shape, and the component→Excel-signal map.
@@ -76,3 +83,4 @@ The diff signal on the left tells you which component on the right must change:
 | New config version needs different premium logic | Generator + `HomeownerByPerilPremiumGeneratorFactory` mapping (falls back to lower version if unmapped) | `…/Premium/Homeowner/HomeownerByPerilPremiumGeneratorFactory.cs` |
 
 Which rows apply is dictated entirely by the step-3 diff — a ticket touches only a subset of these rows, often just one or two. The diff, not the ticket, tells you which.
+

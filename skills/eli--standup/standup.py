@@ -345,6 +345,7 @@ def build_pr_items(prs, lwd, today):
                 "reviewer": login,
                 "state": (r.get("state") or "").lower(),
                 "date": to_date(review_date).isoformat() if review_date else None,
+                "body": (r.get("body") or "").strip(),
             })
 
         # PR opened — attribute to createdAt date

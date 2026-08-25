@@ -1,3 +1,7 @@
+---
+paths:
+  - "**/.claude/tickets/**/plan.md"
+---
 # Plan Mode
 
 > Gate 1.5 applies here — see `core-behavior.md`.
@@ -291,6 +295,16 @@ Every Progress entry carries a **timestamp in the user's local time, 12-hour for
 `2026-08-12 2:47 PM`). A bare date is not enough — most tickets complete within a single day, so
 the date alone cannot order the entries or show where time went.
 
+**Every entry goes through the `eli--generate-progress-entry` skill. Never hand-write a row, and
+never type a timestamp.** Your context carries the date but never the clock, so a time that merely
+looks right is invented. The skill's script reads the clock, or reads the timestamp off the artifact
+the entry describes, and appends the row itself — it exposes no time parameter, so there is nothing
+to fill in. The plan supplies only the `## Progress` heading; the script owns the table under it.
+
+A timestamp is the easiest field in a plan to fabricate: it reads as metadata rather than as a claim,
+it fails no build and no test, and nobody re-reads it. The specific failure is continuing the
+sequence — once one row is real, the next feels like arithmetic instead of a fact.
+
 ## Verification Section Structure
 
 Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material.
@@ -497,3 +511,4 @@ are typed as the ClosedSet, not `string`/`int`; `.Value` appears only at true sy
 (external APIs, IMS, raw storage), never in internal calls that already accept the ClosedSet;
 comparisons and `.Switch()` follow the documented forms. Fix every violation before announcing
 code-complete. This audit is part of reaching code-complete — not a step the user should ever have to request.
+

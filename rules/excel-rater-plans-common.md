@@ -1,3 +1,14 @@
+---
+paths:
+  - "**/Homeowner/ByPeril/**/*.xlsm"
+  - "**/ByPerilSeederHomeowner*.cs"
+  - "**/ByPerilHomeowner*ExcelRaterService*.cs"
+  - "**/HomeownerStateConfig/**"
+  - "**/Commercial/EAndS/**/*.xlsm"
+  - "**/ByPerilSeederCommercialEAndS*.cs"
+  - "**/CommercialEAndS*.cs"
+  - "**/CommercialStateConfig.cs"
+---
 # Excel Rater (ByPeril) — Shared Conventions
 
 Applies to both rater playbooks: HO (`ho-excel-rater-plans.md`) and Commercial (`co-excel-rater-plans.md`). Each inherits everything here.
@@ -80,3 +91,4 @@ The seeder is the first layer that reads the actual rater sheets and their layou
 ## Rating changes have an outsized blast radius
 
 Premium is extremely sensitive: a change that leaks onto a state or carrier you didn't intend silently mis-prices quotes and policies — a leak here is a mispriced policy, not just a failed test. So before touching any shared base in the rating stack, read the actual inheritance chain of the class you're editing, and contain the change by construction (see `refactoring.md` § "Contain a shared-base change by construction").
+
