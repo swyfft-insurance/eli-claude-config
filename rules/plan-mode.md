@@ -317,6 +317,8 @@ Numbered steps in order, derived from the AC walk-through and canonical-checklis
 ### Tests to add or modify
 List each new/extended test file with: filename, base class, and a case table (input → expected). One row per scenario. See `~/.claude/rules/testing.md` for TDD workflow and test-writing patterns.
 
+Every test in the plan conforms to FIRST. See `testing.md` § "FIRST principles govern every test". Where a test depends on dates, the plan names the pinned clock date and writes its case-table dates as literals.
+
 Tests that iterate over multiple inputs (configs, indices, sheets, theory rows) must aggregate failures into a list and throw `AggregateException` at the end — never stop at the first failure. See `testing.md` § "Failure Aggregation".
 
 **Distribute tests per the pyramid — unit tests carry the load.** When planning a feature's tests,

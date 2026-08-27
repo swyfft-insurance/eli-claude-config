@@ -1,5 +1,23 @@
 # Test Writing
 
+## FIRST principles govern every test
+
+Every test conforms to FIRST. A test that breaks one of these gets fixed before it lands.
+
+- **Fast** — pick the lowest test class that proves the behavior, so the bulk of coverage lands in
+  unit tests. Integration tests use a real DB and acceptance tests use real externals, which is
+  expected at those levels. A unit test that reaches a DB, the network, or the filesystem is the
+  violation. The class table and the pyramid rule live in the repo's
+  `.claude/rules/dotnet-testing.md` § "Cover new features across the testing pyramid".
+- **Isolated** — no ordering dependency, and no reliance on state another test left behind. Each
+  test arranges the data it asserts on.
+- **Repeatable** — the same result on any machine, in any timezone, on any date. Pin the clock with
+  `Time.SetDateTime(...)`, then write dates as literals rather than as offsets from "now". Never
+  `DateTime.UtcNow`, never unseeded randomness, never a dependence on today's date.
+- **Self-validating** — the test asserts its own pass or fail. Nothing to read off the console,
+  nothing to eyeball.
+- **Timely** — written with the code or before it. § "TDD Hard Stop" below is how that is enforced.
+
 ## TDD Hard Stop
 Bug fixes: write failing test → run → verify it FAILS → HARD STOP for approval → then fix.
 Refactoring: write safety-net test → run → verify it PASSES → HARD STOP for approval → then refactor.

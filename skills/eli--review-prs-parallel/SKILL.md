@@ -117,7 +117,35 @@ PROCESS:
 
 5. Assess only Critical (logic bugs, data loss, security) and Major (broken contracts, missed edges, regression risk) **in the CODE**. NO nits, NO style.
 
-**REVIEW THE CODE AGAINST THE TICKET, NOT THE PR DESCRIPTION.** The ticket is the source of truth for what should be built; the code is what got built. Your scope-match check compares those two. The PR description is NOT under review — its only legitimate use is as a hint about where to look in the code (e.g., "the body says they changed X service" → go read that service). Do not compare the diff to the PR body. Do not flag body inaccuracies, "the body says X but the diff does Y", missing release-notes detail, or stale checkboxes. The author can write whatever they want in the body; we don't grade it. The only conceivable exception is a body that would actively mislead a reviewer into approving something dangerous (e.g., "no behavioral change" hiding a risk-rule deletion) — and even then, the underlying CODE finding is what matters, not the body discrepancy. Default position: zero PR-body findings.
+**Ask of every candidate finding: does the code fail to do what the author was trying to do?**
+
+- **Yes** — report it. A logic error, an unhandled case that defeats the author's own stated goal, a contract the change breaks. Authors write broken code all the time and this is the entire job. That the line was written deliberately means nothing: they meant it to *work*.
+- **No** — the code does what they meant, and you disagree with what they meant. That is not a finding. Kill it.
+
+The second branch is where fake findings come from, because disagreeing with a choice produces prose that reads exactly like reporting a defect. Three shapes to recognize:
+
+- **Second-guessing an authored choice.** A test asserting more than the ticket asked, a deletion that goes further than the ticket said, a design picked among alternatives. The code is the author's intent, so "did you mean this?" costs them a round trip and tells them you did not read their work.
+- **"This could break later."** A passing test some future third-party change might turn red. Read "regression risk" above as regression *this change introduces now*, not risk that the world changes someday.
+- **Anything the body, ticket, or a code comment already addresses.** Same failure wearing a different coat: treating a settled decision as an accident.
+
+Findings that survive usually live outside the diff, or in the gap between the diff and a requirement nobody acknowledged deviating from. Those are what the author had no way to see.
+
+**THE DIFF IS PRESUMED DELIBERATE.** Every line in it is a line the author chose to write, so "did you mean to do this?" is never a finding. It costs the author a round trip and tells them you did not read their work. Before any finding ships, name what the author could not have known: a caller they did not see, a file the PR does not touch, a stated requirement they never addressed. If the honest answer is "they wrote it and probably meant it", the finding is dead.
+
+This kills three shapes that otherwise look like findings:
+- **Second-guessing an authored choice.** A test asserting more than the ticket asked, a deletion that goes further than the ticket said, a design the author picked among alternatives. The author's intent is the code.
+- **"This could break later."** A passing test that a future third-party change might turn red, a pattern that would not scale. Speculative future failure is not a defect. Read "regression risk" above as regression *this change introduces now*, not risk that something changes someday.
+- **Anything the body, the ticket, or a code comment already addresses.** Covered by the body-read rule above, and it is the same failure: treating a decision as an accident.
+
+The real ones live outside the diff, or in the gap between the diff and a requirement nobody acknowledged deviating from. Those are the ones the author had no way to see.
+
+**READ THE PR BODY IN FULL. Then review the code against the TICKET, not against the body.** Those are two separate rules and collapsing them is the known failure mode. All three of the following apply:
+
+1. **Reading the body is mandatory, every PR, before you draft anything.** The body is where the author records deliberate deviations from the ticket, decisions already argued out with someone else, and the reasoning behind whatever looks surprising in the diff. Skip it and you produce findings the author answered before you started.
+2. **Check every finding against the body before you report it.** If the author discloses the thing, explains it, or states it was decided deliberately, the finding is DEAD. Drop it. A finding that re-asks a question the body already answers is worse than no finding at all.
+3. **The body is never itself under review.** Do not flag body inaccuracies, "the body says X but the diff does Y", missing release-notes detail, or stale checkboxes. The author can write whatever they want in the body; we don't grade it. Default position: zero PR-body findings.
+
+Your scope-match check compares the DIFF to the TICKET. When the diff deviates from the ticket and the body discloses that deviation with reasoning, that is not a finding: report it in one line as "deviation, disclosed in body" so the orchestrator knows it was already handled.
 
 OUTPUT FORMAT (<600 words):
 PR #{NUM} — {one-line summary}
@@ -175,10 +203,20 @@ A subagent's findings are unverified claims. They are produced under a 5-minute 
 and a 1-level trace cap, so they routinely rest on a premise the agent never checked. Presenting
 them raw wastes Eli's turn on claims that do not survive first contact with the code.
 
-**Immediately before presenting each PR, invoke `/eli--fact-check-writing` on that PR's drafted
-findings.** One invocation per PR, run at the moment you are about to present that PR, never a
-single batched invocation covering all of them. Pass it the drafted inline comment text and tell it
-to check every predicate against the code at that PR's head ref.
+**Step one, before any of the rest: read that PR's body in full** (`gh pr view <NUM> --repo
+swyfft-insurance/swyfft_web --json body --jq '.body'`). Read the whole thing, Reviewer Notes
+included, and kill every finding the author already discloses, explains, or records as deliberate.
+This runs first because it is the cheapest filter in the whole skill: one read against one document
+that routinely answers the finding outright, and no amount of code verification afterwards
+substitutes for it. A finding that survives code verification but re-asks a question the body
+answered is still a wasted turn, and it reads to the author as a reviewer who did not read the PR.
+
+**Then invoke `/eli--fact-check-writing` on that PR's drafted findings.** One invocation per PR, run
+at the moment you are about to present that PR, never a single batched invocation covering all of
+them. Pass it the drafted inline comment text and tell it to check every predicate against the code
+at that PR's head ref. Note what that skill does and does not cover: it audits the prose and the
+code predicates, so it will not catch a finding whose real defect is that the body already answered
+it. The body read above is the only thing that catches that.
 
 The audit's job here is to kill the finding, not to polish it. Expect that:
 
@@ -191,6 +229,17 @@ The audit's job here is to kill the finding, not to polish it. Expect that:
 - The second most common failure is a citation that does not say what the finding claims: a test
   whose setup uses a different code path, a doc comment about a neighboring operation, a line number
   off by one or two.
+
+**Then check the fix you are proposing, separately from the problem you are reporting.** A finding
+has two halves and they fail independently: the problem ("X is broken") is a claim with a source,
+and the fix ("worth doing Y") is a proposal with none. Verifying the problem tells you nothing about
+the fix, and a fix whose nouns all point at real things reads as verified when nobody checked it.
+For every "should / worth / consider / the fix is", answer three questions before it ships: does the
+proposed change actually produce the outcome you named, is that outcome already produced without it,
+and if the proposal joins two changes with "and", does each half stand on its own?
+
+An unsound fix is deleted, not softened into a question. Report the problem and let the author pick
+the remedy. That is always available, it is shorter, and it is what the author would rather have.
 
 Verify every line number against the PR head ref before drafting an anchor. Never carry a subagent's
 line number through unchecked.
@@ -260,5 +309,6 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 - **Don't fan out more than ~8 agents at once** — token cost on the user's session is real (`pre-pr-review.md`: "a runaway subagent burns tokens against their session budget").
 - **Don't include banned phrases in agent prompts.** They license unbounded archaeology and burn time.
 - **No mention of the deferred-tool ToolSearch step** unless the agent will actually need YouTrack MCP. If the PR has no ticket, skip the YouTrack step in the prompt entirely.
-- **We do not review PR descriptions.** Code is reviewed against the TICKET (the source of truth for what should be built), never against the PR body. The body is a navigation hint — useful for figuring out where in the code to look — and nothing more. Drop every "body says X but diff does Y" finding by default. Drop "PR description misrepresents the diff" findings. Drop "missing disclosure" findings. The only exception is an active-misleading body that would cause a reviewer to approve something dangerous — and even then, the finding to surface is the underlying CODE issue, not the body discrepancy. If a subagent flags a body issue, strip it from that PR's presentation silently. Do not surface it as an "FYI", do not list it in a "notes" section, do not mention it parenthetically. Default: zero PR-body findings ever reach Eli.
+- **Read every PR body before drafting anything. Never write a finding about the body.** These are two rules, not one, and collapsing them into "ignore the body" costs a whole review cycle. Reading is mandatory: the body is where the author records deliberate deviations from the ticket and decisions already settled with someone else, so a review that skips it generates findings that were answered before the review started. **Before any finding reaches Eli, check it against the body. If the author discloses it, explains it, or marks it deliberate, the finding is dead: drop it.** Separately, and independently, the body is never itself the subject of a finding: drop "body says X but diff does Y", "PR description misrepresents the diff", and "missing disclosure" findings, and when a subagent flags a body issue, strip it without mentioning it, not even parenthetically. Two defaults, both absolute: zero PR-body findings ever reach Eli, and zero findings the body already answered.
+  - **What happened:** #22458's Reviewer Notes disclosed the SW-48019 deviation, named the exact manual quote-creation flow at risk, and recorded that removing it was confirmed deliberate after an adversarial review raised that same risk. The subagent's report said the author disclosed it. That line was stripped as a "body finding", the body was never read, and both drafted inlines re-asked what the Reviewer Notes already answered.
 - **ALWAYS name the author when presenting a PR.** Every time. The per-PR heading names the author. Follow-up restatements name the author. The closing execution summary names the author beside each PR number (e.g., "#20760 (justinswyfft)"). This is non-negotiable — Eli needs the human context every time. If you find yourself listing PR numbers without authors, stop and rewrite the list. Capture authors during pre-flight (already done) and use them in every subsequent reference.

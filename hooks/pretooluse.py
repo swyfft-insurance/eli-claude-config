@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """PreToolUse hook: enforce deterministic rules from CLAUDE.md.
 
 Receives JSON on stdin with tool_name and tool_input.
@@ -13,8 +13,18 @@ import json
 import os
 import re
 import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from rate_limit import block_message
+except Exception:  # a broken import must not disable every other rule here
+    def block_message(_what_is_stopped):
+        return None
 
 RULES_DIR = os.path.expanduser("~/.claude/rules")
+
+
 
 
 def check_askuserquestion_warnings(tool_input):
@@ -460,6 +470,14 @@ def main():
     tool_input = data.get("tool_input", {})
 
     messages = []
+
+    # BLOCK: the 5-hour usage window is nearly spent. Checked first: it is unconditional.
+    rate_block = block_message(
+        "Tool calls are stopped so the rest of the window is not spent."
+    )
+    if rate_block:
+        print(rate_block, file=sys.stderr)
+        sys.exit(2)
 
     # BLOCK: a YouTrack batch execute whose content wasn't shown verbatim and approved.
     batch_block = check_youtrack_batch(data, tool_name, tool_input)

@@ -1,6 +1,7 @@
 {
   "env": {
-    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1",
+    "_CLAUDE_IGNORE_RATE_LIMIT": "1"
   },
   "permissions": {
     "allow": [
@@ -133,9 +134,19 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/userpromptsubmit.py"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Write|Edit|EnterPlanMode|ExitPlanMode|AskUserQuestion|mcp__slack__.*|mcp__YouTrackNative__.*|mcp__solarwinds__.*",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",

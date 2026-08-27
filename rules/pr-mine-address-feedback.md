@@ -1,6 +1,6 @@
 # Addressing Feedback on My PRs
 
-- Bot review comments (Copilot, Claude) get same seriousness as human comments.
+- Bot **inline** review comments (Copilot, Claude) get same seriousness as human comments.
 - **PR comment replies are real work.** Research thoroughly, write clearly, don't rush to push them out. A sloppy reply to a reviewer is worse than a slow one.
 - Before responding to any PR comment, research the claim in the codebase. Don't draft a reply until you've read the relevant code.
 - **Quote-then-reply format**: Always quote the reviewer's text with `>` blockquotes, then reply below each quote. For top-level comments with multiple points, quote each point and reply individually. For inline comments, quote the specific portion you're addressing. Never use `#1`, `#2` etc. as labels — GitHub renders those as issue/PR links.
@@ -23,6 +23,17 @@
 - **Gate 2 applies to PR comments.** Draft reply text in your response and wait for explicit approval before posting. This includes thread replies, review comments, and PR body edits.
 - GraphQL for resolving threads: query via `repository.pullRequest.reviewThreads`, NOT via `node(id:)` on PullRequestReviewComment (field doesn't exist).
 - Never use `minimizeComment` — that hides, not resolves.
+
+## Copilot reviews: inline comments only
+
+For a Copilot review, the inline comments are the whole scope. Each one opens a thread. An
+unresolved thread blocks the merge.
+
+Everything else in a Copilot review body is ignored, especially the "Suppressed comments" section
+Copilot writes when it declines to post a finding as a thread. Ignored means not addressed and not
+presented for triage.
+
+This is specific to Copilot. A human reviewer's top-level comment is still real feedback.
 
 ## Order of operations: push before replying
 

@@ -1,6 +1,6 @@
 ---
 name: eli--fact-check-writing
-description: Audit a piece of durable writing (CLAUDE.md, docs, RCA, PR description, plan) in successive single-predicate waves until a wave finds zero factual defects. Use when asked to fact-check, harden, or "do another pass" on written prose.
+description: Audit a piece of writing (CLAUDE.md, docs, RCA, PR description, PR review comment, plan) in successive single-predicate waves until a wave finds zero factual defects and zero unsound proposals. Audits both what the text asserts and what it tells the reader to do. Use when asked to fact-check, harden, or "do another pass" on written prose.
 ---
 
 # Fact-Check Writing (waves)
@@ -59,16 +59,40 @@ Run in order. Within a wave, walk every sentence — no sampling.
    verification obligation. Verify it exhaustively or delete the quantifier.
 4. **Paraphrase** — interpretations of names, comments, and docs are replaced with the literal
    name or the verbatim quote.
-5. **Prose** — full audit against `comments-docs-and-external-writing.md`: word slop, ambiguous
+5. **Advice** — every sentence telling the reader to do something is a proposal, not a claim, and
+   waves 1-4 cannot touch it. They all work by going and reading a source; a proposal has no
+   source, so it passes clean the moment the nouns inside it point at real things. Find them by
+   their verbs: "should", "worth", "consider", "the fix is", "needs to", "recommend", "just".
+   Check each proposal on its own terms:
+   - **Does the proposed action achieve the stated goal?** Read the thing being changed and the
+     thing being cited, then follow the change through to the outcome.
+   - **Is the goal already achieved without it?** A proposal that duplicates what existing code, an
+     existing rule, or the surrounding text already does is redundant however real its nouns are.
+   - **Is every part of it load-bearing?** A proposal joining two changes with "and" is two
+     proposals. Check each separately; one can be sound and the other not.
+
+   A proposal that fails any of these is **deleted**, not softened. Rephrasing it as a question
+   does not rescue it: a question premised on a false proposal costs the reader exactly as much
+   time. State the problem and leave the fix to whoever owns the code. That is always available
+   and never wrong.
+
+   - **What happened:** a PR review inline ended "Worth one line mirroring the 'genuine API
+     surface' scoping and the OpenAPI exception at line 273." Both nouns were real and both were
+     read, so two full audits passed it. The OpenAPI exception requires those docs to be present;
+     the rule being edited already flags them when missing, so mirroring it in would have changed
+     nothing.
+
+6. **Prose** — full audit against `comments-docs-and-external-writing.md`: word slop, ambiguous
    references, exact-name repetition, tense precision, plan-scoped framing, bullet granularity.
-   **Wave 5 is a cutting wave, not a polishing wave.** Word slop is the cardinal sin, so this wave
-   exists to make the text shorter. A wave 5 that deletes nothing and only adjusts tense or a noun
-   is a wave 5 that did not run. Cut every sentence the reader can lose without losing meaning,
+   **Wave 6 is a cutting wave, not a polishing wave.** Word slop is the cardinal sin, so this wave
+   exists to make the text shorter. A wave 6 that deletes nothing and only adjusts tense or a noun
+   is a wave 6 that did not run. Cut every sentence the reader can lose without losing meaning,
    including sentences earlier waves added.
 
 ## Termination
 
-Stop when a wave finds **zero factual defects** (prose-only fixes don't reset the count).
+Stop when a wave finds **zero factual defects and zero unsound proposals** (prose-only fixes don't
+reset the count).
 Then stop self-passing: the same auditor re-reading the same evidence has hit its ceiling.
 
 **Never narrate the stop.** This section is instruction to you, not copy for the reply. Sentences

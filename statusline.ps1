@@ -1,4 +1,4 @@
-$j = [Console]::In.ReadToEnd() | ConvertFrom-Json
+﻿$j = [Console]::In.ReadToEnd() | ConvertFrom-Json
 
 $m = $j.model.display_name
 $mid = $j.model.id
@@ -45,6 +45,20 @@ if ($null -ne $r5h) {
 }
 if ($null -ne $r7d) {
     $parts += " | 7d: $([int]$r7d)%$(Format-RateLimit $r7d $j.rate_limits.seven_day.resets_at 168 $true $true)"
+}
+
+# Hand the 5-hour rate-limit reading to the PreToolUse hook, which gates tool calls on it.
+# This file is the only channel: the statusline payload carries rate_limits and the
+# PreToolUse payload does not. A write failure must never break the line.
+if ($null -ne $r5h) {
+    try {
+        [PSCustomObject]@{
+            five_hour_used_percentage = [int]$r5h
+            resets_at                 = $j.rate_limits.five_hour.resets_at
+            captured_at               = [DateTimeOffset]::Now.ToUnixTimeSeconds()
+        } | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath "$HOME/.claude/rate-limit-state.json" -Encoding utf8 -NoNewline
+    } catch { }
 }
 
 $cwd = $j.cwd
