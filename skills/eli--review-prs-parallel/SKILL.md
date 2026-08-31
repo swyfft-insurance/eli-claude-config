@@ -168,6 +168,23 @@ Create a `TaskCreate` entry per PR review and one for "Synthesize findings" bloc
 
 If any agent exceeds **1.5× the 5-minute budget** (i.e., >7.5 min wall-clock), abandon it via `TaskStop` immediately. No rationalizing, no "still plausible". Drop that PR from the batch and tell Eli so he can re-launch with a tighter scope.
 
+### 3b. A task notification is not a turn — emit NOTHING
+
+A subagent-completion notification is not a message from Eli, so it never earns a reply. While a
+PR presentation sits awaiting his decision, every notification that arrives produces **zero
+user-facing output**. No acknowledgement, no queue count, no "holding this until you decide", no
+"all six are in", not one word. Mark the task completed, keep the report for its turn in the walk,
+and stop.
+
+Reports arriving out of order changes nothing. Agents finish in whatever order they finish, and a
+report that lands early simply waits. Even when every agent has reported and nothing is left to
+run, the answer is still silence until Eli's next real message.
+
+Each of those status lines scrolls the pending question off his screen, so he has to hunt back
+through the transcript to find what he was being asked. That is the same harm the one-PR-at-a-time
+rule in step 4 exists to prevent, arriving by a different door: step 4 stops several PRs sharing
+one message, and this rule stops one PR's question being buried under narration of the others.
+
 ### 4. Present ONE PR AT A TIME — mandatory, never a batch
 
 **Never present more than one PR per message.** Not a summary table of all of them, not a
@@ -250,7 +267,11 @@ Present only what survives. If nothing survives for a PR, present that plainly a
 
 Eli must reply with the action for the PR just presented (e.g., "post it", "skip the second
 inline", "approve", "hold"). Acknowledgements, side-comments, or "thanks" are NOT approval. When
-in doubt, ask. Execute that PR's approved action (step 6) before presenting the next PR, or batch
+in doubt, ask.
+
+**Waiting means emitting nothing.** The presented PR's question must be the last thing on his
+screen when he answers it. Task notifications arriving during the wait get no output at all, per
+step 3b. Execute that PR's approved action (step 6) before presenting the next PR, or batch
 the executions at the end — either is fine, but the *presentations* are never batched.
 
 ### 6. Execute approved actions
@@ -304,6 +325,10 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 - **One PR per message, always.** The parallelism belongs to the subagents, not to the presentation. A summary table covering several PRs, a grouped recommendation list, or any message naming more than one PR's findings violates step 4. This gets corrected every time it happens — do not reinvent the batch table because it looks tidier.
 - **A subagent finding is a hypothesis, not a result.** Step 4b's fact-check is not optional and not a formality: findings from a capped 5-minute review fail verification often, most often by describing intended and already-tested behavior as a defect. Retract rather than rewrite, and never present a finding with a hedge about the part you did not check.
 - **Check every PR's base ref for stacking (step 1b).** Several Swyfft devs stack PRs routinely, Justin especially. A base that is not `development` changes which tree the agent must read, changes the presentation order to parent-first, and is merge-order context Eli needs stated in a sentence. It is never a review finding.
+- **Silence is the whole behavior while a presentation is pending.** A background-task
+  notification is a system event, not a turn, and answering one costs Eli the question he was
+  reading. Never narrate agent arrivals, queue depth, or that the fan-out has finished. Step 3b
+  has the full rule.
 - **Gate 1.5**: If a finding makes me question whether a PR should be approved at all, STOP and ask Eli. Don't pivot from "clean approve" to "comment-only" on my own.
 - **Gate 2**: Every `pr-review.py` write (approve / comment / request-changes) waits for explicit approval. Acknowledgements aren't approval.
 - **Don't fan out more than ~8 agents at once** — token cost on the user's session is real (`pre-pr-review.md`: "a runaway subagent burns tokens against their session budget").

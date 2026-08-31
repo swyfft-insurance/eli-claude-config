@@ -59,7 +59,7 @@ surface to the product line before validating a change:
 | Product line | Validation surface |
 |---|---|
 | Homeowner / residential | `/eli--prebind-validation` — captured asserts, config-ordering, quote-def index guards |
-| Commercial | premium-parity tests `CommercialEAndSByPerilRaterValidation*` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) and every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests` (`Swyfft.Console.IntegrationTests`, `CapturedAssertTests`) |
+| Commercial | premium-parity tests `CommercialEAndSValidationTests{Carrier}{State}` and `CommercialAdmittedValidationTests{Carrier}{State}` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) and every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests` (`Swyfft.Console.IntegrationTests`, `CapturedAssertTests`) |
 
 Never assume a skill applies across product lines because it's the one you usually reach for.
 
