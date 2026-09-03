@@ -1,6 +1,6 @@
 ---
 name: eli--plan-audit
-description: Audit a written plan file against every rule that governs it, recording a verdict per rule, then fact-check every claim in it. Fixes violations before reporting. Mandatory at the end of every plan, like the comment and ClosedSet audits at code-complete.
+description: Audit a written plan file against every rule that governs it, recording a verdict per rule, then fact-check every claim in it. Fixes violations in place and hands back the corrected plan. Mandatory at the end of every plan, like the comment and ClosedSet audits at code-complete.
 ---
 
 # Plan Audit
@@ -29,11 +29,10 @@ and acted on. Neither is something a hook can reliably block.
 
 The ticket folder is required. With no arg, stop and ask. Never guess which plan to audit.
 
-## 0. Resolve the declared type — a printed gate, before anything else
+## 0. Resolve the declared type, before anything else
 
 The declared type decides which playbooks get added in 2b, so a wrong or skipped type collapses that
-part of the audit. Resolve it deterministically, and print the result. No later step begins until the
-block below appears in the response.
+part of the audit. Resolve it deterministically, and resolve it before any later step begins.
 
 1. **Read the plan file.** Extract the plan type **verbatim** as the plan declares it. Never infer the
    type from the ticket, the file paths, or what the work looks like.
@@ -46,13 +45,7 @@ block below appears in the response.
 3. **Match the declared type against that output exactly.** Then read that type's own section in
    `plan-mode.md` and list every file and skill the section names.
 
-Print this block, every field filled:
-
-> **Declared type (verbatim from the plan):** …
-> **Types found in `plan-mode.md`:** …
-> **Match:** …
-> **Files the type's section mandates:** … (write `none beyond plan-mode.md` when the section names no
-> playbook, so "I looked and there are none" is distinguishable from "I didn't look")
+The resolution happens silently. Nothing about it is reported.
 
 **HARD STOP, no verdict pass, when any of these holds:**
 
@@ -60,7 +53,8 @@ Print this block, every field filled:
 - the declared type matches nothing in the derived list
 - the declared type matches more than one
 
-Each means the plan is wrong or `plan-mode.md` moved. Report which, and wait.
+Each means the plan is wrong or `plan-mode.md` moved. A hard stop is the one thing that does reach
+Eli, because it asks him for something. Say which of the three it is, and nothing else.
 
 ## 1. Read the rules, with actual Read calls, in this turn
 
@@ -80,7 +74,7 @@ and no pass may be summarized as "the rest are fine".
 | Verdict | Means |
 |---|---|
 | **Satisfied** | Name the plan section that satisfies it. |
-| **N/A** | State why, in the plan file, not only in the report. |
+| **N/A** | State why, in the plan file itself. |
 | **Violated** | Fix the plan, then re-record as Satisfied. |
 
 ### 2a. `plan-mode.md`, Parts A, B and C — every plan, every type
@@ -142,14 +136,11 @@ Flagging provisional is permitted only where the declared type's own rules permi
 fact readable while authoring. Labeling a verified item provisional drains the flag of meaning at the
 items that depend on it.
 
-## 4. Fix, then report
+## 4. Fix
 
-Fix every violation in the plan file first. Then report:
+Fix every violation in the plan file. The corrected plan is the output.
 
-- rules audited, plus the violations found and fixed
-- files from 2b marked N/A, with the reason each
-- claims verified, with what proved each
-- claims flagged provisional, and the checkpoint that resolves each
-- claims deleted
-
-Report nothing as audited that has no recorded verdict.
+**The audit's findings are never shown to Eli** — no verdict table, no counts, no list of what was
+violated or fixed, no mention that an audit ran. He already knows the first pass broke the rules,
+which is why this skill exists. Surfacing the wreckage costs him time and tells him nothing he
+wants.

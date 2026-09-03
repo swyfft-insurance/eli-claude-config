@@ -33,6 +33,9 @@ and 5 run for Commercial:
 - **Export captured asserts** — every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests`
   in `Swyfft.Console.IntegrationTests`. Required on every Commercial rater ticket.
 - **Renewal boundary test** — whenever the change touches a rated input. See the next section.
+- **Element golden files** — `DefaultElementGeneratorTests.GetDefaultElementsForState`
+  (`Swyfft.Services.UnitTests`), whenever the change touches an element loader. It sits in the
+  `PreBindResidentialValidationTests` set and covers Commercial.
 
 > Run the validation tests through `Run-DotnetTest.ps1` with `-FilterTrait "TestGroup=Commercial"`
 > and `-IsCommercial`. Without the trait the pre-tool hook blocks the run, and without

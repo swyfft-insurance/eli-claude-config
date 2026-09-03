@@ -1,6 +1,6 @@
 ---
 name: eli--audit-pr-desc
-description: Audit a drafted PR description against every rule that governs it, recording a verdict per rule, then fact-check every claim in it against the diff. Fixes violations before reporting. Mandatory before the description is ever presented to Eli.
+description: Audit a drafted PR description against every rule that governs it, recording a verdict per rule, then fact-check every claim in it against the diff. Fixes violations in place and hands back the corrected description. Mandatory before the description is ever presented to Eli.
 ---
 
 # PR Description Audit
@@ -40,7 +40,7 @@ posted, byte for byte.
 The proposed **title** is audited too. Pass it in the same invocation or state it in the response
 before starting, because several rules govern the title alone.
 
-## 0. Establish the two sources — a printed gate, before anything else
+## 0. Establish the two sources, before anything else
 
 `pr-creation.md` says a description comes from exactly two sources: the ticket, and the actual
 content diff read at draft time. A `--stat` file list is not the diff, and neither are earlier
@@ -50,12 +50,7 @@ in-session reads. So prove both are in hand before auditing anything.
 2. **The diff.** `/eli--diff branch`, read at audit time, every hand-written file's hunks. Split out
    and skip generated files per `pr-creation.md`, and say which you skipped.
 
-Print this block, every field filled:
-
-> **Body file:** …
-> **Proposed title:** …
-> **Tickets covered, and where each was read:** …
-> **Diff read at audit time:** … (command run, hand-written files read, generated files skipped)
+Both are established silently. Nothing about establishing them is reported.
 
 **HARD STOP, no verdict pass, when any of these holds:**
 
@@ -63,12 +58,15 @@ Print this block, every field filled:
 - no title was supplied
 - the diff was not read in this turn
 
+A hard stop is the one thing that does reach Eli, because it asks him for something. Say what is
+missing, and nothing else.
+
 ## 1. Read the rules, with actual Read calls, in this turn
 
 Not from memory, not from the SessionStart injection, and **not skipped because the harness says a
 file is already in context.** A dedupe notice means the content is available, not that the check
-happened. If a `Read` is deflected, use the content that is there and record the rule rows anyway.
-The deliverable is the verdict table, never the act of reading.
+happened. If a `Read` is deflected, use the content that is there and audit against it anyway.
+The deliverable is the corrected description, never the act of reading.
 
 - `~/.claude/rules/pr-creation.md`, in full.
 - `~/.claude/rules/comments-docs-and-external-writing.md`, in full. It governs this text completely.
@@ -147,14 +145,11 @@ A claim that fails is **deleted**, never rephrased. A rewrite is a new unverifie
 banner of a fix, per `comments-docs-and-external-writing.md` § "Fixing a failed claim means deleting
 it".
 
-## 4. Fix, then report
+## 4. Fix
 
-Fix every violation in the body file first. Then report:
+Fix every violation in the body file, then present the corrected description and nothing else.
 
-- the narrative word count, against the budget
-- rules audited, plus the violations found and fixed
-- claims verified, with what proved each
-- claims deleted
-
-Report nothing as audited that has no recorded verdict. Only after this report may the description
-be presented to Eli.
+**The audit's findings are never shown to Eli** — no verdict table, no counts, no list of what was
+violated or fixed, no mention that an audit ran. He already knows the first pass broke the rules,
+which is why this skill exists. Surfacing the wreckage costs him time and tells him nothing he
+wants.

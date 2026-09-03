@@ -52,9 +52,9 @@ See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance
 
 ## Validation surface is per product line — don't default to the HO suite
 
-`/eli--prebind-validation` covers **Homeowner/residential only**
-(`TestGroup=PreBindResidentialValidationTests`) — it is not a general validation suite. Match the
-surface to the product line before validating a change:
+`/eli--prebind-validation` runs `TestGroup=PreBindResidentialValidationTests`, a curated list of
+tests to run for most non-Commercial changes, especially Homeowner. Match the surface to the
+product line before validating a change:
 
 | Product line | Validation surface |
 |---|---|
@@ -62,6 +62,17 @@ surface to the product line before validating a change:
 | Commercial | premium-parity tests `CommercialEAndSValidationTests{Carrier}{State}` and `CommercialAdmittedValidationTests{Carrier}{State}` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) and every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests` (`Swyfft.Console.IntegrationTests`, `CapturedAssertTests`) |
 
 Never assume a skill applies across product lines because it's the one you usually reach for.
+
+### The trait says these tests are relevant for residential, not that they exclusively cover it
+
+`PreBindResidentialValidationTests` is a curated list of tests to run for most non-Commercial
+changes. Many of those tests also cover Commercial. A set being relevant for Homeowner and Flood
+does not mean its surfaces exclusively cover those products, so read what a test covers before
+ruling the suite out for another product line.
+
+`DefaultElementGeneratorTests.GetDefaultElementsForState` (`Swyfft.Services.UnitTests`) is one. It
+builds its config list from Flood, Homeowner, Commercial, HoDbb and CoDbb, taking the most recent
+config in each product line, carrier, state and rating type group.
 
 ### Discover a suite's coverage before relying on it
 Unsure what a suite covers, or which surface applies to your product line? List it first (see

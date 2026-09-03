@@ -302,6 +302,22 @@ See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the
 
 The convention text and examples are canonical in `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket" — read it every time; don't work from memory. Treat a missing ticket note the same as a missing seeder override or a missing test — the plan is not done without it.
 
+## Unversioned changes: the plan must test quotes created before the change (MANDATORY)
+
+An unversioned change reaches quotes that already exist. They were created against the old definition and still carry the data it produced, so they break in ways a new quote never will.
+
+Test helpers create new quotes. New quotes and renewals have established, consistent ways to construct them. A quote created before the change has none, so building one is deliberate work on every ticket.
+
+The plan names a test that simulates the data such a quote carries, and names how that test builds it. The how differs every time (a persisted row the config no longer produces, a stale element binding, a value the new definition cannot emit), so there is no standard mechanism to reach for. A plan without it is incomplete, HARD STOP.
+
+The rule binds when the change narrows what the definition can represent: an element removed, a
+choice dropped, a range tightened, a type changed.
+
+A change that strictly enlarges the values an existing element may hold carries no such test.
+Every plan states which of the two its change is, and why.
+
+- **What happened:** SW-51772 and SW-55072 each removed an element from a live config unversioned. Both passed on new quotes, both blocked existing quotes at the purchase gate, both shipped to prod and needed hotfixes (#21334, #22626).
+
 ## Mandatory sections that live in repo docs — copied VERBATIM into the plan
 
 When a mandatory convention lives in a repo doc (a `CLAUDE.md`, etc.), do NOT duplicate its text into this rules file — the repo doc is the single source of truth. Instead, every plan that triggers the convention MUST copy the convention's text VERBATIM into the plan file itself, physically inserted at the top (the same way the Excel-rater HARD RULE is inserted). This rule names the trigger and points to the source; the plan carries the actual text. Applies to every mandatory section that lives in a repo doc.
@@ -378,10 +394,12 @@ Verification ends when (a) all agreed-upon tests pass and (b) the user explicitl
 
 The skill began as captured-assert-only but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/eli--prebind-validation` in the execution sequence.
 
-**This default is Homeowner/residential.** `/eli--prebind-validation` is the residential suite
-(`PreBindResidentialValidationTests`). For Commercial (or other non-HO) work it is the wrong
-surface — use the commercial validation instead. See `testing-execution.md` § "Validation surface
-is per product line — don't default to the HO suite".
+**This default is aimed at Homeowner/residential.** `/eli--prebind-validation` runs
+`PreBindResidentialValidationTests`, a curated list of tests to run for most non-Commercial
+changes. That the set is relevant for Homeowner and Flood does not mean its tests exclusively cover
+those products, and many of them also cover Commercial. For Commercial rating work, use the
+commercial validation. See `testing-execution.md` § "Validation surface is per product line —
+don't default to the HO suite".
 
 ### Never list a test a verification skill already runs
 

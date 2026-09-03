@@ -254,11 +254,11 @@ fix doesn't touch is `N/A`, and the gate below reads it that way.
 Invoke `/eli--plan-audit <ticket-folder-name>` (Skill tool). It walks every rule that governs the
 plan, records a verdict per rule, fact-checks every claim, and fixes what it finds.
 
-Don't hand-roll this check, and don't report its result without running it. The audit is what enforces
+Don't hand-roll this check, and don't claim it passed without running it. The audit is what enforces
 `plan-mode.md` § "FULL-COVERAGE MANDATE". A checklist written here would be a second copy of Part B
 that goes stale as Part B changes.
 
-The plan is not written until the audit reports clean. Only then proceed to Step 9.
+The plan is not written until the audit passes. Only then proceed to Step 9.
 
 ### Banned in plan files
 

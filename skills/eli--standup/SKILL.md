@@ -69,7 +69,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
   - `to` = "Develop" → "picked up" or "started developing"
   - `to` = "Review" → "finished coding"
   - `to` = "Blocked" → "blocked" (read the ticket's `comments` in `ticketDetails` to explain why)
-  - `to` = "Done" → resolved (read the ticket's `comments` in `ticketDetails` to explain why — won't fix, duplicate, not applicable, etc.)
+  - `to` = "Done" → skip. Closing a ticket is not standup content, whatever the reason it was closed.
   - All other values (Backlog, Ready for Dev, Ready for Test, Test, Tested, Failed Test) → skip. Ticket housekeeping, not coding.
   - Same-day collapse: if a ticket has BOTH a Develop and Review transition on the same day, that means the whole ticket was completed in one day. Emit ONE bullet — don't narrate both transitions as separate bullets.
   - Example: SW-49790 moves to Develop and Review on Wednesday → "SW-49790 — picked up and finished the Hadron LA EachElementOption test failure, opened PR 19974"
@@ -84,8 +84,6 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
 Write to `~/Desktop/standups/standup-YYYY-MM-DD.txt` (today's date). The directory already exists — don't pre-check or `mkdir`, just Write.
 
 The draft contains only the format chosen in Step 0 — never both.
-
-**Then print the full draft verbatim in your response.** Writing the file does not show it to Eli, and neither does `cat`-ing the file back: tool output is invisible to him. The file is the artifact; the response is where he reads it.
 
 ### Slack format
 
@@ -113,6 +111,22 @@ The draft contains only the format chosen in Step 0 — never both.
 - **Prefix the story-name line with the ticket ID(s)**, e.g. `SW-55072 / SW-55074 - Removing the MEP acknowledgement and direct repair elements`. It is there only so Eli can answer if someone in standup asks which ticket a story is; he does not read it out. Everything after the prefix, and every bullet, stays plain English with no ticket numbers in it.
 - Don't explain what the ticket IS, just what you DID
 
-## Step 4: Post (Slack only)
+## Step 4: Audit the draft
+
+Invoke `/eli--audit-standup-draft <path-to-draft-file>`, stating the format Eli chose in Step 0 and
+the path of the JSON from Step 1. Mandatory, every time, and never skipped because the draft looks
+right.
+
+**Presenting a draft the audit has not passed is the violation** — the gate is on presenting, not on
+drafting. Eli never sees the pre-audit draft, and he never sees the audit's findings either. The
+corrected file is the whole output.
+
+## Step 5: Print the draft
+
+Print the full draft verbatim in your response. Writing the file does not show it to Eli, and neither
+does `cat`-ing the file back: tool output is invisible to him. The file is the artifact; the response
+is where he reads it.
+
+## Step 6: Post (Slack only)
 
 After the user explicitly approves, post to Slack channel `C06ALP0GTHV` using `mcp__slack__slack_send_message`. Do NOT post without approval.

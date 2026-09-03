@@ -100,7 +100,7 @@ Then stop self-passing: the same auditor re-reading the same evidence has hit it
 like "remaining defects are for a different reader" are skill boilerplate, and pasting them into the
 reply is filler that describes the process instead of delivering the text.
 
-## Report
+## Output
 
 **The reply is the revised text, verbatim, and nothing else.**
 
