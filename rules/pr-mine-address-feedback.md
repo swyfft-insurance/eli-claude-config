@@ -19,6 +19,7 @@
   - NY QBE: Coverage B/D start at V2. Coverage C starts at V1, but the rater handles it.
   ```
 - Reply to threads → resolve every thread. Merge queue requires it.
+- **Keep replies short.** See `comments-docs-and-external-writing.md` § "PR review prose: the shortest thing that lands the point".
 - **Version ambiguity in replies**: when a "V1"/"V2" reference could mean either a state config or a lookup, qualify with the class-prefixed shorthand. See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".
 - **Gate 2 applies to PR comments.** Draft reply text in your response and wait for explicit approval before posting. This includes thread replies, review comments, and PR body edits.
 - GraphQL for resolving threads: query via `repository.pullRequest.reviewThreads`, NOT via `node(id:)` on PullRequestReviewComment (field doesn't exist).
@@ -34,6 +35,32 @@ Copilot writes when it declines to post a finding as a thread. Ignored means not
 presented for triage.
 
 This is specific to Copilot. A human reviewer's top-level comment is still real feedback.
+
+<!-- Added 2026-09-03 after PR #22620 — Eli: Ehren's AI reviews are mostly confirmatory; stop
+     presenting acknowledgements as decisions. -->
+## An inline comment is not automatically a request
+
+Read each inline comment and decide from its own words whether it asks for anything. Length is not
+actionability, and neither is a file:line anchor.
+
+This matters most on the AI-authored reviews Ehren posts, signed "Reviewed as Claudulina (AI)".
+Those verify the change against the code and record what they checked, so most of their text
+confirms the PR is correct, and an APPROVED state says so outright.
+
+**Present only the actionable content for a ruling.** Actionable means a change is requested, a
+question is asked, or a claim is wrong and the record should not carry it. Confirmations,
+verification receipts, precedent notes, and context recorded for a future reader need no decision
+from Eli, and surfacing them as decisions buries the real ones.
+
+Two traps:
+
+- **A soft suggestion inside a confirmatory comment.** "Worth a line in the PR body" under a
+  paragraph praising the change is not a change request. Weigh it in the reply rather than
+  promoting it to a ruling.
+- **Framing agreement as a decline.** When the reviewer asks for nothing, a reply that "declines"
+  invents a dispute. Correct a wrong claim, acknowledge a right one, stop.
+
+Not actionable is not the same as not answered: still reply to the thread, still resolve it.
 
 ## Order of operations: push before replying
 

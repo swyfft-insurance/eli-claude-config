@@ -68,6 +68,24 @@ var address = TestAddressHelper.GetTestAddressesFiltered(
     ratingType: RatingType.EAndS, state: StateCode.NY).First();
 ```
 
+<!-- Added 2026-09-02 during SW-55797 — a helper-sourced address was flagged as non-deterministic in
+     review and the recommended fix was to revert to a hardcoded constant -->
+
+**Helper-selected addresses are not a determinism finding.** When the test asserts on something the
+address doesn't feed — a decline, a score, a fee — every address the helper returns for that product
+line, carrier, rating type and state proves the same thing, so a different one next run changes
+nothing. Reverting such a lookup to a hardcoded constant makes the test worse, because constants rot
+as address viability changes.
+
+When an address attribute *is* the input under test — county, distance to coast, year built,
+territory — filter or pin for that attribute and say why.
+
+Otherwise helper selection is never a defect, and never a FIRST Repeatable violation. Repeatable
+means the same result, not the same scaffolding.
+
+- **What happened:** a helper-sourced address was flagged as non-deterministic, and the recommended
+  fix was to revert to a hardcoded constant.
+
 ## Setup asserts — verify the arrange before testing behavior
 
 After arranging a test — especially when a helper/builder/factory creates the subject (a quote,

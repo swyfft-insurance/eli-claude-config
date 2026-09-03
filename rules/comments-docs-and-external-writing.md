@@ -191,6 +191,19 @@ unit per bullet); this rule governs when bullets are required.
 |---|---|
 | "The quote page would still have hidden the sliders, the confirmation page would have stopped rendering them, and the printed quote would have hidden them too, so the confirmed years would not have displayed anywhere." | "Under that filter, after the agent confirmed the years:<br>• the quote page would still have hidden the sliders<br>• the confirmation page would have stopped rendering them<br>• the printed quote would have hidden them too<br>So the confirmed years would not have displayed on any of those three surfaces." |
 
+<!-- Added 2026-09-03 after PR #22620 — Eli: reviews must be as concise as possible, both directions. -->
+## PR review prose: the shortest thing that lands the point
+
+Applies to every PR review comment and reply, both reviewing others' PRs and replying on your own.
+
+Say the finding, cite the evidence, stop. One or two sentences per point; a paragraph is the
+exception and needs a reason.
+
+- **Cite, don't recount.** `File.cs:42` beats a description of what the file does.
+- **No verification receipts.** What you checked is not a finding. Give the conclusion.
+- **Don't restate the diff, or the reviewer's comment beyond the quote you reply under.**
+- **Agreement is one sentence.** "Agreed, fixed in `<sha>`."
+
 ## Consistent bullet granularity — don't mix single- and multi-item bullets
 
 Within one list, every bullet holds the same unit: one item per bullet throughout, or the same grouping throughout. Never put a single-item bullet next to a sibling that crams several distinct items behind commas. If the items are worth listing, give each its own bullet; if they're worth grouping, group them all the same way. Mixed granularity reads as sloppy and makes the reader wonder whether the comma-jammed items are different in kind from the standalone ones.
@@ -200,6 +213,31 @@ Applies to all prose: chat replies, Slack, code and doc comments, PR description
 | Bad (mixed granularity) | Good (consistent) |
 |---|---|
 | • policy fee (`DbbPolicyFee`)<br>• state tax, service fee, stamping, SLIP+ | • policy fee (`DbbPolicyFee`)<br>• state tax (`DbbStateTax`)<br>• service fee (`DbbServiceFee`)<br>• stamping fee (`DbbStampingFee`)<br>• SLIP+ (`SurplusLinesServiceFee`) |
+
+<!-- Added 2026-09-01 while closing SW-55518 — Eli: codify the RCA outline rather than improvising
+     one per ticket. Sections reconciled from Google's published SRE postmortem template
+     (https://sre.google/workbook/postmortem-culture/) against the three RCAs on SW-51664. -->
+## RCA structure
+
+An RCA posted on a ticket uses these headings, in this order. Skip a section that has nothing to
+say. Never reorder them.
+
+- **`## Root Cause Analysis: <subject>`** — one line naming what failed.
+- **Scope** — the exact records the RCA covers: quote ids, policy numbers, configs, environment. One
+  or two sentences.
+- **Root cause** — the mechanism, each claim carrying the file:line, query, or log line that proves
+  it. Hypothesis and proven stay labeled separately.
+- **Timeline** — dated events, one per line, in order. Include it when the sequence is what explains
+  the failure. Omit it when it isn't.
+- **Customer impact** — what was charged, shown, or sent wrongly, or "None" with the reason.
+- **Conclusion** — the disposition in the first three words: not a defect, fixed, spun off to
+  SW-XXXXX, or no action with reason.
+
+A correction to an earlier RCA is a new comment headed `## Correction`, naming what the previous RCA
+got wrong before giving the new cause. Never edit the original.
+
+The sections the SRE template carries that these drop — Lessons Learned, Action Items with owners,
+Glossary, Appendix — assume a multi-team incident postmortem. A ticket RCA covers one defect.
 
 ## Tense precision — don't state the future or a hypothesis as present fact
 

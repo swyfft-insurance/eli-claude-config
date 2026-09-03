@@ -16,7 +16,10 @@ Batch JSON shape:
       {"type": "comment",         "issue": "SW-1", "text": "..."},
       {"type": "link",            "issue": "SW-1", "linkType": "duplicates", "target": "SW-2"},
       {"type": "setStage",        "issue": "SW-1", "value": "Done"},
-      {"type": "setReleaseStage", "issue": "SW-1", "value": "NA"}
+      {"type": "setReleaseStage", "issue": "SW-1", "value": "NA"},
+      {"type": "setAssignee",     "issue": "SW-1", "value": "eli.koslofsky"},
+      {"type": "addFields",       "issue": "SW-1",
+       "fields": {"Carrier": ["QBE"], "USState": ["NC", "NY"]}}
   ]}
 """
 
@@ -47,11 +50,31 @@ STAGE_VALUES = [
     "Ready for Test", "Test", "Failed Test", "Tested", "Done",
 ]
 RELEASE_STAGE_VALUES = ["NA", "Development", "Beta", "Production"]
+# The only assignee a batch may set. Assigning anyone else is a single action, not a batch.
+ASSIGNEE_VALUES = ["eli.koslofsky"]
 LINK_TYPES = [
     "duplicates", "relates to", "subtask of",
     "depends on", "is duplicated by", "parent for",
 ]
-ACTION_TYPES = ["comment", "link", "setStage", "setReleaseStage"]
+# Scoping fields an action may write, with every permitted value enumerated. The command
+# API takes a free-text query, so an unenumerated value would be a token-injection hole.
+FIELD_VALUES = {
+    "ProductLine": [
+        "Commercial", "HO", "Flood", "GRC",
+        "Deductible Buyback HO", "DP3", "Deductible Buyback CO",
+    ],
+    "Carrier": [
+        "Clear Blue", "Clear Blue Specialty", "Benchmark", "Vave", "Core Specialty",
+        "Topa", "Granada", "Hiscox", "NFIP", "TMK", "Brit", "Dorchester",
+        "Benchmark Specialty", "Emerald Bay", "Ark", "QBE", "Hadron",
+    ],
+    "RatingType": ["Admitted", "E&S"],
+    "USState": [
+        "AL", "MA", "TX", "NY", "NJ", "FL", "IL", "CA",
+        "LA", "NC", "WA", "SC", "VA", "OK", "MS", "GA",
+    ],
+}
+ACTION_TYPES = ["comment", "link", "setStage", "setReleaseStage", "setAssignee", "addFields"]
 
 
 def canonical_json(actions):
@@ -89,6 +112,8 @@ def validate(batch):
             "link": {"type", "issue", "linkType", "target"},
             "setStage": {"type", "issue", "value"},
             "setReleaseStage": {"type", "issue", "value"},
+            "setAssignee": {"type", "issue", "value"},
+            "addFields": {"type", "issue", "fields"},
         }[atype]
         extra = set(a.keys()) - allowed_keys
         if extra:
@@ -111,6 +136,32 @@ def validate(batch):
             if a.get("value") not in RELEASE_STAGE_VALUES:
                 errors.append(
                     f"{where}: Release Stage value {a.get('value')!r} not in {RELEASE_STAGE_VALUES}")
+        elif atype == "setAssignee":
+            if a.get("value") not in ASSIGNEE_VALUES:
+                errors.append(f"{where}: Assignee value {a.get('value')!r} not in {ASSIGNEE_VALUES}")
+        elif atype == "addFields":
+            errors.extend(_validate_fields(a.get("fields"), where))
+    return errors
+
+
+def _validate_fields(fields, where):
+    """Every field name and every value comes from FIELD_VALUES, so the command query the
+    executor builds can only ever contain enumerated tokens."""
+    if not isinstance(fields, dict) or not fields:
+        return [f"{where}: fields must be a non-empty object"]
+    errors = []
+    for name, values in fields.items():
+        if name not in FIELD_VALUES:
+            errors.append(f"{where}: field {name!r} not in {sorted(FIELD_VALUES)}")
+            continue
+        if not isinstance(values, list) or not values:
+            errors.append(f"{where}: {name} must be a non-empty array")
+            continue
+        if len(set(values)) != len(values):
+            errors.append(f"{where}: {name} repeats a value")
+        for v in values:
+            if v not in FIELD_VALUES[name]:
+                errors.append(f"{where}: {name} value {v!r} not in {FIELD_VALUES[name]}")
     return errors
 
 
@@ -130,6 +181,12 @@ def render(actions):
             lines.append(f"{i}. {a['issue']}: set Stage = {a['value']}")
         elif a["type"] == "setReleaseStage":
             lines.append(f"{i}. {a['issue']}: set Release Stage = {a['value']}")
+        elif a["type"] == "setAssignee":
+            lines.append(f"{i}. {a['issue']}: set Assignee = {a['value']}")
+        elif a["type"] == "addFields":
+            pairs = "; ".join(
+                f"{name} = {', '.join(values)}" for name, values in sorted(a["fields"].items()))
+            lines.append(f"{i}. {a['issue']}: add {pairs}")
     lines.append(f"=== END BATCH {h} ===")
     return "\n".join(lines)
 
@@ -193,6 +250,22 @@ def _api(method, url, payload, token):
 
 
 def _run_action(a, token):
+    if a["type"] == "addFields":
+        # One command per field/value pair. A single query listing two values of the same
+        # field parses greedily, and this project has prefix pairs ("Clear Blue" and
+        # "Clear Blue Specialty"), so one pair per query removes the ambiguity entirely.
+        # The command adds to a multi-value field rather than replacing it, which is what
+        # "addFields" says; clearing an existing value is not something a batch can do.
+        status = None
+        for name, values in sorted(a["fields"].items()):
+            for value in values:
+                status, body = _api(
+                    "POST",
+                    f"{YOUTRACK_BASE}/api/commands",
+                    {"query": f"{name} {value}", "issues": [{"idReadable": a["issue"]}]},
+                    token,
+                )
+        return status, body
     if a["type"] == "comment":
         return _api(
             "POST",
@@ -204,6 +277,7 @@ def _run_action(a, token):
         "link": lambda: f"{a['linkType']} {a['target']}",
         "setStage": lambda: f"Stage {a['value']}",
         "setReleaseStage": lambda: f"Release Stage {a['value']}",
+        "setAssignee": lambda: f"Assignee {a['value']}",
     }[a["type"]]()
     return _api(
         "POST",

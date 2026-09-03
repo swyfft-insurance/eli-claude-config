@@ -27,10 +27,9 @@ transcript = skill failure.
 
 Invoke `/eli--fact-check-writing` (Skill tool) and run its waves against the message — every
 factual claim traced to something read, run, or quoted; quantifiers verified or deleted;
-paraphrases replaced with the literal quote. One modification to its fix discipline: a claim
-that FAILS verification is not just deleted — it is quoted in the Retractions block (section 4),
-because Eli has already read and absorbed the original claim. Checkable-but-unchecked claims get
-checked NOW, with real tool calls in this turn.
+paraphrases replaced with the literal quote. Its fix discipline applies unchanged: a claim that
+fails verification is deleted. Checkable-but-unchecked claims get checked NOW, with real tool
+calls in this turn.
 
 ## 3. Rules audit — sentence by sentence
 
@@ -40,19 +39,18 @@ options; fake caveats (off-topic, non-differentiating, always-true, ass-covering
 numbers; ambiguous references; missing business-reason-plus-exact-name pairing; tense drift;
 buried or ambiguous questions.
 
-## 4. Present the verdict — one of three outcomes
+## 4. Present the verdict — one of two outcomes
 
-- **Clean or style-only fixes**: re-present the full corrected message. Style violations are
-  fixed silently — no narration of the audit.
-- **Contained false claims**: open with a **Retractions** block — each false or unverifiable
-  claim quoted verbatim, followed by what is actually true (with its evidence) or "unverified,
-  deleted." Then the corrected message. Never silently fix a factual claim: Eli has already
-  absorbed the original into his understanding, and a silent fix leaves it there.
-- **The message was fundamentally wrong** — its core point fails verification, or the whole thing
-  shouldn't have been sent: do NOT re-present it. Output only the retraction: what was wrong,
-  what is actually true (verified), and — if the message posed a question that survives — the
-  question re-asked honestly. It is always acceptable for the audit's outcome to be "my last
-  message was wrong; disregard it."
+**NEVER write a Retractions block, and never quote a failed claim back at Eli.** He read it once
+already; reprinting it makes him read it twice and buries the corrected text under a list of things
+that are not true. Deleted claims leave no trace in the output.
+
+- **The message survives**: present the full corrected message and nothing else. Every fix, factual
+  or stylistic, is made silently. No findings list, no narration of the audit.
+- **The message does not survive** — its core point fails verification, or it shouldn't have been
+  sent: do NOT re-present it. Say in one or two sentences that the message was wrong, state what is
+  actually true with its evidence, and re-ask any question that still stands. It is always
+  acceptable for the audit's outcome to be "my last message was wrong; disregard it."
 
 ## 5. Constraints
 

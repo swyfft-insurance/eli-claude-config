@@ -66,8 +66,8 @@ narrate the audit.
 
 Factual claims get more than the rules checklist: invoke `/eli--fact-check-writing` (Skill tool)
 and run its waves against the message before re-presenting. A claim that fails verification is
-retracted explicitly in the re-presented message — quoted, then corrected with evidence — never
-silently reworded.
+deleted. Never quote a failed claim back at Eli, and never write a Retractions block: he read it
+once already, and reprinting it buries the corrected text.
 
 ## 4. Blocked on a decision? That IS the question. Ask it.
 

@@ -32,6 +32,32 @@ Before ANY external action (Slack, YouTrack, GitHub, git commits, memory edits):
 
 "Explicit approval" = clear affirmative. Clarifications, side comments, context are NOT approval. When in doubt, ASK.
 
+### A failed publish is retried whole, never trimmed
+
+A gated action that fails on a technical error (schema, validation, transport) gets retried with the
+same payload once the error is fixed. Never reduce what is being sent to make the retry simpler, to
+make the re-ask shorter, or to get past the gate. The gate governs whether an action happens. It
+never governs what the action contains.
+
+- **Read the error before retrying.** A validation failure almost always names the fix, and often
+  prints the full schema. Reaching for a workaround without reading it is how a one-field shape
+  error turns into three dropped fields.
+- **Never drop fields, arguments, or content the first attempt carried.** If five fields went and
+  one was rejected, fix that one field's shape. The other four still go.
+- **Never re-ask for something narrower than the draft that was approved.** Approval attaches to the
+  draft shown. A narrower retry is a different action, and it gets its own draft, stated as narrower.
+- **The approval hook's "one action, short enough that a bare yes answers it" bounds how many
+  actions you request, not what an action contains.** Shrinking the action to satisfy it is gaming
+  the gate.
+
+State every difference between the retry and the first attempt, in the re-ask.
+
+<!-- Added 2026-08-31 -->
+- **What happened:** a YouTrack create set ProductLine, Carrier, RatingType and USState and failed
+  because ProductLine takes an array. The retry set four fields, silently dropping the three
+  scoping ones, and that reduced shape was then repeated across four more issues. Caught only
+  because Eli noticed the fields were empty.
+
 ## Gate 3: Verify before claiming
 Never state something as fact unless you've actually verified it by reading the relevant data.
 - "I cannot do X" is also a claim — try it first

@@ -18,7 +18,7 @@ This file is organized into three parts by lifecycle stage:
 
 - **Part A** — the plan was co-designed via Q&A, with no deferred decisions and only genuine options.
 - **Part B** — every mandated section is written into the file (or marked `N/A — <reason>` for the conditional ones).
-- **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the comment self-audit, the ClosedSet self-audit, line-length, magic-number extraction, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
+- **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the comment self-audit, the ClosedSet self-audit, the PR-description audit, line-length, magic-number extraction, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
 
 If a rule appears anywhere in this file, it must be reflected in the plan. A plan that silently drops any rule is incomplete — the same as a missing test or seeder override. This is exactly why the skill mandates re-reading the rules between every step: so nothing falls out of working memory and gets dropped after a couple of actions. `/eli--plan-audit` enforces this mandate. It runs on every plan before the plan counts as written, whether the plan came from `/eli--create-plan-from-ticket` or was written by hand.
 
@@ -146,6 +146,25 @@ have explained — that's a planner discipline failure.
 ## Plan Types
 
 Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.
+
+<!-- Added 2026-09-02 while planning SW-55802 — Eli: a "missed requirement" filed as a Bug is a
+     Feature; the Bug type's diagnosis machinery and thin-plan carve-out are both wrong for it -->
+### Picking the type: the YouTrack IssueType is not the classifier
+
+Ask one question: **does the code do what it was written to do?**
+
+- **Yes, and someone wants it to do something else** → Feature. A requirement nobody implemented is
+  a missed requirement, not a defect.
+- **No, it diverges from its own intent** → Bug Fix.
+
+A ticket filed as a Bug routinely fails that test. `IssueType: Bug`, a Current Result / Expected
+Result template, a Found-in-Stage of Beta, and a QA reporter are all how correct-but-unwanted
+behavior gets reported. None of them says anything malfunctioned.
+
+Misreading a missed requirement as a bug costs twice. Pass 0 hunts for a mechanism whose answer is
+only "this was never built," and the Bug type's carve-out ("Part B's full apparatus does not apply")
+strips the seeder overrides, config ticket notes, and full Verification structure off a change that
+is a behavior change and needs all of them.
 
 <!-- Restructured 2026-08-19 while planning SW-54482/SW-54691 — Eli: a bug plan can't be cemented
      before the defect is diagnosed AND proven, and the proof may disprove the bug. The old shape put
@@ -345,6 +364,9 @@ Tests that should still pass without edits — list with a one-line "why this is
 ### Code-complete self-audit (comments + ClosedSets) — REQUIRED in EVERY plan
 A written step in the execution sequence, before the code-complete HARD STOP, to re-read `~/.claude/rules/comments-docs-and-external-writing.md` and `Swyfft.Common/SetDefinitions/CLAUDE.md` and audit every comment and ClosedSet usage the diff adds or changes. This audit is already mandatory at execution time (Part C §§ "Comments", "ClosedSets") — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a missing test or seeder override.
 
+### PR-description audit — REQUIRED in EVERY plan
+A written step, in the plan's own post-verification sequence, to run `/eli--audit-pr-desc` on the drafted body file **before the description is presented**. Mandatory at execution time (Part C § "Post-Test-Approval Sequence" step 6) — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional, exactly like the code-complete self-audit above.
+
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
 
@@ -409,7 +431,14 @@ which violates step 4's discuss-first rule. Create the PR by hand, following the
 3. Run `/review-pr` against the pushed state.
 4. **Discuss `/review-pr` findings with the user.** Don't autonomously start fixing. `/review-pr` is the first reviewer of completed work, not a safety net — plan for it to find nothing.
 5. If findings warrant action: push ONE additional commit. **Do not run a second `/review-pr` after that commit.** One adversarial review per branch, full stop.
-6. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md` before drafting the PR description.** No exceptions. No "I just read it." No "I remember the rules." Then draft the PR description following those rules, present it to the user, and iterate until they explicitly approve the text. **HARD STOP — do not proceed until the description is signed off.**
+6. **Draft the PR description, then audit it before Eli sees it.**
+   1. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md`.** No exceptions. No "I just read it." No "I remember the rules." If the harness reports the file is already in context, that is a dedupe notice about the *read*, never permission to skip the *rules* — use the content that is there.
+   2. Write the draft to a body file under the ticket's `artifacts/pr/`.
+   3. **Run `/eli--audit-pr-desc <body-file>`.** Mandatory, every time. It walks the draft against `pr-creation.md` and `comments-docs-and-external-writing.md` rule by rule, counts the narrative against the word budget rather than estimating it, fact-checks every claim against the diff, and fixes what it finds.
+   4. Only then present the description. **Presenting a description the audit has not passed is the violation** — the gate is on presenting, not on drafting. Eli never sees the pre-audit draft.
+   5. Iterate until Eli explicitly approves the text. **HARD STOP — do not proceed until the description is signed off.**
+
+   Having the rules in context does not produce a description that follows them. The word budget has been blown by more than double on a one-line diff with `pr-creation.md` sitting in context the whole time, so the audit is a separate step precisely because it cannot then be skipped by feeling done.
 7. **HARD STOP** — wait for approval, then create the PR by hand (`gh pr create --body-file` per `pr-creation.md`). Never route through `/create-pr`.
 8. **After the PR is created, move the YouTrack ticket Stage to Review** (if currently Backlog, Ready for Dev, or Develop; leave it if already Review or later). The work isn't done until the ticket reflects the PR.
 
@@ -431,6 +460,31 @@ When a wrapped construct has multiple peer items (e.g., theory data rows, parame
 This applies only to lines newly written or modified by the current change. Pre-existing long lines that aren't being touched stay as-is — don't hijack the diff to reformat unrelated code.
 
 **Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. `~/.claude/scripts/Build-Solution.ps1` runs this as a pre-build gate (and aborts the build on failure), so a plan that already builds does NOT need a separate line-length verification step — call it out standalone only when the plan doesn't build (e.g. markdown-only changes) or as a pre-build self-check. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
+
+<!-- Added 2026-09-02 during SW-55797 — Eli: formatting was allowed to reopen an approved code
+     decision, and the conflict was presented to him as a blocker to adjudicate -->
+
+**Line length never dictates code shape.** The 120-character limit is presentation. The code's
+structure is the substance, and the two are never traded against each other. When a change makes a
+line too long, wrap the line. Never restructure working code, never split or merge a method, never
+alter an approved design, and never reopen a settled decision to make lines fit. C# wraps at any
+token, so a legal wrapping always exists.
+
+This covers a line that only moves. Re-indenting an over-length line makes it a modified line, so
+it gets wrapped in the same edit. That is mechanical work, not a finding.
+
+A line-length violation is therefore never a blocker, never a HARD STOP, and never an option put to
+Eli. Presenting one that way is a fake blocker. It halts delivery over whitespace and asks Eli to
+adjudicate formatting.
+
+- **What happened:** nesting a switch re-indented two already-long lines. That was raised as a
+  blocker, with a restructure of the approved code offered as the way around it.
+
+## Identifier names
+
+<!-- Added 2026-09-02 after SW-53770 Part 4 — Eli mandated the naming standard be pointed at from every plan -->
+
+Every plan points at `~/.claude/rules/coding-standards.md` § "Identifier names must be self-documenting", and every identifier in its code excerpts obeys it. Identifier names are audited at the code-complete self-audit alongside comments and ClosedSets.
 
 ## Magic Numbers / Strings
 

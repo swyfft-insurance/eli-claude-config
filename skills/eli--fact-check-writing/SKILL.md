@@ -33,8 +33,9 @@ call.
 
 **THE AUDITED TEXT MUST COME OUT SHORTER. A longer draft is a FAILED AUDIT, full stop.** An audit
 is a subtraction pass. If the fixes were all replacements and the text grew, you did not audit it,
-you padded it — go back and cut. Report the word count before and after in the reply; a delta at or
-above zero is reported as a failure, not shipped as a result.
+you padded it — go back and cut. Check the word count before and after; a delta at or above zero
+means go back and cut again rather than ship it. Keep the count to yourself, it never goes in the
+reply.
 
 The seductive failure is the receipt: Gate 3 requires an absence or universal claim to carry its
 verification inline, so you reach for another clause to support the claim instead of deleting the
@@ -101,15 +102,13 @@ reply is filler that describes the process instead of delivering the text.
 
 ## Report
 
-After each wave: the wave name, each finding, and its disposition (**deleted** / replaced-with-quote
-/ verified-and-kept). No findings → say "wave N: clean".
+**The reply is the revised text, verbatim, and nothing else.**
 
-**Nothing else.** No preamble, no reflection on how the audit went, no explanation of why a fix was
-chosen, no self-criticism, no promises about future passes. The reply is the findings, the word-count
-delta, and the text. Every other sentence is filler and violates the rule the audit is enforcing.
+No findings list, no per-wave dispositions, no word-count delta, no preamble, no reflection on how
+the audit went, no explanation of why a fix was chosen, no self-criticism, no promises about future
+passes. **Never quote a failed claim back at Eli, and never write a Retractions block.** He read the
+original once already; reprinting the parts that were wrong makes him read them twice and buries the
+text he actually needs. A deleted claim leaves no trace in the output.
 
-**Then PRESENT THE FULL REVISED TEXT, verbatim, in the reply.** The findings list is not the
-deliverable — the text is. Eli cannot approve, or even judge, prose he has not been shown; an audit
-log with no text attached forces him to go read a file to see what he is being asked about. Show the
-complete final text every time, even when the wave was clean, and even when the text is long. If the
-text was written to a file, it still gets shown in the reply.
+Show the complete final text every time, even when every wave was clean, and even when the text is
+long. If the text was written to a file, it still gets shown in the reply.

@@ -49,6 +49,8 @@ Review: @<author> (<state>)
 
 Only address **actionable** points — things that require a code change, an explanation, or a decision. Skip positive observations, summaries, and "looks good" comments. Present the actionable items to the user.
 
+**Read `~/.claude/rules/pr-mine-address-feedback.md` § "An inline comment is not automatically a request" before triaging.** An inline comment is not a request just because it exists, is long, or is anchored to a line — the AI-authored reviews Ehren posts are mostly confirmatory, and a soft aside buried in one ("worth a line in the PR body") is not a change request. Presenting a confirmation as a decision buries the decisions that are real.
+
 **Presentation rules:**
 
 - **IMPORTANT: Re-read this file before presenting each item.** Reading it once at the start does not hold — the entry shape decays within a few messages: the standalone **Recommendation** line disappears, the header / code block / comment-quote sub-fields get dropped on follow-ups, and separate items get merged back into one message. Re-read it between items, the same way plan execution re-reads its rules between steps.

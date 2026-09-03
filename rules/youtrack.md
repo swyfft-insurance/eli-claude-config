@@ -8,8 +8,12 @@ For multi-action closeouts (comment + link + Stage + Release Stage), use the bat
 asking for per-action approvals:
 
 1. Write a batch JSON: `{"actions": [...]}` with action types `comment`, `link`, `setStage`,
-   `setReleaseStage`. Allowed values are enumerated in `~/.claude/hooks/youtrack_batch.py` (the
-   single source of truth for validation and rendering).
+   `setReleaseStage`, `setAssignee`, and `addFields`. Allowed values are enumerated in
+   `~/.claude/hooks/youtrack_batch.py` (the single source of truth for validation and rendering).
+   Each action names its own issue, so one batch sets different fields on different issues:
+   `{"type": "addFields", "issue": "SW-1", "fields": {"Carrier": ["QBE"], "USState": ["NC", "NY"]}}`.
+   `addFields` covers the scoping fields `ProductLine`, `Carrier`, `RatingType` and `USState`. It
+   adds to a multi-value field rather than replacing it, which is why it is not called setFields.
 2. Stage it: `& "$HOME/.claude/scripts/YouTrack-Batch.ps1" -Stage -File <batch.json>` (read-only,
    never gated). It prints a canonical block and a content hash.
 3. Paste the canonical block in the response **verbatim, unedited** and ask for approval.
