@@ -220,6 +220,7 @@ def main():
         "attachments(id,name,mimeType,size,url)",
         "links(direction,linkType(name),issues(idReadable,summary))",
         "tags(name)",
+        "watchers(hasStar,issueWatchers(user(login,name)))",
     ])
     issue = api_get(
         f"/api/issues/{issue_id}?fields={urllib.parse.quote(issue_fields, safe='(),*')}",
@@ -228,7 +229,7 @@ def main():
 
     # --- Fetch all comments (paginated) ---
     comments = []
-    comment_fields = "id,text,author(login,name),created,updated,attachments(id,name,mimeType,size,url)"
+    comment_fields = "id,text,author(login,name),created,updated,mentionedUsers(login,name),attachments(id,name,mimeType,size,url)"
     skip = 0
     while True:
         batch = api_get(
@@ -291,6 +292,11 @@ def main():
         "customFields": extract_custom_fields(issue.get("customFields")),
         "fieldHistory": field_history,
         "tags": [t.get("name") for t in (issue.get("tags") or []) if isinstance(t, dict) and t.get("name")],
+        "watchers": [
+            extract_user(w.get("user"))
+            for w in ((issue.get("watchers") or {}).get("issueWatchers") or [])
+            if isinstance(w, dict) and w.get("user")
+        ],
         "links": [],
         "description": description_resolved,
         "comments": [],
@@ -316,8 +322,12 @@ def main():
     for c in comments:
         comment_text = c.get("text", "")
         output["comments"].append({
+            "id": c.get("id"),
             "author": extract_user(c.get("author")),
             "created": format_timestamp(c.get("created")),
+            "mentionedUsers": [
+                extract_user(u) for u in (c.get("mentionedUsers") or []) if u
+            ],
             "text": resolve_images(comment_text, downloaded_images),
         })
 

@@ -62,6 +62,22 @@ Never include:
 
 The test on every sentence: would the reviewer reach this on their own from the diff? Then cut it.
 
+## Attaching screenshots to a PR
+
+1. `gh pr create --attach "<path>#<alt text>"`, with no image markdown in the body.
+2. Read the `user-attachments` URL back: `gh pr view <n> --json body --jq '.body'`.
+3. Put that URL in the body file where the image belongs, then `gh pr edit <n> --body-file <f>`.
+
+```sh
+gh pr create --base development --title "[SW-55513] (CO) Widen the offset slider" \
+  --body-file ~/.claude/tickets/SW-55513-widen-offset/artifacts/pr/body.md \
+  --attach "C:\Users\eli.koslofsky\Pictures\Screenshots\slider.png#Offset slider showing -45 and 45"
+```
+
+```markdown
+![Offset slider showing -45 and 45](https://github.com/user-attachments/assets/0191ff92-611c-4ed6-aa7a-cd7788603f46)
+```
+
 ## Every ticket the PR covers goes in the title
 
 `youtrack-update-on-merge.yml` moves ticket stages off the `SW-XXXXX` IDs in the PR **title** — it
@@ -85,9 +101,10 @@ Enforced by `~/.claude/hooks/pretooluse.py` on `gh pr create`. No bypass.
 ## Name the product line in the title
 
 The product line goes in parens after the ticket brackets: `(HO)`, `(CO)`, `(Flood)`, `(DBB)`.
-More than one — `(HO, CO)`. Brackets stay reserved for ticket IDs.
+More than one — `(HO, CO)`. Then the ticket's `IssueType` in its own parens: `(Feature)`, `(Bug)`.
+Brackets stay reserved for ticket IDs.
 
-`[SW-54114] [SW-54115] (HO) Aug 8, 2026 base rate updates for AL and FL`
+`[SW-54114] [SW-54115] (HO) (Feature) Aug 8, 2026 base rate updates for AL and FL`
 
 Enforced by the same hook. Bypass with `# no-product-line` when the PR has no product line (build,
 CI, tooling).

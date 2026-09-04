@@ -243,6 +243,30 @@ A distinct plan type for rater-update tickets: actuarial delivers a new rater `.
 
 It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig ticket-note requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading the matching playbook in full is **MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or `~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared `~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads, the plan shape, the component→Excel-signal map).
 
+<!-- Added 2026-09-04 while planning SW-55585 -->
+### Excel Rater bug
+
+A defect in a rater already on disk, or in C#-vs-rater premium parity. No new rater is delivered.
+
+Follows the **Bug Fix** HARD STOP sequence above, and inherits the rater playbooks in full: reading
+`~/.claude/rules/excel-rater-plans-common.md` plus `ho-excel-rater-plans.md` or
+`co-excel-rater-plans.md` is MANDATORY, exactly as for a fresh rater. That covers the HARD RULE plan
+header, the pre-reads, seeder-first, blast radius, versioning, and the product's verification
+surface.
+
+**The product's parity suite is the guard. Never write a unit test for a rater-parity defect.** A
+unit test asserts C# against C#. The parity suite asserts C# against the rater.
+
+Bug Fix's "Part B's full apparatus does not apply" narrows Part B. It never drops a playbook
+requirement.
+
+Only the fresh-rater carve-out drops. With no delivery there is no baseline diff, so scope is not
+provisional and there is no scoping checkpoint.
+
+- **What happened:** SW-55585 was planned as a plain Bug Fix. The playbooks fell out of scope along
+  with the type, and a unit test was proposed for a defect the Commercial parity sweep already
+  guards.
+
 ### Audit-Doc LogMonitor (catch-all)
 
 For LogMonitor tickets on audit-doc generation failures (`GenerateAuditDocs - GenerateAuditDoc` signatures, HO or Commercial). These tickets are catch-alls: the LogMonitor matches the error *signature*, not specific quotes or root causes, so one ticket covers every quote currently failing the audit — often several distinct root causes at once. A failing quote re-fires on every audit run until an actual fix lands (failed audits are never marked audited); it never stops failing on its own.
@@ -385,6 +409,24 @@ A written step, in the plan's own post-verification sequence, to run `/eli--audi
 
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
+
+### UI acceptance criteria need a screenshot
+
+A captured assert proves the seeded data, not the screen. When the criterion is about what an agent
+sees, the plan opens the running site, confirms it, and screenshots it for the PR description.
+
+Get a subject through the test helpers, not the site's create flow: a throwaway integration test
+calling the product's quote generator with the config pinned, printing the quote id to open. For
+Commercial, `CommercialQuoteGenerator.CreateCommercialQuote(addressKey, stateConfig)` via the
+`QuoteGenerator` property on `CommercialIntegrationTestBase`. For Homeowner, `HomeownerQuoteTestBuilder`
+via `HoBuilder`. Both are tabulated in `Swyfft.TestUtilities/AGENTS.md`.
+
+**Use an address from the target carrier's own good-address list**
+(`Swyfft.TestUtilities/ConstantsAndExpects/`), so a Vave FL quote uses
+`CommercialGoodAddressKeyVaveFL000`. Another carrier's address soft-declines on an unrelated rule,
+and a declined page shows nothing. Confirm zero premium errors before opening.
+
+The throwaway test stays until Eli says to remove it.
 
 ### Transition out of verification
 

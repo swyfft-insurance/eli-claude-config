@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """PreToolUse hook: enforce deterministic rules from CLAUDE.md.
 
 Receives JSON on stdin with tool_name and tool_input.
@@ -415,7 +415,7 @@ def check_pr_create_title(cmd):
     body_file = extract_flag_value(cmd, "--body-file")
     if body_file:
         try:
-            with open(os.path.expanduser(body_file), encoding="utf-8-sig") as fh:
+            with open(os.path.expandvars(os.path.expanduser(body_file)), encoding="utf-8-sig") as fh:
                 body = fh.read()
         except Exception as exc:
             return (
