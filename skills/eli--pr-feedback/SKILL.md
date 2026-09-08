@@ -179,15 +179,9 @@ If you feel the urge to decline or skip a comment quickly, that urge is the sign
 
 #### b. Draft the reply
 
-Write the reply using **quote-then-reply format**:
-
-```markdown
-> <exact quote from reviewer>
-
-<your response>
-```
-
-For comments with multiple points, quote and reply to each point individually. Never use `#1`, `#2` etc. as labels — GitHub renders those as issue/PR links.
+Write the reply. `~/.claude/rules/pr-mine-address-feedback.md` § "Quote only what needs quoting"
+governs what the posted body quotes: an inline reply is already anchored under the comment, so it
+quotes only a sub-part it answers, while a top-level reply quotes each point and replies under it.
 
 **IMPORTANT: Show the draft to the user in your response.** Do not proceed until the user approves. This is a hard requirement, not a suggestion — never skip it.
 

@@ -4,6 +4,15 @@ paths:
 ---
 # Plan Mode
 
+## Read repo files with the `Read` tool, code files above all
+
+Opening a repo file with the `Read` or `Edit` tool is what loads that subtree's `AGENTS.md`
+(through its `CLAUDE.md` stub) and the path-scoped `.claude/rules/*.md`. Open a `.cs` file with
+`Read` and its subsystem doc and `csharp-patterns.md` arrive with it. Open the same file with a
+Bash read (`cat`, `sed`, `head`) and nothing arrives. The harness's preference for Bash reads
+exempts jobs Bash cannot do, and this is one. Every read of a repo file, code files first, goes
+through `Read`, while planning and while executing.
+
 > Gate 1.5 applies here — see `core-behavior.md`.
 
 This file is organized into three parts by lifecycle stage:
@@ -136,6 +145,10 @@ the index. Format inside the plan:
 
 A plan that omits these gets caught mid-execution by oddities the docs would
 have explained — that's a planner discipline failure.
+
+A plan that adds or changes a test also lists the test docs as pre-reads:
+`Swyfft.TestUtilities/AGENTS.md`, `Swyfft.TestUtilities/ConstantsAndExpects/AGENTS.md`, the target
+test project's own `AGENTS.md`, and `.claude/rules/dotnet-testing.md`.
 
 ## IMPORTANT: Step 0b — Create a Branch
 

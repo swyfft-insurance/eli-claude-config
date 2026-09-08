@@ -14,7 +14,7 @@ import re
 import subprocess
 import urllib.request
 import urllib.parse
-from datetime import datetime, timezone, timedelta, tzinfo
+from datetime import date, datetime, timezone, timedelta, tzinfo
 import calendar
 
 # Force UTF-8 stdout/stderr regardless of the Windows console codepage (cp1252),
@@ -136,11 +136,66 @@ def to_date(dt):
     return dt.date() if dt else None
 
 
-def last_working_day(today):
-    d = today - timedelta(days=1)
-    while d.weekday() >= 5:
-        d -= timedelta(days=1)
+def _nth_weekday(year, month, weekday, n):
+    """Date of the nth given weekday in a month, Monday being 0."""
+    first = date(year, month, 1)
+    return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
+
+
+def _last_weekday(year, month, weekday):
+    last = date(year, month, calendar.monthrange(year, month)[1])
+    return last - timedelta(days=(last.weekday() - weekday) % 7)
+
+
+def _observed(d):
+    """Fixed-date holidays are observed the Friday before when they land on a
+    Saturday, and the Monday after when they land on a Sunday."""
+    if d.weekday() == 5:
+        return d - timedelta(days=1)
+    if d.weekday() == 6:
+        return d + timedelta(days=1)
     return d
+
+
+def us_holidays(year):
+    """The days the office is closed, so the standup window skips them the way
+    it skips a weekend. Without this, a standup run the day after a holiday
+    anchors on the holiday and reports a full working day as empty."""
+    return {
+        _observed(date(year, 1, 1)),    # New Year's Day
+        _nth_weekday(year, 1, 0, 3),    # Martin Luther King Jr. Day
+        _nth_weekday(year, 2, 0, 3),    # Presidents' Day
+        _last_weekday(year, 5, 0),      # Memorial Day
+        _observed(date(year, 6, 19)),   # Juneteenth
+        _observed(date(year, 7, 4)),    # Independence Day
+        _nth_weekday(year, 9, 0, 1),    # Labor Day
+        _nth_weekday(year, 10, 0, 2),   # Columbus Day
+        _observed(date(year, 11, 11)),  # Veterans Day
+        _nth_weekday(year, 11, 3, 4),   # Thanksgiving
+        _observed(date(year, 12, 25)),  # Christmas
+    }
+
+
+def last_working_day(today, working_days_back=1):
+    """The nth working day before today. PTO is invisible here, so the caller
+    raises working_days_back when Eli says he was out on the day returned."""
+    d = today
+    remaining = working_days_back
+    while remaining > 0:
+        d -= timedelta(days=1)
+        if d.weekday() < 5 and d not in us_holidays(d.year):
+            remaining -= 1
+    return d
+
+
+def parse_working_days_back(argv):
+    """--working-days-back N walks the window back N working days instead of 1."""
+    for i, arg in enumerate(argv):
+        if arg == "--working-days-back" and i + 1 < len(argv):
+            return int(argv[i + 1])
+        if arg.startswith("--working-days-back="):
+            return int(arg.split("=", 1)[1])
+    return 1
 
 
 def extract_tickets(text):
@@ -523,7 +578,7 @@ def build_youtrack_items(issues, lwd, today):
 def main():
     now_et = to_et(datetime.now(timezone.utc))
     today = now_et.date()
-    lwd = last_working_day(today)
+    lwd = last_working_day(today, parse_working_days_back(sys.argv[1:]))
 
     yt_token = get_youtrack_token()
 

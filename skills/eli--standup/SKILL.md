@@ -25,6 +25,29 @@ Timeout: 60000ms. The script gathers GitHub PRs, YouTrack issues, and YouTrack a
 
 If the script errors, show the error and stop.
 
+## Step 1b: Confirm an empty last working day
+
+Run this only when the last working day has no `workItems` at all. A day with work items is
+answered, and the question is skipped.
+
+The script walks the window back over weekends and US federal holidays, and it cannot see PTO. An
+empty last working day therefore means one of two things, and only Eli knows which: he was out, or
+he was in and nothing landed. Ask, naming the day from `lastWorkingDayName` and `lastWorkingDay`:
+
+> Were you working on <lastWorkingDayName> <M/D>?
+> 1. **Yes**, use it
+> 2. **No, I was out**, walk back another working day
+
+On "No", re-run the script with one more working day of walk-back and use that output instead.
+Repeat until he says he was working, or until a day comes back with work items.
+
+```bash
+python ~/.claude/skills/eli--standup/standup.py --working-days-back 2
+```
+
+A window anchored on a day Eli was not working reports that day as empty, which reads as a day he
+got nothing done.
+
 ## Step 2: Format the output
 
 The JSON contains:
