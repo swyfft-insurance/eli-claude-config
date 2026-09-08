@@ -13,14 +13,11 @@ errors are caught in wave 1, not discovered by escalating standards across passe
 > working memory as tool results pile up — mid-audit drift away from the skill's mandates is a
 > known, repeated failure. Re-read this file before each wave, every time, no exceptions.
 
-## Before wave 1 — MANDATORY reads
+## Before wave 1 — MANDATORY read
 
 `Read` (don't recall — "I just read it" is not reading it):
-- `~/.claude/rules/comments-docs-and-external-writing.md` — all prose rules, including
-  § "Fixing a failed claim means deleting it — rewrites create new unverified claims"
-- `~/.claude/rules/talking-to-eli.md` — concision, exact names
-
-Re-read both again before the final (prose) wave.
+- `~/.claude/rules/comments-docs-and-external-writing.md` § "Fixing a failed claim means deleting
+  it — rewrites create new unverified claims"
 
 ## Fix discipline (every wave)
 
@@ -31,11 +28,14 @@ verbatim quote, the literal name, the exact thing read or run. A fix must never 
 itself needs fact-checking. Not writing the sentence is always an option and is never the wrong
 call.
 
-**THE AUDITED TEXT MUST COME OUT SHORTER. A longer draft is a FAILED AUDIT, full stop.** An audit
-is a subtraction pass. If the fixes were all replacements and the text grew, you did not audit it,
-you padded it — go back and cut. Check the word count before and after; a delta at or above zero
-means go back and cut again rather than ship it. Keep the count to yourself, it never goes in the
-reply.
+**Length is never a target.** The text comes out shorter only when a claim was actually wrong and
+dropping it beat researching a rephrasing. That is the only source of shrinkage. When the waves find
+nothing wrong, the correct output is the input, unchanged, and a word count that did not move is a
+clean audit rather than a failed one.
+
+**A sentence that survives the waves is not yours to rewrite.** Leave every clean sentence verbatim,
+including ones you would have written differently. Cutting good content to make the count fall
+destroys the sentences carrying the point, because those are the only ones left to cut.
 
 The seductive failure is the receipt: Gate 3 requires an absence or universal claim to carry its
 verification inline, so you reach for another clause to support the claim instead of deleting the
@@ -83,17 +83,9 @@ Run in order. Within a wave, walk every sentence — no sampling.
      the rule being edited already flags them when missing, so mirroring it in would have changed
      nothing.
 
-6. **Prose** — full audit against `comments-docs-and-external-writing.md`: word slop, ambiguous
-   references, exact-name repetition, tense precision, plan-scoped framing, bullet granularity.
-   **Wave 6 is a cutting wave, not a polishing wave.** Word slop is the cardinal sin, so this wave
-   exists to make the text shorter. A wave 6 that deletes nothing and only adjusts tense or a noun
-   is a wave 6 that did not run. Cut every sentence the reader can lose without losing meaning,
-   including sentences earlier waves added.
-
 ## Termination
 
-Stop when a wave finds **zero factual defects and zero unsound proposals** (prose-only fixes don't
-reset the count).
+Stop when a wave finds **zero factual defects and zero unsound proposals**.
 Then stop self-passing: the same auditor re-reading the same evidence has hit its ceiling.
 
 **Never narrate the stop.** This section is instruction to you, not copy for the reply. Sentences

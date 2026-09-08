@@ -148,7 +148,8 @@ have explained — that's a planner discipline failure.
 
 A plan that adds or changes a test also lists the test docs as pre-reads:
 `Swyfft.TestUtilities/AGENTS.md`, `Swyfft.TestUtilities/ConstantsAndExpects/AGENTS.md`, the target
-test project's own `AGENTS.md`, and `.claude/rules/dotnet-testing.md`.
+test project's own `AGENTS.md`, and `.claude/rules/dotnet-testing.md`. It also names the base class
+the test will use and what that base supplies.
 
 ## IMPORTANT: Step 0b — Create a Branch
 

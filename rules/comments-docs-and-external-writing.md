@@ -227,9 +227,15 @@ say. Never reorder them.
   or two sentences.
 - **Root cause** — the mechanism, each claim carrying the file:line, query, or log line that proves
   it. Hypothesis and proven stay labeled separately.
-- **Timeline** — dated events, one per line, in order. Include it when the sequence is what explains
-  the failure. Omit it when it isn't.
-- **Customer impact** — what was charged, shown, or sent wrongly, or "None" with the reason.
+- **Timeline** — dated events, one per line, in order. Include it only when the reader needs the
+  *when* to understand the *why*: a window the defect was live, a gap that explains why it
+  self-healed or resisted reproduction, an interleaving of two changes that only broke together, a
+  recurrence that explains flapping. Omit it when the cause is a state rather than a sequence.
+  "The change shipped, someone reported it, it was fixed" is the life cycle of every ticket and
+  explains nothing.
+- **Customer impact** — what was charged, shown, or sent wrongly. "None" earns the section only when
+  the defect looked customer-facing and wasn't, which is a fact the reader needs. Omit it when
+  nothing about the defect could have reached a customer.
 - **Conclusion** — the disposition in the first three words: not a defect, fixed, spun off to
   SW-XXXXX, or no action with reason.
 

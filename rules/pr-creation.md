@@ -15,6 +15,16 @@
 - Never claim test status without running or checking — plan files go stale.
 - If YouTrack unavailable: STOP and ask about VPN. Don't guess ticket descriptions.
 - **Multiline PR bodies**: The `block-prod-db.ps1` hook splits on newlines, so multiline `gh pr create --body "..."` or `gh pr edit --body "..."` triggers false positives. Use `--body-file` instead: write the body to the ticket's artifacts (`~/.claude/tickets/<TicketFolder>/artifacts/pr/`), then pass that file as a single-line command. Never a scratchpad/temp file — the PR body is ticket work product and stays with the ticket.
+- **Request the `dev` team on every PR**: pass `--reviewer swyfft-insurance/dev` to `gh pr create`.
+  Individual reviewers need no flag. `.github/auto_request_review.yml` requests them when the PR
+  opens, from the `per_author` entry for `eli-swyfft` (`prebind-backend` plus `ken-swyfft`) and from
+  any `files` glob the diff matches, and `.github/CODEOWNERS` adds its own path owners on top.
+  Neither requests a *team*: `auto_request_review.yml` sets `enable_group_assignment: false`, so its
+  groups expand to individuals, and `CODEOWNERS` lists no team handles. The team is the one part the
+  flag is for. Requests are additive.
+  The `auto_request_review.yml` workflow skips drafts and runs only on `feature/`, `bug/`, `test/`
+  and `tests/` branches targeting `development`. Outside that shape its reviewers do not arrive,
+  while `CODEOWNERS` is unaffected by those conditions.
 - **Always hyperlink ticket refs; always cite the PR for prior code; prefer PRs over commits.** In every PR description: (a) every YouTrack ticket ID mentioned in the body must be a markdown link to the YouTrack issue (e.g., `[SW-49577](https://swyfft.myjetbrains.com/youtrack/issue/SW-49577)`); (b) every reference to *prior code* — an earlier fix, a previous commit's behavior, the code being reverted, etc. — must cite the GitHub PR number that introduced it via bare auto-link (e.g., `#19959`); (c) **prefer PR references over commit SHAs**. Only reference a specific commit when the PR alone isn't enough (e.g., one commit out of a multi-commit PR), and in that case cite BOTH — the commit SHA as a bare auto-link (`235a80eda15`, which GitHub auto-links) AND the PR number it came from (`#19959`).
 - **Version ambiguity**: PR descriptions referencing "V1"/"V2" must qualify the numbering scheme (state config vs lookup vs generator). See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".
 
@@ -62,21 +72,44 @@ Never include:
 
 The test on every sentence: would the reviewer reach this on their own from the diff? Then cut it.
 
+## Never editorialize against the change
+
+The description states what the change does and why. It does not argue against itself. "Unrelated",
+"drive-by", "while I was in there", "unfortunately", "admittedly", "hacky", "for now": each hands
+the reviewer an objection they did not arrive with, and each is usually inaccurate too. A doc or
+test change that came out of doing the work is a byproduct of the work, not a stranger to it.
+
+Name what a rider is and what produced it. If something genuinely does not belong in the PR, take
+it out instead of shipping it with an apology attached.
+
 ## Attaching screenshots to a PR
 
-1. `gh pr create --attach "<path>#<alt text>"`, with no image markdown in the body.
-2. Read the `user-attachments` URL back: `gh pr view <n> --json body --jq '.body'`.
-3. Put that URL in the body file where the image belongs, then `gh pr edit <n> --body-file <f>`.
+Reference the image in the body file where it belongs, then pass the file to `--attach`. GitHub
+rewrites every reference whose **filename** matches the attached file, in place, keeping the alt
+text the body wrote. One command, one publish.
+
+```markdown
+## User Interface
+
+![Offset slider showing -45 and 45](slider.png)
+```
 
 ```sh
 gh pr create --base development --title "[SW-55513] (CO) Widen the offset slider" \
   --body-file ~/.claude/tickets/SW-55513-widen-offset/artifacts/pr/body.md \
+  --reviewer swyfft-insurance/dev \
   --attach "C:\Users\eli.koslofsky\Pictures\Screenshots\slider.png#Offset slider showing -45 and 45"
 ```
 
-```markdown
-![Offset slider showing -45 and 45](https://github.com/user-attachments/assets/0191ff92-611c-4ed6-aa7a-cd7788603f46)
-```
+Only the filename matches, so the body's path form is free: `slider.png`, `./slider.png` and the
+full absolute path all resolve to the upload. Several references to one filename all get the same
+asset.
+
+**An attached file the body never references is appended to the end of the body**, which is how a
+screenshot ends up outside its section. That costs a second gated publish to relocate, so put the
+reference in the body first.
+
+`gh pr edit --attach` and `gh pr comment --attach` document the same rewrite behavior.
 
 ## Every ticket the PR covers goes in the title
 
