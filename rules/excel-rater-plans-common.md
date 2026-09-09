@@ -21,13 +21,52 @@ Both products run one Excel test infrastructure: a shared validation base, the s
 
 **The repo `Data\` copy is NOT the source of truth — the actuaries' SharePoint copy is.** The actuaries don't work out of the Swyfft solution's `Data` folder; an edit made only in the repo gets blown away the next time they deliver a rater. `#dev-analytics-rater-handoff` exists to coordinate rater changes from both ends.
 
+<!-- Added 2026-09-09 during SW-55584 — Eli had to supply the SharePoint address himself -->
+**Where the raters live.** Site `swyfft-developmentsite`, library `Shared Documents`:
+
+| Product line | Folder |
+|---|---|
+| Homeowner | `https://swyfft2.sharepoint.com/sites/swyfft-developmentsite/Shared%20Documents/By-Peril/<STATE>` |
+| Commercial EandS | `https://swyfft2.sharepoint.com/sites/swyfft-developmentsite/Shared%20Documents/E%26S/<STATE>` |
+
+The actuaries post every delivery as a link in `#dev-analytics-rater-handoff` (`C06V258BWHJ`), which
+is where to find a file whose folder these two rows don't cover.
+
 The flow when a rater edit is warranted:
 
 1. **The edit is made on SharePoint, by a human.** Eli usually makes it himself directly on SharePoint; routing the change to the actuaries instead is always a valid option (some devs prefer it).
 2. **The agent prepares the edit; it NEVER applies one.** Programmatic edits of rater `.xlsm` files by the agent are banned.
-   - Big edits (a row, several rows, a whole sheet): write the paste-ready content to a txt file, and state the EXACT cell to select for the paste.
-   - Individual cell or named-range edits: PRECISE instructions — the exact cell address and the exact formula/value, or the exact named-range name and its target reference.
-   - In ALL cases, exact per-cell steps. Generic instructions ("fix the formula on the sheet") are banned.
+   <!-- Rewritten 2026-09-09, SW-55584 -->
+   Every edit is handed to Eli in a form he copies and pastes in one action. Markdown tables are
+   banned: the terminal draws them with borders and the text inside cannot be selected.
+
+   - **Up to three or four cells on a sheet: in chat.**
+     - One code block per cell, holding the exact formula or value.
+     - The cell address stated next to each block.
+   - **More than that (a full row, a contiguous block, many scattered edits): a paste file.**
+     - Holds the full rectangle spanning every edited cell. Tab-separated, one line per row.
+     - Edited cells hold the new content.
+     - Every other cell in the rectangle holds its current content, from the pre-dumped baselines.
+       Formulas as formulas (`=...`), values as values.
+     - Names the cell to select before pasting: the rectangle's top-left corner.
+     - Lives in the ticket's `artifacts/rater-edits/`, named for the sheet and rows it fills.
+     - Opened for Eli with `Start-Process`, or given as a full absolute path he can click. Never a
+       relative path.
+   - **Named ranges (add or repoint): step by step.**
+     - The menu path (Formulas, Name Manager, New or Edit).
+     - The exact name, in a code block.
+     - The exact "Refers to" reference, in a code block.
+     - The scope, if not Workbook.
+   - **Any other edit that is not a cell's contents (add a sheet, rename a tab, and so on): step by step.**
+     - The menu path.
+     - Every field, with its exact value in a code block.
+   - **Every changed cell shows its before and its after, labeled as such.**
+     - `Before` is what the cell holds today, from the pre-dumped baselines. Eli checks it against the
+       open workbook before touching anything; a mismatch means the wrong workbook.
+     - `After` is the new content.
+     - The two labels are always written out. A block with no label, or a block whose label could be
+       read either way, is banned.
+   - **In ALL cases, exact steps.** Generic instructions ("fix the formula on the sheet") are banned.
 3. **Tell the actuaries and document the change in the rater's `version_history` tab.**
 4. **After the SharePoint edit, Eli downloads the file from SharePoint** and the agent places that download into the repo `Data` folder (the standard rater-placement step).
 

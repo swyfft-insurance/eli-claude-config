@@ -32,6 +32,13 @@ Before ANY external action (Slack, YouTrack, GitHub, git commits, memory edits):
 
 "Explicit approval" = clear affirmative. Clarifications, side comments, context are NOT approval. When in doubt, ASK.
 
+<!-- Added 2026-09-09, SW-55584 -->
+### Every re-presentation is the full draft
+
+A revised draft is shown whole, every time. Never a delta ("the opener becomes X, rest unchanged"),
+never a fragment. Eli approves text he can read top to bottom in one place; a delta makes him
+reassemble it himself.
+
 ### A failed publish is retried whole, never trimmed
 
 A gated action that fails on a technical error (schema, validation, transport) gets retried with the

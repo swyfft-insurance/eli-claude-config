@@ -259,7 +259,17 @@ from tracing alone and each with a promise the next query would prove it. All fo
 
 A distinct plan type for rater-update tickets: actuarial delivers a new rater `.xlsm` and the C# is brought into agreement with it. The change can land on any sheet — base rates, any factor table, inputs, fees, optional coverages, layout. The ticket gives a general outline of what's changing, but the precise footprint isn't pinned down until you diff the placed file. Almost always declared `Feature` in YouTrack, but distinct enough to call out here. It **follows the Feature HARD STOP sequence above, plus one added HARD STOP**: a scoping checkpoint after the rater is placed and before any C#, reconciling the regenerated-baseline diff against the provisional scope.
 
-It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig ticket-note requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading the matching playbook in full is **MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or `~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared `~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads, the plan shape, the component→Excel-signal map).
+It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig ticket-note requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading the matching playbook in full is **MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or `~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared `~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads, the plan shape, the component→Excel-signal map,
+and the rater-edit flow).
+
+<!-- Added 2026-09-09, SW-55584 -->
+**Every Excel Rater (ByPeril) plan carries a "Rater defect found during execution" section.
+MANDATORY.** A delivered rater's defects surface at the scoping checkpoint or in the parity suite,
+after the plan is written. When one is small enough to fix ourselves, the section governs: HARD
+STOP, then prepare the edit to the full standard in `excel-rater-plans-common.md` § "Rater edits —
+when warranted, and the SharePoint flow" before anything downstream runs. The section is written
+whether or not a defect is suspected at plan time. A plan without it is incomplete, and
+`/eli--plan-audit` fails it.
 
 <!-- Added 2026-09-04 while planning SW-55585 -->
 ### Excel Rater bug
@@ -269,8 +279,13 @@ A defect in a rater already on disk, or in C#-vs-rater premium parity. No new ra
 Follows the **Bug Fix** HARD STOP sequence above, and inherits the rater playbooks in full: reading
 `~/.claude/rules/excel-rater-plans-common.md` plus `ho-excel-rater-plans.md` or
 `co-excel-rater-plans.md` is MANDATORY, exactly as for a fresh rater. That covers the HARD RULE plan
-header, the pre-reads, seeder-first, blast radius, versioning, and the product's verification
-surface.
+header, the pre-reads, seeder-first, blast radius, versioning, the product's verification surface,
+and the rater-edit flow.
+
+<!-- Added 2026-09-09, SW-55584 -->
+When the fix is the rater, `excel-rater-plans-common.md` § "Rater edits — when warranted, and the
+SharePoint flow" governs the fix step, and the plan carries the prepared edit before it counts as
+written. `Read` that section when writing the edit step and again when executing it.
 
 **The product's parity suite is the guard. Never write a unit test for a rater-parity defect.** A
 unit test asserts C# against C#. The parity suite asserts C# against the rater.
@@ -320,6 +335,9 @@ Plan shape:
 5. The ticket is done only when every failure in the current set has an RCA and a disposition — fix shipped, spun off, or no-action-with-reason.
 
 Any code fix that emerges follows the Bug Fix HARD STOP sequence.
+
+A rater fix that emerges takes the **Excel Rater bug** type for that group, rater playbooks and
+rater-edit flow included.
 
 ## Seeder Overrides — Required for every new not-yet-live state config
 
