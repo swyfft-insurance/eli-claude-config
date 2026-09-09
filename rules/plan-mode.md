@@ -82,6 +82,10 @@ See `~/.claude/rules/talking-to-eli.md` § "Stop being pedantic" — **especiall
 - **Verify script args before writing them in plans.** When a plan invokes a script (`~/.claude/scripts/Build-Solution.ps1`, `Run-Seed.ps1`, `~/.claude/scripts/Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
 - DB queries and log searches are information-gathering — do them DURING planning, not after.
 - Write plan prose with no ambiguous references — repeat the noun rather than leaving "it"/"this"/"that"/"they" for the reader to resolve. See `~/.claude/rules/talking-to-eli.md` § "No Ambiguous References".
+- **Establish ownership during Q&A, not after.** A ticket assigned to Eli carries an assumption
+  that the work is pre-bind, and that assumption is usually right. Occasionally it is wrong: the
+  work turns out to be post-bind, or it straddles the line. Doing it anyway or handing it off is
+  situational and is Eli's call. See `~/.claude/rules/code-ownership.md`.
 
 ---
 

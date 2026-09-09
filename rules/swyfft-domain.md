@@ -1,11 +1,20 @@
 # Domain Reference: Swyfft Codebase
 
-## Insurance Terminology
+## Swyfft/Insurance Terminology
 
 - **Quote**: pre-bind price proposal. Has a rating config (e.g., `FL.BSIC.ByPeril.EAndS.V6`).
 - **Policy**: post-bind contract. The result of binding a quote (separate EF entity from `EFQuote`).
 - **Bind** (verb): the act of converting a quote into a policy. Code-level: `*Service.Bind(EFQuote quote) → PolicyNumber` (see `NfipService.Bind`, `Hiscox*Service.Bind`, `VaveServiceBase.Bind`).
 - **Bind** (noun): the binding event. Valid in time-relative usage ("at bind", "pre-bind", "post-bind") and to describe the operation succeeding/failing ("the bind succeeded", "C# bind threw"). Don't use it as a name for the resulting policy or quote.
+- **Product line**: Homeowner (HO), Commercial (CO), Flood, DBB.
+- **Element**: an input on a quote that the agent answers. `EFQuoteElement` on the quote, `EFDefaultElement` for the config's set, named by `QuoteElementName`.
+- **Config**: an `IStateConfig` implementer, see § "What identifies a config/IStateConfig" below. In pre-bind writing a bare "config" means this. Any other kind (appsettings, a build configuration) gets named as such, never left as a bare "config".
+- **Rating type**: E&S or Admitted (`RatingType`).
+- **Calculation method**: ByPeril or Iso (`CalculationMethod`). A different axis from rating type.
+- **Carrier**: the insurer the risk is written with, named by `CarrierCode`.
+- **Hard decline**, **soft decline**, **time-sensitive soft decline**, **referral**: the four decline types, defined in `Swyfft.Services/RiskSelection/AGENTS.md` § "Decline Type Hierarchy". Collectively "declines".
+
+Every term above is reserved. See `comments-docs-and-external-writing.md` § "Swyfft's lexicon is reserved".
 
 Eli works pre-bind (quoting). The quote owns the rating config; the policy inherits it. `Swyfft.Services.PostBind` is a separate project covering post-bind automation.
 

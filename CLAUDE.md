@@ -66,6 +66,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The SessionSt
 | Excel Rater Plans (Commercial) | `co-excel-rater-plans.md` | planning or executing a Commercial Excel rater (ByPeril) ticket |
 | Tool Access | `tool-access.md` | a tool call fails or seems unavailable |
 | Standup | `standup.md` | generating any standup update |
+| Code Ownership | `code-ownership.md` | a ticket names a team or owner, or a fix lands outside pre-bind |
 | Domain Reference | `swyfft-domain.md` | working with HomeownerStateConfig, carrier names, or PR descriptions |
 | Test Execution | `testing-execution.md` | running tests (filters, output capture, scope) |
 | Test Writing | `testing.md` | writing tests, TDD, investigation |

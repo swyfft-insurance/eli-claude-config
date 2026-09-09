@@ -176,6 +176,21 @@ Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files
 |---|---|
 | "a change could re-rate existing business; that business keeps its premium" | "a change could re-rate existing quotes and policies; those quotes and policies keep their premium" |
 
+## Swyfft's lexicon is reserved: a term carries only its Swyfft meaning
+
+The terms in `swyfft-domain.md` § "Swyfft/Insurance Terminology" are Swyfft's company lexicon, not
+general words that happen to appear in the code. Some are ordinary insurance vocabulary that
+Swyfft has narrowed to one specific referent. Either way, the Swyfft meaning is the only one any
+writing here may carry.
+
+Borrow a term for something adjacent and the reader has to work out which sense you meant, and
+they will guess the Swyfft one.
+
+| Bad (borrows "product line") | Good (names the thing) |
+|---|---|
+| "the fix lands outside Eli's product line" | "the fix lands outside pre-bind" |
+| "ZenDesk is a different product line" | "ZenDesk is a different subsystem" |
+
 ## Scenarios get an opener plus bullets — never a run-on sentence
 
 When prose enumerates parallel cases — scenarios, surfaces, outcomes, options, before/after

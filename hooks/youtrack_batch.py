@@ -46,7 +46,7 @@ ISSUE_RE = re.compile(r"^SW-\d+$")
 # Closed value sets: every settable value is enumerated, so a batch can never smuggle
 # extra command tokens into the YouTrack command API.
 STAGE_VALUES = [
-    "Backlog", "Ready for Dev", "Develop", "Review",
+    "Backlog", "Ready for Dev", "Blocked", "Develop", "Review",
     "Ready for Test", "Test", "Failed Test", "Tested", "Done",
 ]
 RELEASE_STAGE_VALUES = ["NA", "Development", "Beta", "Production"]

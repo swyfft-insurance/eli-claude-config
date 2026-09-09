@@ -45,6 +45,7 @@ __pycache__/
 .last-*
 remote-settings.json
 policy-limits.json
+rate-limit-state.json
 
 # Daemon runtime state (locks, logs, keys, PIDs, roster, auth). All of it is machine-local.
 daemon*
