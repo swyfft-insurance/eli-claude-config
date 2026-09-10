@@ -179,10 +179,9 @@ A ticket filed as a Bug routinely fails that test. `IssueType: Bug`, a Current R
 Result template, a Found-in-Stage of Beta, and a QA reporter are all how correct-but-unwanted
 behavior gets reported. None of them says anything malfunctioned.
 
-Misreading a missed requirement as a bug costs twice. Pass 0 hunts for a mechanism whose answer is
-only "this was never built," and the Bug type's carve-out ("Part B's full apparatus does not apply")
-strips the seeder overrides, config ticket notes, and full Verification structure off a change that
-is a behavior change and needs all of them.
+Missed requirements are often filed as bugs. When the ticket truly is just a missed requirement, or
+worse, a feature that whoever filed it just doesn't like, the plan is treated as a Feature, despite
+the YouTrack type being Bug.
 
 <!-- Restructured 2026-08-19 while planning SW-54482/SW-54691 — Eli: a bug plan can't be cemented
      before the defect is diagnosed AND proven, and the proof may disprove the bug. The old shape put
@@ -197,8 +196,9 @@ that delays the work.
    privileged.
 2. **HARD STOP** — Report the mechanism, its evidence, and a disposition: fix, spin off, not a
    defect, or already fixed. The last two end the work with no fix plan written. Wait for approval.
-3. Write a **minimal** fix plan: what changes, the test that guards it, how it's verified. Part B's
-   full apparatus does not apply to a bug. Include only what the fix actually touches.
+3. Write a **minimal** fix plan: what changes, the test that guards it, how it's verified. Part B
+   applies in full. Every section the fix doesn't touch is marked `N/A` with the reason, never
+   omitted.
 4. **HARD STOP** — Fix plan approved. Wait before writing code.
 5. Fix — write the code fix
 6. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
@@ -290,9 +290,6 @@ written. `Read` that section when writing the edit step and again when executing
 **The product's parity suite is the guard. Never write a unit test for a rater-parity defect.** A
 unit test asserts C# against C#. The parity suite asserts C# against the rater.
 
-Bug Fix's "Part B's full apparatus does not apply" narrows Part B. It never drops a playbook
-requirement.
-
 Only the fresh-rater carve-out drops. With no delivery there is no baseline diff, so scope is not
 provisional and there is no scoping checkpoint.
 
@@ -362,19 +359,24 @@ See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the
 
 The convention text and examples are canonical in `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket" — read it every time; don't work from memory. Treat a missing ticket note the same as a missing seeder override or a missing test — the plan is not done without it.
 
+## Versioned or unversioned: every plan says which
+
+A change is unversioned when it lands on a live quote def with no new config version gating it: an
+element added or removed, a choice added or dropped, a range moved, a type changed. The ticket
+usually says whether the change is versioned, and gives the go-live dates when it is. When the
+ticket says, the plan records that answer and does not relitigate it. When the ticket is silent, the
+plan states whether the change is versioned or unversioned, and why.
+
 ## Unversioned changes: the plan must test quotes created before the change (MANDATORY)
 
-An unversioned change reaches quotes that already exist. They were created against the old definition and still carry the data it produced, so they break in ways a new quote never will.
+Quotes created before the change still carry the data the old definition produced, so they break in
+ways a new quote never will. Test helpers only build new quotes. The plan names the test and how it
+builds a pre-change quote's data: a persisted row the config no longer produces, a row the config
+now produces that the quote lacks, a stale element binding, a value the new definition cannot emit.
+A plan without it is incomplete, HARD STOP.
 
-Test helpers create new quotes. New quotes and renewals have established, consistent ways to construct them. A quote created before the change has none, so building one is deliberate work on every ticket.
-
-The plan names a test that simulates the data such a quote carries, and names how that test builds it. The how differs every time (a persisted row the config no longer produces, a stale element binding, a value the new definition cannot emit), so there is no standard mechanism to reach for. A plan without it is incomplete, HARD STOP.
-
-The rule binds when the change narrows what the definition can represent: an element removed, a
-choice dropped, a range tightened, a type changed.
-
-A change that strictly enlarges the values an existing element may hold carries no such test.
-Every plan states which of the two its change is, and why.
+Skip the test when the change only affects configs not yet live in prod. There are no prod quotes to
+protect, and beta quotes breaking is accepted.
 
 - **What happened:** SW-51772 and SW-55072 each removed an element from a live config unversioned. Both passed on new quotes, both blocked existing quotes at the purchase gate, both shipped to prod and needed hotfixes (#21334, #22626).
 

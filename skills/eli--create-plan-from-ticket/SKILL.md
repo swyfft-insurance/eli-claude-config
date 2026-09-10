@@ -134,6 +134,8 @@ Plan-type-conditional. Bug Fix plans don't need API-shape questions; Refactoring
 
 During this phase, ask the user explicitly: **"What plan type is this — Bug Fix, Refactoring, or Feature?"** Each type has a different HARD STOP sequence (per plan-mode.md Part B § Plan Types).
 
+Then, as its own question, settle whether the change is versioned or unversioned, per `plan-mode.md` § "Versioned or unversioned: every plan says which". When the ticket already says, confirm it rather than ask.
+
 ### Hard rule: "Ready to outline?" defaults to NO
 
 After each cluster of questions, you may ask "ready to draft the outline?" — but the default answer is **NO**. Only proceed when the user explicitly says "yes" or equivalent. If the user gives any answer other than explicit yes (including silence, "let me think", clarifying questions about your last answer), continue Q&A.
@@ -244,10 +246,6 @@ The full plan is the outline structure + all technical research details accumula
 The plan file must contain every section defined in `plan-mode.md` Part B, in the order that
 file specifies — including § Plan Types for the HARD STOP sequence matching the chosen plan type.
 Read Part B and follow it directly; don't restate the structure here — it drifts.
-
-**Bug Fix plans are minimal.** The file records the diagnosis with its evidence, what changes, the
-test that guards it, and how it's verified. Part B's full apparatus does not apply. Every section the
-fix doesn't touch is `N/A`, and the gate below reads it that way.
 
 ### Mandatory plan audit — the plan is NOT "written" until it passes
 
