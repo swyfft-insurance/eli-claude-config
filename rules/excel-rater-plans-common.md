@@ -37,36 +37,35 @@ The flow when a rater edit is warranted:
 1. **The edit is made on SharePoint, by a human.** Eli usually makes it himself directly on SharePoint; routing the change to the actuaries instead is always a valid option (some devs prefer it).
 2. **The agent prepares the edit; it NEVER applies one.** Programmatic edits of rater `.xlsm` files by the agent are banned.
    <!-- Rewritten 2026-09-09, SW-55584 -->
-   Every edit is handed to Eli in a form he copies and pastes in one action. Markdown tables are
-   banned: the terminal draws them with borders and the text inside cannot be selected.
+   Eli copies each value in one action. Markdown tables are banned: the terminal draws them with
+   borders and the text inside cannot be selected.
 
-   - **Up to three or four cells on a sheet: in chat.**
-     - One code block per cell, holding the exact formula or value.
-     - The cell address stated next to each block.
-   - **More than that (a full row, a contiguous block, many scattered edits): a paste file.**
-     - Holds the full rectangle spanning every edited cell. Tab-separated, one line per row.
-     - Edited cells hold the new content.
-     - Every other cell in the rectangle holds its current content, from the pre-dumped baselines.
-       Formulas as formulas (`=...`), values as values.
-     - Names the cell to select before pasting: the rectangle's top-left corner.
-     - Lives in the ticket's `artifacts/rater-edits/`, named for the sheet and rows it fills.
-     - Opened for Eli with `Start-Process`, or given as a full absolute path he can click. Never a
-       relative path.
-   - **Named ranges (add or repoint): step by step.**
-     - The menu path (Formulas, Name Manager, New or Edit).
-     - The exact name, in a code block.
-     - The exact "Refers to" reference, in a code block.
-     - The scope, if not Workbook.
-   - **Any other edit that is not a cell's contents (add a sheet, rename a tab, and so on): step by step.**
-     - The menu path.
-     - Every field, with its exact value in a code block.
-   - **Every changed cell shows its before and its after, labeled as such.**
-     - `Before` is what the cell holds today, from the pre-dumped baselines. Eli checks it against the
-       open workbook before touching anything; a mismatch means the wrong workbook.
-     - `After` is the new content.
-     - The two labels are always written out. A block with no label, or a block whose label could be
-       read either way, is banned.
-   - **In ALL cases, exact steps.** Generic instructions ("fix the formula on the sheet") are banned.
+   **Shape.** The workbook filename on its own line, then one block per sheet, headed `Sheet: <name>`.
+   A named range heads its own block by name instead of a sheet.
+   - One numbered item per cell, holding the cell address. Its value goes in a code block directly
+     under it, with no blank line between them.
+   - Never split selecting and pasting into two steps.
+   - No before/after pair. Where a mismatch would mean the wrong workbook, state the current content
+     once, outside the numbered steps.
+   - A `version_history` row is a single step: `Add a row with:` then the cell values separated
+     by ` | `.
+   - The numbered steps are workbook edits only. Telling the actuaries is not one of them; the agent
+     sends that message itself, drafted for approval.
+
+   **Up to three or four cells on a sheet** use the shape above. **More than that** (a full row of
+   real edits, a contiguous block, many scattered edits) uses a paste file:
+   - Holds the full rectangle spanning every edited cell. Tab-separated, one line per row.
+   - Edited cells hold the new content. Every other cell in the rectangle holds its current content,
+     from the pre-dumped baselines, formulas as formulas (`=...`) and values as values.
+   - The step names the cell to select before pasting: the rectangle's top-left corner.
+   - Lives in the ticket's `artifacts/rater-edits/`, named for the sheet and rows it fills.
+   - Opened for Eli with `Start-Process`, or given as a full absolute path he can click. Never a
+     relative path.
+
+   **Edits that are not a cell's contents** (adding or repointing a named range, adding a sheet,
+   renaming a tab) get the menu path and every field, each exact value in a code block.
+
+   In ALL cases, exact steps. Generic instructions ("fix the formula on the sheet") are banned.
 3. **Tell the actuaries and document the change in the rater's `version_history` tab.**
 4. **After the SharePoint edit, Eli downloads the file from SharePoint** and the agent places that download into the repo `Data` folder (the standard rater-placement step).
 
