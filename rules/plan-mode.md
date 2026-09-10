@@ -155,6 +155,35 @@ A plan that adds or changes a test also lists the test docs as pre-reads:
 test project's own `AGENTS.md`, and `.claude/rules/dotnet-testing.md`. It also names the base class
 the test will use and what that base supplies.
 
+## Creating a test's subject: two MANDATORY reads before the arrange
+
+There is one sanctioned way to create each kind of test subject — a quote, a policy, a claim — and it
+is never invented or recalled from memory. Two reads establish it, and both happen before a single
+line of arrange is written:
+
+1. The test-setup docs, in full:
+   - `Swyfft.TestUtilities/CLAUDE.md` — test types, base classes, and § "Homeowner Quote Setup"
+   - `Swyfft.TestUtilities/ConstantsAndExpects/CLAUDE.md` — test addresses
+   - the target test project's own `CLAUDE.md`, whose test-data section names the creation helper
+   - `.claude/rules/dotnet-testing.md`
+
+   Listing these as pre-reads does not satisfy this. They are read before the arrange is written, and
+   read again before that step executes.
+2. The existing tests for the same subject the plan is about, matched on product line, carrier and
+   config family. They show the sanctioned path already working, and what it takes to get past the
+   rules that guard it. Copying an arrange from one of those is correct. Copying one from a test
+   covering a different subject is how the wrong helper gets in.
+
+The plan carries the exact creation call and the sentence from the doc that prescribes it. A test
+arrange with neither is incomplete — HARD STOP.
+
+The wrong helper fails deep in the arrange, and that failure reads as a product problem, so the
+research goes outward into the code under test instead of back to the doc.
+
+- **What happened:** SW-55983's plan listed the test project's `AGENTS.md` as a pre-read and named
+  the base class, then arranged its quote with a helper recalled from memory rather than the one that
+  doc prescribes.
+
 ## IMPORTANT: Step 0b — Create a Branch
 
 **Every plan, every time, no exceptions.** Before any step that writes code:
