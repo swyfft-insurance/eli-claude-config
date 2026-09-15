@@ -13,6 +13,7 @@
 - **Calculation method**: ByPeril or Iso (`CalculationMethod`). A different axis from rating type.
 - **Carrier**: the insurer the risk is written with, named by `CarrierCode`.
 - **Hard decline**, **soft decline**, **time-sensitive soft decline**, **referral**: the four decline types, defined in `Swyfft.Services/RiskSelection/AGENTS.md` § "Decline Type Hierarchy". Collectively "declines".
+- **ClosedSet**: a strongly-typed enum-like value (`StateCode`, `CarrierCode`, `ConstraintCode`), one of the classes under `Swyfft.Common/SetDefinitions/`; usage rules in `Swyfft.Common/SetDefinitions/AGENTS.md`. Never the ordinary phrase "closed set" for an exhaustive list.
 
 Every term above is reserved. See `comments-docs-and-external-writing.md` § "Swyfft's lexicon is reserved".
 

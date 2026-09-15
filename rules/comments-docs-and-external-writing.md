@@ -191,6 +191,15 @@ they will guess the Swyfft one.
 | "the fix lands outside Eli's product line" | "the fix lands outside pre-bind" |
 | "ZenDesk is a different product line" | "ZenDesk is a different subsystem" |
 
+The rule cuts the other way too. When a thing has a term in that list, that term is its only name.
+Never reach for a generic technical word instead. The generic word is always less precise than the
+term, and a reader who knows the lexicon has to stop and work out whether you meant the thing it
+names.
+
+| Bad (generic word for a named thing) | Good (the reserved term) |
+|---|---|
+| "the quote holds a row the config no longer produces" | "the quote holds an element the config no longer generates" |
+
 ## Scenarios get an opener plus bullets — never a run-on sentence
 
 When prose enumerates parallel cases — scenarios, surfaces, outcomes, options, before/after

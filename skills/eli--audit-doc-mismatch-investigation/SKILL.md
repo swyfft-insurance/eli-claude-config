@@ -106,4 +106,4 @@ no code at all — UW/data correction). Never bring C# "up to" a changed value o
 - `Swyfft.Services.Excel.IntegrationTests/ExcelQuoteAuditDiagnosticTestBase.cs` — the shared three-way diagnostic base (asserts via the audit service's own ComparePremium).
 - `Swyfft.Services.Excel.IntegrationTests/Homeowner/HomeownerExcelQuoteAuditDiagnosticTests.cs` — HO diagnostic subclass.
 - `Swyfft.Services.Excel.IntegrationTests/Commercial/CommercialExcelQuoteAuditDiagnosticTests.cs` — Commercial diagnostic subclass.
-- `Swyfft.Seeding/ExcelLoaders/ByPeril/reading-rater-files.md` — DumpRater (recovering a bind-era rater: `git show <sha>:<path> | git lfs smudge > old.xlsm`).
+- `Swyfft.Services/Premium/AGENTS.md` § "Reading rater files": DumpRater (recovering a bind-era rater: `git show <sha>:<path> | git lfs smudge > old.xlsm`).

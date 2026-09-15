@@ -61,6 +61,9 @@ Eli, because it asks him for something. Say which of the three it is, and nothin
 Not from memory, not from the SessionStart injection.
 
 - `~/.claude/rules/plan-mode.md`, in full.
+- `~/.claude/rules/comments-docs-and-external-writing.md`, in full. A plan is written prose, so that
+  file governs every plan. Its lexicon rule reads `~/.claude/rules/swyfft-domain.md`
+  § "Swyfft/Insurance Terminology", so read that section too.
 - Every file Step 0 resolved.
 - Every rules file the plan's own steps name.
 
@@ -101,7 +104,7 @@ ls ~/.claude/rules/*.md
 ```
 
 Every file in that output gets a one-line verdict: **applies** or **N/A with the reason**. Then walk
-each applying file rule by rule, exactly as in 2a. The files Step 0 resolved are already in this set
+each applying file rule by rule, exactly as in 2a. The files Step 1 names are already in this set
 and always apply.
 
 Add to the same pass:

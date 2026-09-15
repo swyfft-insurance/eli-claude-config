@@ -17,8 +17,8 @@ This file holds only what is Commercial's own.
 
 ## Mandatory pre-reads — before authoring a Commercial rater plan
 
-- **Implementation / component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Commercial/CLAUDE.md` (CommercialStateConfig); `Swyfft.Services/Premium/CLAUDE.md` (ByPeril premium system **and** "Commercial: agent inputs rate via quote columns"); `Swyfft.Services/Elements/CLAUDE.md` (elements/constraint codes, and the Commercial "an element alone doesn't rate" note); `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`; `Swyfft.Services.Excel/Commercial/CLAUDE.md`.
-- **Excel test docs:** `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md` and its `Commercial/CLAUDE.md` (diagnosing a failure by tracing the auto-saved failure workbook).
+- **Excel rater docs (all four, every time):** `Swyfft.Services/Premium/AGENTS.md` (the hub); `Swyfft.Seeding/ExcelLoaders/AGENTS.md` (seeding); `Swyfft.Services.Excel/AGENTS.md` (rater service, audit service); `Swyfft.Services.Excel.IntegrationTests/AGENTS.md` (validation tests, reading a crash).
+- **Other component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Commercial/CLAUDE.md` (CommercialStateConfig); `Swyfft.Services/Elements/CLAUDE.md` (elements/constraint codes, and the Commercial "an element alone doesn't rate" note).
 
 ## The Commercial verification surface
 
@@ -74,8 +74,7 @@ holds the expected value.
 ## Rated agent inputs ride quote columns — default them on create
 
 A rated Commercial agent input's value rides a column on `EFCommercialQuote`, not the element model.
-The full chain and checklist are in `Swyfft.Services/Premium/CLAUDE.md` § "Commercial: agent inputs
-rate via quote columns". Two traps:
+The chain is in `Swyfft.Services/Premium/AGENTS.md` § "Inputs: quote to rater". Two traps:
 
 - **Silently-inert input.** The element to patch-request hop matches by name with no compile or
   runtime check, so an input with an `EFDefaultElement` (a visible UI dropdown) but no same-named

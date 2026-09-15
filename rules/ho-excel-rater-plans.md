@@ -17,8 +17,9 @@ This file holds only what is Homeowner's own: pre-reads, the verification suites
 
 A rater plan must not be authored — and the plan file must list as required pre-reads — without reading:
 
-- **Implementation / component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Homeowner/CLAUDE.md` (HomeownerStateConfig, QuoteDefinitions, seeder overrides, fold-vs-stack); `Swyfft.Services/Elements/CLAUDE.md` + `Elements/Homeowner/CLAUDE.md` (elements, constraint codes, generators, factory version fallback); `Swyfft.Services/Premium/CLAUDE.md` (element-model wiring); `Swyfft.Services/QuoteFees/CLAUDE.md` (fees); `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md` + its children `reading-rater-files.md`, `Homeowner/CLAUDE.md`, `Homeowner/rater-sheets-reference.md` (seeding + the sheet→component mapping); `Swyfft.Services.Excel/Homeowner/ByPeril/Rater/CLAUDE.md` + `audit-and-debugging.md` (rater-service overrides).
-- **Excel test docs:** `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md` + `Homeowner/CLAUDE.md` (ByPeril validation tests, debugging `#VALUE!`); `~/.claude/rules/captured-asserts.md` and the `/eli--prebind-validation` skill (the baseline regen flow).
+- **Excel rater docs (all four, every time):** `Swyfft.Services/Premium/AGENTS.md` (the hub); `Swyfft.Seeding/ExcelLoaders/AGENTS.md` (seeding); `Swyfft.Services.Excel/AGENTS.md` (rater service, audit service); `Swyfft.Services.Excel.IntegrationTests/AGENTS.md` (validation tests, reading a crash).
+- **Other component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Homeowner/CLAUDE.md` (HomeownerStateConfig, QuoteDefinitions, seeder overrides, fold-vs-stack); `Swyfft.Services/Elements/CLAUDE.md` + `Elements/Homeowner/CLAUDE.md` (elements, constraint codes, generators, factory version fallback); `Swyfft.Services/QuoteFees/CLAUDE.md` (fees).
+- **Test regen:** `~/.claude/rules/captured-asserts.md` and the `/eli--prebind-validation` skill (the baseline regen flow).
 
 Always read the seeding/sheet-mapping, rater-service, and validation-test docs — not just the ones the ticket seems to touch — because the scoping diff can implicate any component.
 

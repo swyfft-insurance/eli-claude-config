@@ -17,7 +17,16 @@ Both products run one Excel test infrastructure: a shared validation base, the s
 
 ## Rater edits — when warranted, and the SharePoint flow (MANDATORY)
 
-**A rater edit is warranted for actual rater bugs — and only for actual rater bugs.** The actuaries absolutely make mistakes, and a genuine defect in the rater gets fixed in the rater — a lookup that can't resolve a valid input, a formula whose range doesn't cover the sheet's own data, a structural error. What a rater edit is NOT for: making the rater agree with C#. The C# is ours to change (a state-specific override, a conditional argument — see `coding-standards.md` § "We own this code"), and leaning on rater edits as the easy way out of a C#-vs-rater discrepancy is a known agent failure mode. The test: is the rater wrong on its own terms, or merely different from the code?
+<!-- Rewritten 2026-09-11 during SW-54689 — the old "only for actual rater bugs" test forbade a
+     reconciliation Eli has actually chosen, and never asked whether the config was live. The
+     decision itself now lives in the repo doc; only the agent-behavior guard stays here -->
+**When a rater edit is warranted, and how a C#-vs-rater discrepancy is reconciled, live in
+`Swyfft.Services/Premium/AGENTS.md` § "The rater is the acceptance criteria". Read it before proposing
+either.**
+
+**This is never the agent's call to make, and never a shortcut.** Leaning on a rater edit as the
+easy way out of a C#-vs-rater discrepancy is a known agent failure mode. Present the discrepancy,
+the config's live status, and both options. Eli decides.
 
 **The repo `Data\` copy is NOT the source of truth — the actuaries' SharePoint copy is.** The actuaries don't work out of the Swyfft solution's `Data` folder; an edit made only in the repo gets blown away the next time they deliver a rater. `#dev-analytics-rater-handoff` exists to coordinate rater changes from both ends.
 
@@ -230,8 +239,7 @@ iteration and still pass both.
 ## Versioning is mandatory, even with no live policies
 
 A rater change that moves premium or fees must be gated so existing quotes and policies keep their
-original values (`Swyfft.Services/Premium/AGENTS.md` § "Changes must not alter what existing quotes or
-policies are charged"). This holds even where a carrier has no active book, because the ABQ re-rates
+original values (`Swyfft.Services/Premium/AGENTS.md` § "No re-rating live business"). This holds even where a carrier has no active book, because the ABQ re-rates
 historical policies. A delivered rater that adds an unversioned premium-affecting factor, or puts real
 values on V1, is a backwards-compatibility break to fix at the rater before any C# is wired.
 

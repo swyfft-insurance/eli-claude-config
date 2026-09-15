@@ -138,13 +138,13 @@ Every plan must list the governing `CLAUDE.md` files for the subsystems it
 touches as required pre-reads, **above** Step 0b. Match by topic, not by path —
 the relevant doc often lives in a sibling directory (e.g.,
 `Data/{State}/Homeowner/ByPeril/**/*.xlsm` is governed by
-`Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`, not `Data/CLAUDE.md`).
+`Swyfft.Seeding/ExcelLoaders/CLAUDE.md`, not `Data/CLAUDE.md`).
 
 Use the project-root `CLAUDE.md` "Namespace-Specific Documentation" table as
 the index. Format inside the plan:
 
 > **Pre-read (subsystem orientation):**
-> - `Swyfft.Seeding/ExcelLoaders/ByPeril/CLAUDE.md`
+> - `Swyfft.Seeding/ExcelLoaders/CLAUDE.md`
 > - `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md`
 
 A plan that omits these gets caught mid-execution by oddities the docs would
@@ -398,16 +398,38 @@ plan states whether the change is versioned or unversioned, and why.
 
 ## Unversioned changes: the plan must test quotes created before the change (MANDATORY)
 
-Quotes created before the change still carry the data the old definition produced, so they break in
-ways a new quote never will. Test helpers only build new quotes. The plan names the test and how it
-builds a pre-change quote's data: a persisted row the config no longer produces, a row the config
-now produces that the quote lacks, a stale element binding, a value the new definition cannot emit.
-A plan without it is incomplete, HARD STOP.
+Every test helper builds its quote from the current config, so a quote created before the change is
+exercised by no test in the codebase. This rule closes that gap and nothing else.
 
-Skip the test when the change only affects configs not yet live in prod. There are no prod quotes to
-protect, and beta quotes breaking is accepted.
+**When it applies:** the change can leave an existing quote, or the policy bound from it, out of
+step with what its config now does. Examples, not an exhaustive list:
 
-- **What happened:** SW-51772 and SW-55072 each removed an element from a live config unversioned. Both passed on new quotes, both blocked existing quotes at the purchase gate, both shipped to prod and needed hotfixes (#21334, #22626).
+- the config no longer generates an element the quote holds
+- the config generates an element the quote lacks
+- the quote's element is bound to a default element the config has since replaced
+- the quote's element holds a value its default element no longer offers
+- a risk rule the config now runs would decline the quote
+
+When it applies, the plan names the test and how it builds the pre-change quote. A plan without
+that test is incomplete, HARD STOP.
+
+**Two skips, and no others:**
+
+- **An existing quote could be created identically today.** Nothing about it is out of step, so
+  nothing can strand it or its policy.
+- **The change only affects configs not yet live in prod.** There are no prod quotes or policies to
+  protect, and beta breaking is accepted.
+
+Decide the first skip from the config, not from the shape of the change: could a quote built under
+the old config be built, unchanged, under the new one?
+
+Whether a change may be made unversioned is a separate question. A change that needs no new config
+still must not break quotes and policies created before it. Both failures below were correctly
+unversioned, and both still stranded every pre-change quote.
+
+Every plan says which holds: the test, one of the two skips, or a trigger that never fired.
+
+- **What happened:** SW-51772 flipped an element to `NoAccess` and SW-55072 withdrew one from its generator, both unversioned on a live config. Both passed on new quotes, both blocked existing quotes at the purchase gate, both shipped to prod and needed hotfixes (#21334, #22626).
 
 ## Mandatory sections that live in repo docs — copied VERBATIM into the plan
 
