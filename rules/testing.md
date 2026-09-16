@@ -68,6 +68,11 @@ var address = TestAddressHelper.GetTestAddressesFiltered(
     ratingType: RatingType.EAndS, state: StateCode.NY).First();
 ```
 
+**The address lists are Laurel's.** `Swyfft.TestUtilities/ConstantsAndExpects/` is maintained by
+Laurel Nichols. Never add, retag or edit an address there to make a test pass. When no address exists
+for a carrier, the test neutralizes the unrelated declines it hits, the way
+`QbeUpgradeConfirmationTests.NeutralizeUnrelatedDeclines` does, and says so in a comment.
+
 <!-- Added 2026-09-02 during SW-55797 — a helper-sourced address was flagged as non-deterministic in
      review and the recommended fix was to revert to a hardcoded constant -->
 
