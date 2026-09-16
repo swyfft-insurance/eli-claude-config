@@ -183,6 +183,11 @@ Write the reply. `~/.claude/rules/pr-mine-address-feedback.md` § "Quote only wh
 governs what the posted body quotes: an inline reply is already anchored under the comment, so it
 quotes only a sub-part it answers, while a top-level reply quotes each point and replies under it.
 
+**A reply that agrees and made the change is one word: "Done."** The commit is on the PR and the
+reviewer can read it, so restating what changed, why they were right, or what the code does now adds
+nothing. Length earns its place only when the reply declines, disagrees, corrects a wrong claim, or
+answers a question — and even then it is a sentence or two per point.
+
 **IMPORTANT: Show the draft to the user in your response.** Do not proceed until the user approves. This is a hard requirement, not a suggestion — never skip it.
 
 #### c. Wait for approval

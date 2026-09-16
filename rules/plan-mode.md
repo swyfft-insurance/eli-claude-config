@@ -27,7 +27,7 @@ This file is organized into three parts by lifecycle stage:
 
 - **Part A** — the plan was co-designed via Q&A, with no deferred decisions and only genuine options.
 - **Part B** — every mandated section is written into the file (or marked `N/A — <reason>` for the conditional ones).
-- **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the comment self-audit, the ClosedSet self-audit, the PR-description audit, line-length, magic-number extraction, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
+- **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the code-complete audit, the PR-description audit, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
 
 If a rule appears anywhere in this file, it must be reflected in the plan. A plan that silently drops any rule is incomplete — the same as a missing test or seeder override. This is exactly why the skill mandates re-reading the rules between every step: so nothing falls out of working memory and gets dropped after a couple of actions. `/eli--plan-audit` enforces this mandate. It runs on every plan before the plan counts as written, whether the plan came from `/eli--create-plan-from-ticket` or was written by hand.
 
@@ -490,11 +490,15 @@ When a plan changes quote-def go-live dates, adds/recomputes seeder overrides, o
 ### Existing tests as regression checks
 Tests that should still pass without edits — list with a one-line "why this is relevant to this change". Never list a test suite without a reason.
 
-### Code-complete self-audit (comments + ClosedSets) — REQUIRED in EVERY plan
-A written step in the execution sequence, before the code-complete HARD STOP, to re-read `~/.claude/rules/comments-docs-and-external-writing.md` and `Swyfft.Common/SetDefinitions/CLAUDE.md` and audit every comment and ClosedSet usage the diff adds or changes. This audit is already mandatory at execution time (Part C §§ "Comments", "ClosedSets") — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a missing test or seeder override.
+### Code-complete audit — REQUIRED in EVERY plan
+A written step in the execution sequence, before the code-complete HARD STOP, to run
+`/eli--code-complete-audit <ticket-folder>`. The audit is already mandatory at execution time
+(Part C § "Code-complete audit") — it MUST ALSO appear as an explicit written step here so it is
+never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a
+missing test or seeder override.
 
 ### PR-description audit — REQUIRED in EVERY plan
-A written step, in the plan's own post-verification sequence, to run `/eli--audit-pr-desc` on the drafted body file **before the description is presented**. Mandatory at execution time (Part C § "Post-Test-Approval Sequence" step 6) — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional, exactly like the code-complete self-audit above.
+A written step, in the plan's own post-verification sequence, to run `/eli--audit-pr-desc` on the drafted body file **before the description is presented**. Mandatory at execution time (Part C § "Post-Test-Approval Sequence" step 6) — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional, exactly like the code-complete audit above.
 
 ### AC coverage map
 Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
@@ -600,120 +604,17 @@ If a regen touches 30+ files, that's 30+ individual reads. There is no shortcut.
 This is the inverse of `pr-creation.md` § "Skip generated files by default." There the baselines are
 noise around the change; here the regenerated baselines are the change under review.
 
-## Line Length
+## Code-complete audit
 
-C# code lines must stay at or below **120 characters** including leading indent. This is a hard rule — wrap longer lines at natural punctuation: after commas, before operators, between method-chain links, or after the opening paren of a method call. Applies to `.cs` files only (production code AND tests). Markdown, `.txt` data files, JSON, YAML, etc. are exempt — prose and config wrap differently than code. No exceptions for "readability" within `.cs` — if the line is over, it gets wrapped.
+The last step before the code-complete HARD STOP is `/eli--code-complete-audit <ticket-folder>`,
+run once over the whole diff. It walks the diff against `coding-standards.md`,
+`comments-docs-and-external-writing.md`, `testing.md` and `refactoring.md`, one section per wave,
+and fixes what it finds. Unplanned work gets the same single pass at its own code-complete. The
+diff should already be clean before Eli opens it.
 
-When a wrapped construct has multiple peer items (e.g., theory data rows, parameter lists, collection initializers), pick ONE wrapping pattern and apply it to ALL peers — don't mix single-line and multi-line entries in the same group. Inconsistent wrapping is the worst of both worlds and will be flagged.
+Every plan points at `~/.claude/rules/coding-standards.md` § "Identifier names must be self-documenting",
+and every identifier in its code excerpts obeys it.
 
-This applies only to lines newly written or modified by the current change. Pre-existing long lines that aren't being touched stay as-is — don't hijack the diff to reformat unrelated code.
-
-**Verification**: `~/.claude/scripts/Test-LineLength.ps1 -Mode local` (or `-Mode branch`) scans the unified diff for added/modified `.cs` lines and exits non-zero if any exceed 120 chars. `~/.claude/scripts/Build-Solution.ps1` runs this as a pre-build gate (and aborts the build on failure), so a plan that already builds does NOT need a separate line-length verification step — call it out standalone only when the plan doesn't build (e.g. markdown-only changes) or as a pre-build self-check. The script is a backstop, not a substitute for writing it correctly the first time — self-check while editing rather than relying on the post-hoc gate.
-
-<!-- Added 2026-09-02 during SW-55797 — Eli: formatting was allowed to reopen an approved code
-     decision, and the conflict was presented to him as a blocker to adjudicate -->
-
-**Line length never dictates code shape.** The 120-character limit is presentation. The code's
-structure is the substance, and the two are never traded against each other. When a change makes a
-line too long, wrap the line. Never restructure working code, never split or merge a method, never
-alter an approved design, and never reopen a settled decision to make lines fit. C# wraps at any
-token, so a legal wrapping always exists.
-
-This covers a line that only moves. Re-indenting an over-length line makes it a modified line, so
-it gets wrapped in the same edit. That is mechanical work, not a finding.
-
-A line-length violation is therefore never a blocker, never a HARD STOP, and never an option put to
-Eli. Presenting one that way is a fake blocker. It halts delivery over whitespace and asks Eli to
-adjudicate formatting.
-
-- **What happened:** nesting a switch re-indented two already-long lines. That was raised as a
-  blocker, with a restructure of the approved code offered as the way around it.
-
-## Identifier names
-
-<!-- Added 2026-09-02 after SW-53770 Part 4 — Eli mandated the naming standard be pointed at from every plan -->
-
-Every plan points at `~/.claude/rules/coding-standards.md` § "Identifier names must be self-documenting", and every identifier in its code excerpts obeys it. Identifier names are audited at the code-complete self-audit alongside comments and ClosedSets.
-
-## Magic Numbers / Strings
-
-Hardcoded numeric / string literals must be extracted to named constants. Even sentinels like `int.MaxValue` used to mean "no limit" get a named alias — the name encodes intent the value alone doesn't. Applies to plan code excerpts AND executed code.
-
-Bad: `RenderSheet(ws, int.MaxValue, 64, lines.Add);`
-
-Good:
-```csharp
-const int allRows = int.MaxValue;
-const int maxColumnsToCapture = 64;
-RenderSheet(ws, allRows, maxColumnsToCapture, lines.Add);
-```
-
-## Comments
-
-When implementing non-trivial business logic, add an intent/business-reason comment per
-`~/.claude/rules/comments-docs-and-external-writing.md` § "How to write one" — explain in plain language what the code
-is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
-is a default habit, not an afterthought.
-
-### Mandatory comment self-audit at code-complete
-
-Before the code-complete HARD STOP, re-read `~/.claude/rules/comments-docs-and-external-writing.md`
-(don't work from memory) and audit every comment the diff adds or changes. This is real work. It is
-not a checklist to skim and declare passed, and reporting the audit as done without having deleted
-anything is the most common way it gets faked.
-
-**Walk every added or changed comment one at a time and record a verdict for each: keep, trim, or
-delete.** No sampling, no "the rest are fine". A comment with no recorded verdict has not been
-audited.
-
-**Question 1 is always "should this comment exist at all?", and the default answer is no.** Ask it
-before judging the wording, because a well-worded comment that shouldn't exist still gets deleted.
-Delete on sight:
-- Anything restating what the adjacent code already says.
-- Anything a nearby assertion message, `because` string, test name, or method name already says.
-- Any second or third statement of one fact inside the same file. Repetition across separate code
-  sites is correct (§ "Sibling-as-substitute" in the writing rules); repetition stacked inside one
-  file, class, or method is slop.
-
-**Only then judge the survivors** against the writing rules: business reason rather than mechanism,
-no plan-scoped framing, no intra-PR commit references, no jargon or notation, and one or two plain
-sentences. A comment running past two sentences is over budget and gets cut down, not excused.
-
-**Verify a comment's claims the way you would verify prose.** A comment asserting "never", "always",
-"only", or "every" is a factual claim: confirm it against the code or delete the quantifier. A
-confident false comment is worse than no comment.
-
-**Never argue a duplicate into staying.** Reaching for a rule to justify keeping a comment is the
-tell that it should go. Deleting is always available and never introduces an error.
-
-Fix every violation *before* announcing code-complete. This audit is part of reaching code-complete,
-never a step the user has to request, and it applies to every code change, not only plan-driven
-work. The diff should already be clean before Eli opens it.
-
-**A comment-only change never justifies a build or a test run.** Comments, XML docs, and
-encoding fixes cannot change behavior, so re-running tests to "confirm" them proves nothing.
-After a comment-audit pass, check whether the diff since the last green run contains a single
-executable change. If it does not, the prior run still stands — say so and move on. If it does,
-run only the suites that executable change can affect.
-
-## ClosedSets
-
-ClosedSets are pervasive in this codebase and carry strict usage rules — parameter typing,
-comparisons, `.Value`, `.ToString()`, `.Switch()`, implicit string conversion, and
-ModelBinder/JsonConverter at boundaries — all defined in `Swyfft.Common/SetDefinitions/CLAUDE.md`.
-Reviewers (human and bot) reject PRs for violating them.
-
-**Mandatory read before writing ClosedSet code.** Before you write or modify any C# that touches a
-ClosedSet — typing a parameter, comparing values, calling `.Value`/`.ToString()`/`.Switch()`, or
-crossing a UI/API boundary — read `Swyfft.Common/SetDefinitions/CLAUDE.md` in full. Don't work from
-memory: having read it earlier in the session — even having *edited* it — does NOT keep its rules
-active while you later write unrelated code.
-
-**Mandatory ClosedSet self-audit at code-complete.** Before the code-complete HARD
-STOP, re-read `Swyfft.Common/SetDefinitions/CLAUDE.md` (don't work from memory) and audit every
-ClosedSet usage the diff adds or changes against it. Confirm in particular: new method parameters
-are typed as the ClosedSet, not `string`/`int`; `.Value` appears only at true system boundaries
-(external APIs, IMS, raw storage), never in internal calls that already accept the ClosedSet;
-comparisons and `.Switch()` follow the documented forms. Fix every violation before announcing
-code-complete. This audit is part of reaching code-complete — not a step the user should ever have to request.
-
+A comment-only change never justifies a build or a test run. After the audit, check whether the
+diff since the last green run contains a single executable change. If it does not, the prior run
+still stands. If it does, run only the suites that executable change can affect.

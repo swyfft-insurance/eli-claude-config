@@ -318,3 +318,49 @@ Present perfect ("the errors have cleared") is the sneakiest offender: it smuggl
 claim into scenario narration. Inside a hypothetical, replace it with the scenario's own mood
 ("the errors would have cleared"); elsewhere, prefer simple past with the event named ("the errors
 cleared on recalc").
+
+## Code comments: write them, then audit them at code-complete
+
+When implementing non-trivial business logic, add an intent/business-reason comment per § "How to write one" — explain in plain language what the code
+is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
+is a default habit, not an afterthought.
+
+### Mandatory comment self-audit at code-complete
+
+Before the code-complete HARD STOP, re-read this file (don't work from memory) and audit every comment the diff adds or changes. This is real work. It is
+not a checklist to skim and declare passed, and reporting the audit as done without having deleted
+anything is the most common way it gets faked.
+
+**Walk every added or changed comment one at a time and record a verdict for each: keep, trim, or
+delete.** No sampling, no "the rest are fine". A comment with no recorded verdict has not been
+audited.
+
+**Question 1 is always "should this comment exist at all?", and the default answer is no.** Ask it
+before judging the wording, because a well-worded comment that shouldn't exist still gets deleted.
+Delete on sight:
+- Anything restating what the adjacent code already says.
+- Anything a nearby assertion message, `because` string, test name, or method name already says.
+- Any second or third statement of one fact inside the same file. Repetition across separate code
+  sites is correct (§ "Sibling-as-substitute" in the writing rules); repetition stacked inside one
+  file, class, or method is slop.
+
+**Only then judge the survivors** against the writing rules: business reason rather than mechanism,
+no plan-scoped framing, no intra-PR commit references, no jargon or notation, and one or two plain
+sentences. A comment running past two sentences is over budget and gets cut down, not excused.
+
+**Verify a comment's claims the way you would verify prose.** A comment asserting "never", "always",
+"only", or "every" is a factual claim: confirm it against the code or delete the quantifier. A
+confident false comment is worse than no comment.
+
+**Never argue a duplicate into staying.** Reaching for a rule to justify keeping a comment is the
+tell that it should go. Deleting is always available and never introduces an error.
+
+Fix every violation *before* announcing code-complete. This audit is part of reaching code-complete,
+never a step the user has to request, and it applies to every code change, not only plan-driven
+work. The diff should already be clean before Eli opens it.
+
+**A comment-only change never justifies a build or a test run.** Comments, XML docs, and
+encoding fixes cannot change behavior, so re-running tests to "confirm" them proves nothing.
+After a comment-audit pass, check whether the diff since the last green run contains a single
+executable change. If it does not, the prior run still stands — say so and move on. If it does,
+run only the suites that executable change can affect.

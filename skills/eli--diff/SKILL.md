@@ -1,6 +1,6 @@
 ---
 name: eli--diff
-description: Show git diffs safely. Prevents conflating uncommitted changes with committed branch diffs. Required arg: "local" (working tree) or "branch" (committed vs development).
+description: Show git diffs safely, untracked files included. Required arg: "local" (uncommitted), "branch" (committed vs origin/development) or "all" (everything the branch carries vs origin/development).
 ---
 
 # Git Diff
@@ -9,10 +9,11 @@ description: Show git diffs safely. Prevents conflating uncommitted changes with
 
 ## Arguments
 
-One required argument: `local` or `branch`. No default — you must choose.
+One required argument: `local`, `branch` or `all`. No default — you must choose.
 
-- `/eli--diff local` — What have I changed but not yet committed?
-- `/eli--diff branch` — What does this branch look like compared to development?
+- `/eli--diff local` — What have I changed but not yet committed? Includes untracked (new) files.
+- `/eli--diff branch` — What has this branch committed, compared to `origin/development`?
+- `/eli--diff all` — Everything this branch carries vs `origin/development`: committed, uncommitted and untracked. The one to use when the question is "what does this branch change", such as the code-complete audit or a PR description.
 
 If no argument is provided, STOP and ask the user which one they want.
 
@@ -23,7 +24,7 @@ Optional flags after the mode:
 ## Run
 
 ```bash
-pwsh -NoProfile -File "$HOME/.claude/scripts/Git-Diff.ps1" -Mode <local|branch> # via-diff-skill
+pwsh -NoProfile -File "$HOME/.claude/scripts/Git-Diff.ps1" -Mode <local|branch|all> # via-diff-skill
 ```
 
 With options:
@@ -36,10 +37,13 @@ pwsh -NoProfile -File "$HOME/.claude/scripts/Git-Diff.ps1" -Mode local -Path "Sw
 
 ## What each mode shows
 
-| Mode | Compares | Includes uncommitted? | Includes committed? |
-|------|----------|----------------------|-------------------|
-| `local` | Working tree vs HEAD | Yes | No |
-| `branch` | HEAD vs development | No | Yes |
+| Mode | Compares | Includes uncommitted? | Includes committed? | Includes untracked? |
+|------|----------|----------------------|-------------------|-------------------|
+| `local` | Working tree vs HEAD | Yes | No | Yes |
+| `branch` | HEAD vs `origin/development` | No | Yes | No |
+| `all` | Working tree vs the branch's merge base with `origin/development` | Yes | Yes | Yes |
+
+`branch` and `all` baseline on `origin/development`, never the local `development` ref, which is stale on a machine that lives on feature branches. Fetch first if the remote-tracking ref might be behind.
 
 ## Rules
 

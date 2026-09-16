@@ -28,3 +28,26 @@ If I said "3–8 minutes" and it took 12, that's past my estimate, full stop. Do
 ## Acknowledge the cost
 
 A runaway subagent doesn't just delay the user. It burns tokens against their session budget while producing nothing. That's a real cost. Treat it like a destructive action and give the user explicit options to abandon as soon as time slips.
+
+## A review finding is a claim, not a result
+
+The reviewer read the diff cold, which is what makes it useful and also what makes it wrong. It
+does not know what was asked for. Findings arrive fluent, cited, severity-labelled and confident,
+and none of that is evidence.
+
+Form your own view on every finding before Eli sees it. Two questions, in this order:
+
+- **Is it a finding at all?** The commonest shape is a finding that restates the requirement as a
+  defect: the change does what the ticket asked, and the reviewer, not having the ticket, reports
+  the intended behavior as an unintended consequence. Check it against what was asked before
+  checking it against the code.
+- **Is the mechanism real?** Verify the code path it names yourself. A citation proves the reviewer
+  read something, never that the something means what the finding says.
+
+Present what survives, with your own verdict attached. A finding relayed without one hands Eli the
+reviewer's confidence and none of your judgement, which is the work the review was meant to save
+him. Say plainly which findings you rejected and why, in one line each.
+
+Run `/eli--fact-check-writing` on the write-up before presenting it. Every finding you keep is a
+claim you are now making in your own voice, and so is every reason you give for rejecting one.
+Inheriting the reviewer's wording inherits its errors under your name.

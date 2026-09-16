@@ -51,7 +51,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The SessionSt
 | Talking to Eli | `talking-to-eli.md` | composing any response |
 | Git Safety | `git-safety.md` | any git push, commit, branch, merge, or rebase |
 | Windows / Tooling | `windows-tooling.md` | using sed, tee, mv, printenv, or pwsh with Unix paths |
-| Coding Standards | `coding-standards.md` | modifying access modifiers or adding usings |
+| Coding Standards | `coding-standards.md` | writing or modifying any C# |
 | Refactoring Strategy | `refactoring.md` | changing a type, signature, member name, or access modifier |
 | Comments, Docs & External Writing | `comments-docs-and-external-writing.md` | writing comments, docs, RCAs, Slack/YouTrack, PR descriptions, or any persisted/external prose |
 | Slack | `slack.md` | sending any Slack message |
