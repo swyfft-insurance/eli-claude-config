@@ -56,8 +56,10 @@ For each wave, in order:
    describes a workflow rather than the code (a HARD STOP sequence, a TDD ordering) gets the verdict
    **N/A** with the reason and the wave ends.
 3. Otherwise walk every object in the diff the section governs and record a verdict for each:
-   **Satisfied**, or **Violated** with the fix applied. No sampling, no "the rest are fine". An
-   object with no verdict has not been audited.
+   **Satisfied**, or **Violated** with the fix applied. The verdicts are written to
+   `~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md`, one row per section and
+   object. No sampling, no "the rest are fine". A section or object with no row has not been
+   audited. The file is never shown to Eli.
 4. Fix every violation in this wave before starting the next, so later waves see the corrected
    code. A fix that would change an approved design, or that the rule leaves to Eli, is a hard
    stop, not a silent edit.

@@ -33,11 +33,17 @@ calls in this turn.
 
 ## 3. Rules audit — sentence by sentence
 
-Treat the message as guilty until proven clean. Every sentence: "which rule does this break?",
-not "does this seem fine?". Hunt hardest for: word slop and throat-clearing; invented weight on
-options; fake caveats (off-topic, non-differentiating, always-true, ass-covering); bare ticket/PR
-numbers; ambiguous references; missing business-reason-plus-exact-name pairing; tense drift;
-buried or ambiguous questions.
+Treat the message as guilty until proven clean. The rows are the `##` headings of the files read in
+step 1, derived when the skill runs, never from a list written here:
+
+```bash
+grep -n '^## ' ~/.claude/rules/core-behavior.md ~/.claude/rules/talking-to-eli.md ~/.claude/rules/comments-docs-and-external-writing.md
+```
+
+plus the headings of any topical file step 1 added. Every heading gets a verdict, **Satisfied** with
+the sentence that earns it, **N/A** with the reason, or **Violated** with the fix applied. The table
+is written to `msg-audit.md` in the session scratchpad directory. A heading with no row has not been
+audited. The file is never shown to Eli.
 
 ## 4. Present the verdict — one of two outcomes
 

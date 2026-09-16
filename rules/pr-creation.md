@@ -61,7 +61,7 @@ Two things belong only when they are load-bearing for judging the diff:
   Reviewers rarely open the ticket, and an acceptance criterion or a ruling is often the only thing
   that explains code that looks arbitrary or wrong. Quote it verbatim and keep it to the sentence
   that does the work. A quote restating intent the description already states in its own words earns
-  nothing.
+  nothing. When the surprise is a conflict between two sources, quote both, verbatim.
 - **An explanation of existing machinery, when the change's correctness rests on it.** Say the one
   thing that matters. A tour of machinery no reviewer would question earns nothing.
 
@@ -84,32 +84,43 @@ it out instead of shipping it with an apology attached.
 
 ## Attaching screenshots to a PR
 
-Reference the image in the body file where it belongs, then pass the file to `--attach`. GitHub
-rewrites every reference whose **filename** matches the attached file, in place, keeping the alt
-text the body wrote. One command, one publish.
+### The screenshot is the whole screen, with the change outlined in red
+
+A PR screenshot shows the full web app viewport as the user sees it, never a crop of the changed
+element. A crop strips the context a reviewer uses to judge the change: where it sits, what
+surrounds it, whether it matches its neighbors. Draw a red outline around the element or region the
+change touches so the reviewer finds it without hunting. One screenshot per surface the change
+touches.
+
+**Every PR screenshot is opened for Eli's approval before the PR is drafted.** Open it with
+`Start-Process` through the PowerShell tool the moment it is saved, and treat it as a draft under
+Gate 2: it goes into the PR only after he approves it. He judges the image, so describing it in chat
+is never a substitute for showing it.
+
+### Referencing and attaching
+
+**Run the command below verbatim, from the repo root. The only thing that changes is the image
+filename, the title and the ticket folder. No other flag form, path form or order.** Every variant
+that was reasoned about instead of run has failed on a real PR (#22830). This form is proven on
+#22710 and #22831.
+
+The body references the image by bare filename; the flag gets `./<file>#<alt>`. gh rewrites the body
+reference to the uploaded asset in place and keeps the alt text written in the body.
 
 ```markdown
 ## User Interface
 
-![Offset slider showing -45 and 45](slider.png)
+![Confirmation page with the new element outlined in red](systems-update-attestation.png)
 ```
 
 ```sh
-gh pr create --base development --title "[SW-55513] (CO) Widen the offset slider" \
-  --body-file ~/.claude/tickets/SW-55513-widen-offset/artifacts/pr/body.md \
-  --reviewer swyfft-insurance/dev \
-  --attach "C:\Users\eli.koslofsky\Pictures\Screenshots\slider.png#Offset slider showing -45 and 45"
+cp "$HOME/.claude/tickets/<ticket-folder>/artifacts/pr/systems-update-attestation.png" ./systems-update-attestation.png
+gh pr create --base development --title "<title>" --body-file "$HOME/.claude/tickets/<ticket-folder>/artifacts/pr/body.md" --reviewer swyfft-insurance/dev --attach "./systems-update-attestation.png#<alt>"
+rm ./systems-update-attestation.png
 ```
 
-Only the filename matches, so the body's path form is free: `slider.png`, `./slider.png` and the
-full absolute path all resolve to the upload. Several references to one filename all get the same
-asset.
-
-**An attached file the body never references is appended to the end of the body**, which is how a
-screenshot ends up outside its section. That costs a second gated publish to relocate, so put the
-reference in the body first.
-
-`gh pr edit --attach` and `gh pr comment --attach` document the same rewrite behavior.
+An absolute path in `--attach` is not rewritten: the image is appended after the last section and
+the body reference stays broken (#22830).
 
 ## Every ticket the PR covers goes in the title
 

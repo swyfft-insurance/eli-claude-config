@@ -44,6 +44,18 @@ Form your own view on every finding before Eli sees it. Two questions, in this o
 - **Is the mechanism real?** Verify the code path it names yourself. A citation proves the reviewer
   read something, never that the something means what the finding says.
 
+Question 1 is answered by opening a source, never by reasoning: the AC, the plan section that chose
+the shape, or the precedent the code copied. The verdict names the source. A finding that objects
+to the codebase's own precedent is a convention change, and goes to Eli labelled as one.
+
+The reviewer's suggested fix is a second claim. Audit it against `coding-standards.md` before
+applying it. A fix that duplicates a source of truth, or that adds a test for something a captured
+assert already proves, is rejected even when the finding is real.
+
+- **What happened:** a theory computed its expectation from the predicate under test. The reviewer
+  called it tautological and proposed an explicit config list. The mechanism was real, the QBE
+  precedent the plan named was never opened, and the list duplicated `HiscoxConstants`.
+
 Present what survives, with your own verdict attached. A finding relayed without one hands Eli the
 reviewer's confidence and none of your judgement, which is the work the review was meant to save
 him. Say plainly which findings you rejected and why, in one line each.

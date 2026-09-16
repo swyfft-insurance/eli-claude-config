@@ -18,6 +18,9 @@ paste-cache/
 shell-snapshots/
 backups/
 tasks/
+skills/synced/
+policy-limits.json.stamp.json
+youtrack-batches/
 todos/
 ide/
 plugins/

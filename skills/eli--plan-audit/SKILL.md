@@ -82,7 +82,17 @@ and no pass may be summarized as "the rest are fine".
 
 ### 2a. `plan-mode.md`, Parts A, B and C — every plan, every type
 
-Walk it top to bottom. Every rule gets a row whether or not the plan mentions it.
+The rows are the file's `##` and `###` headings, derived when the skill runs, never from a list
+written here:
+
+```bash
+grep -n '^##' ~/.claude/rules/plan-mode.md
+```
+
+Every heading gets a row whether or not the plan mentions it. The table is written to
+`~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md`, one row per heading with the verdict and
+the plan section that earns it. A heading with no row fails the audit. The file is never shown to Eli;
+it exists so a skipped section is visible as a missing row.
 
 **The declared type never narrows this pass.** Step 0 resolves which playbooks get *added* in 2b; it
 subtracts nothing here. A type can reduce or exempt an individual rule, and Bug Fix reduces several,
@@ -103,8 +113,9 @@ runtime rather than from any list written here:
 ls ~/.claude/rules/*.md
 ```
 
-Every file in that output gets a one-line verdict: **applies** or **N/A with the reason**. Then walk
-each applying file rule by rule, exactly as in 2a. The files Step 1 names are already in this set
+Every file in that output gets a one-line verdict: **applies** or **N/A with the reason**. Then derive
+each applying file's rows the same way, `grep -n '^##' <file>` (or `grep -n '^- '` for a file that is
+a bullet list with no headings), and give every row a verdict in the same table, exactly as in 2a. The files Step 1 names are already in this set
 and always apply.
 
 Add to the same pass:

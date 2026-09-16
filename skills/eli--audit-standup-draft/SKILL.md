@@ -84,8 +84,12 @@ Then read the draft file, start to finish.
 
 ## 2. Verdict pass
 
-Every rule gets its own verdict, recorded as you go. A rule with no verdict has not been audited, and
-no pass may be waved through as "the rest are fine".
+Every rule gets its own verdict, and the verdicts are written down: the table lives beside the draft
+as `~/Desktop/standups/<draft-name>-audit.md`, one row per rule with the verdict and the line of the
+draft that earns it. The rows are derived when the skill runs, never from a list written here:
+`grep -n '^##' <file>` for a file with headings, `grep -n '^- '` for a file that is a bullet list
+(`standup.md` and `slack.md` are bullet lists). A row with no verdict has not been audited, and no
+pass may be waved through as "the rest are fine". The file is never shown to Eli.
 
 | Verdict | Means |
 |---|---|
@@ -95,9 +99,8 @@ no pass may be waved through as "the rest are fine".
 
 ### 2a. `standup.md` — every rule, every time
 
-Walk it top to bottom. Every rule gets a verdict whether or not the draft touches it: the
-two-sections cap, attribution to the day the work actually happened, work meaning commits and PRs
-and Eli's own stage moves rather than assignments made by someone else, and the rest.
+One row per bullet of `standup.md`, from `grep -n '^- '`. Every bullet gets a verdict whether or not
+the draft touches it.
 
 ### 2b. The standup skill — Step 2, plus the chosen format's section
 
@@ -120,9 +123,8 @@ an item no rule admits does not appear.
 
 ### 2c. `comments-docs-and-external-writing.md`, plus `slack.md` for the Slack format
 
-Walk each rule by rule. Word slop, no em-dashes, causal connectors as claims, one sentence per
-subject and moment, exact terms repeated rather than varied, consistent bullet granularity, no
-ambiguous references, and the tense map all apply.
+One row per `##` heading of `comments-docs-and-external-writing.md` and, for the Slack format, one row
+per bullet of `slack.md`, both derived by grep at run time. Every row gets a verdict.
 
 The Spoken format's fragments are not an exemption from any of it.
 

@@ -28,3 +28,27 @@ for the host rather than reading it back.
 
 When the locator turns out to be written down nowhere, that is the gap above. Record it in the rules
 file that governs the work, so the next ticket starts with the address instead of a search.
+
+## A skill that did not do its job is broken, and the skill gets fixed where it lives
+
+When a skill, script or hook under `~/.claude/` produces a wrong result, misses what it exists to
+catch, or has to be worked around, the skill is broken. Correcting the output by hand, or patching
+the defect inside some other skill that happens to call it, leaves it broken for the next run.
+
+The response, in order:
+
+1. Say plainly that the skill failed, naming the skill and what it got wrong.
+2. Read the skill or script and find the cause.
+3. Draft the fix to the skill itself and present it alongside the corrected output. The output is
+   not re-presented until the skill fix is drafted too.
+
+"I skipped that step" or "I worked around it" is never the whole answer. A step that can be
+skipped, or a defect that can be worked around, without the skill noticing is a defect in the
+skill.
+
+- **What happened:** `/eli--diff` baselined on a stale local `development` and pulled 109
+  unrelated files. The first fix landed in `eli--review-prs-parallel`, which calls it, and the
+  diff skill itself stayed broken until the same failure repeated.
+- **What happened:** `/eli--audit-pr-desc` passed a PR body that argued against the change and
+  quoted one ticket but not the other, both rules in the files it walks. The miss was reported as
+  a personal slip and the body was corrected in place.

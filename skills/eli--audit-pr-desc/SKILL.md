@@ -79,8 +79,11 @@ Then read the body file, start to finish.
 
 ## 2. Verdict pass
 
-Every rule gets its own row and its own verdict. A rule with no recorded verdict has not been
-audited, and no pass may be summarized as "the rest are fine".
+Every rule gets its own row and its own verdict, and the rows are written down. The table lives at
+`artifacts/pr/body-audit.md` beside the body, one row per `##` heading of the two rule files, with
+the verdict and the sentence of the draft that earns it. The file is never shown to Eli; it exists
+so a skipped section is visible as a missing row. A heading with no row fails the audit, and no
+pass may be summarized as "the rest are fine".
 
 | Verdict | Means |
 |---|---|
@@ -88,38 +91,36 @@ audited, and no pass may be summarized as "the rest are fine".
 | **N/A** | State why. |
 | **Violated** | Fix the draft, then re-record as Satisfied. |
 
-### 2a. `pr-creation.md` — every rule, every time
+### 2a. Derive the rows at run time
 
-Walk it top to bottom. The rules that fail most often, each still getting its own row alongside the
-rest:
+The rows come from the rule files when the skill runs, never from a list written here:
+
+```bash
+grep -n '^## ' ~/.claude/rules/pr-creation.md ~/.claude/rules/comments-docs-and-external-writing.md
+```
+
+For `pr-creation.md`, the bullet list above its first `##` is one row per bullet as well. Walk each
+file top to bottom and give every heading its row before moving to the next file.
+
+### 2b. Rows every PR description gets on top of the headings
 
 - **The word budget, counted rather than estimated.** Count the narrative words and write the number
-  down. Intent and blast radius together get ~100. Each surprise gets up to 75, quotes included.
+  in the row. Intent and blast radius together get ~100. Each surprise gets up to 75, quotes included.
   Verification is exempt from the budget but not from brevity: one line per suite, nothing wrapping
   it. A draft over budget loses content; it is never reflowed to fit.
-- **Surprise inflation.** Most PRs have zero or one surprise. Three is a lot. A one-line diff
-  claiming two surprises is the shape that manufactures budget, so justify each against the test in
-  `pr-creation.md`: would a reviewer actually stop and ask "why did they do that?"
-- **Mechanism the diff already shows.** Cut it.
-- **A section per file or per component.** Restructure by what is surprising.
+- **One row per surprise, naming its kind.** `pr-creation.md` allows three kinds: a deviation from
+  the ticket, an unrelated change riding along, a decision with a non-obvious alternative. The row
+  names which one, in those words. A block that implements the AC is none of the three and is
+  deleted. A block whose subject is a conflict between two sources quotes both sources verbatim.
 - **Title.** Every ticket in the body's Ticket Link section appears in the title in its own
   brackets, the product line follows in parens, and `Part N` is present when the PR delivers part of
   a multi-PR ticket.
-- **Links and citations.** Every ticket ID in the body is a markdown link. Prior code is cited by PR
-  number as a bare auto-link, and a commit SHA appears only alongside its PR number.
-- **Personal tooling.** No skill, script, or `~/.claude/` path is named anywhere.
 - **Template shape.** Sections match `.github/pull_request_template.md`, and Reminders is deleted.
 
-### 2b. `comments-docs-and-external-writing.md` — every rule, every time
-
-A PR description is external written prose and the file applies in full. Walk it rule by rule. It
-carries the word-slop rule, no em-dashes, causal connectors as claims, one sentence per subject and
-moment, exact terms repeated rather than varied, scenarios as opener plus bullets, consistent bullet
-granularity, no ambiguous references, and the tense map.
-
-The tense map earns particular attention here, because a PR description is the archetypal case it
-was written for: pre-change behavior takes past tense, post-change behavior takes present, and a
-sentence mixing a durable fact with a fixed defect gets split rather than forced into one tense.
+The tense map in `comments-docs-and-external-writing.md` earns particular attention, because a PR
+description is the archetypal case it was written for: pre-change behavior takes past tense,
+post-change behavior takes present, and a sentence mixing a durable fact with a fixed defect gets
+split rather than forced into one tense.
 
 ## 3. Claim audit
 
