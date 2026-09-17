@@ -41,6 +41,15 @@ the config's live status, and both options. Eli decides.
 The actuaries post every delivery as a link in `#dev-analytics-rater-handoff` (`C06V258BWHJ`), which
 is where to find a file whose folder these two rows don't cover.
 
+**Who to tag.** The channel is `#dev-analytics-rater-handoff` (`C06V258BWHJ`). Two on the actuarial
+side:
+
+- **Blake Smith** (`U019J5G7UTF`), the actuaries' leader, on every rater change.
+- **The actuary who delivered the rater in hand.** It varies per rater and per delivery. Find them
+  by reading the channel for the delivery post carrying that rater's SharePoint link. Alex
+  Terragnoli (`U03JA79NY8L`) posts many of them. The rater's own `version_history` tab has an
+  `Analyst` column naming who made each change, which cross-checks the channel.
+
 The flow when a rater edit is warranted:
 
 1. **The edit is made on SharePoint, by a human.** Eli usually makes it himself directly on SharePoint; routing the change to the actuaries instead is always a valid option (some devs prefer it).
@@ -68,8 +77,32 @@ The flow when a rater edit is warranted:
      from the pre-dumped baselines, formulas as formulas (`=...`) and values as values.
    - The step names the cell to select before pasting: the rectangle's top-left corner.
    - Lives in the ticket's `artifacts/rater-edits/`, named for the sheet and rows it fills.
-   - Opened for Eli with `Start-Process`, or given as a full absolute path he can click. Never a
-     relative path.
+   - Opened for Eli with `Start-Process`, in the same message that gives the step, and its contents
+     are NOT reprinted in that message. Open it or print it, never both. Giving the path instead of
+     opening it leaves him to go find it, which `tool-access.md` § "Never make Eli hunt for a link"
+     already bans. Never a relative path.
+
+   **Adding a row to a lookup table: insert inside the range, then paste the rows the insert got
+   wrong.** Excel expands a formula's range reference only when the inserted row lands strictly
+   inside that range. With a table at `$6:$9`, inserting at 7, 8 or 9 rewrites every referencing
+   formula to `$6:$10`. Inserting at either edge does not: at row 6 the range slides to `$7:$10`,
+   and at row 10 it stays `$6:$9`. Either way the new row sits outside the lookup, the sheet looks
+   correct, and the new key silently never matches.
+
+   When the new row's own position is interior, insert there. The blank lands where it belongs, so
+   paste that one row.
+
+   Insert **cells, shifted down, scoped to the table's own columns**, not a whole row. Rater sheets
+   routinely park a second table a few columns to the right of the first, sharing its rows, and a
+   whole-row insert drags that table down with it. Check the columns beside the table in the
+   baseline before choosing the insert, and name the exact range in the step (`A7:L7`, Insert Cells,
+   Shift cells down).
+
+   When the new row belongs first or last, insert one row in from that edge and paste two rows: the
+   new value, and the value it displaced. Every other row keeps its content untouched.
+
+   The baseline diff is the proof. Referencing formulas still carrying the old range mean the insert
+   was at an edge and the paste hid it.
 
    **Edits that are not a cell's contents** (adding or repointing a named range, adding a sheet,
    renaming a tab) get the menu path and every field, each exact value in a code block.
@@ -77,6 +110,27 @@ The flow when a rater edit is warranted:
    In ALL cases, exact steps. Generic instructions ("fix the formula on the sheet") are banned.
 3. **Tell the actuaries and document the change in the rater's `version_history` tab.**
 4. **After the SharePoint edit, Eli downloads the file from SharePoint** and the agent places that download into the repo `Data` folder (the standard rater-placement step).
+
+   **The delivered filename never matches the repo path, and its carrier token does not scope the
+   delivery.** SharePoint carries the actuaries' delivery name: product, rating type, sometimes a
+   carrier, the state, and a date whose format varies (`HO_ES_NY_Rater_2026_08_20.xlsm`,
+   `HO_AD_BIC_AL_Rater_20260810.xlsm`, `CO_ES_TOPA_FL_Rater_20260914.xlsm`). Every Homeowner ByPeril
+   path in `Data/` instead carries a carrier and no date
+   (`Data/NY/Homeowner/ByPeril/EAndS/HO_ES_QBE_NY_Rater.xlsm`). A carrier in the delivered name
+   settles nothing about which repo files it covers: TX's rater was delivered as
+   `HO_ES_TOPA_TX_Rater_2026_08_03.xlsm`, and `HO_ES_TOPA_TX_Rater.xlsm`, `HO_ES_BSIC_TX_Rater.xlsm`,
+   `HO_ES_HSIC_TX_Rater.xlsm` and `HO_ES_QBE_TX_Rater.xlsm` are one byte-identical file.
+
+   **The hashes under `Data/` are the authority on which carrier files are one rater**, and so on
+   which files a delivery is in scope for:
+
+   ```powershell
+   Get-ChildItem Data -Recurse -Filter *.xlsm |
+     ForEach-Object { [pscustomobject]@{ Hash=(Get-FileHash $_.FullName -Algorithm SHA256).Hash; Path=$_.FullName } } |
+     Group-Object Hash | Where-Object Count -gt 1
+   ```
+
+   Never remark on the mismatch between the delivered name and the repo path.
 
 ## MANDATORY plan header — the rater-parsing HARD RULE (physically insert into EVERY rater plan)
 
