@@ -6,6 +6,8 @@
 - **Policy**: post-bind contract. The result of binding a quote (separate EF entity from `EFQuote`).
 - **Bind** (verb): the act of converting a quote into a policy. Code-level: `*Service.Bind(EFQuote quote) → PolicyNumber` (see `NfipService.Bind`, `Hiscox*Service.Bind`, `VaveServiceBase.Bind`).
 - **Bind** (noun): the binding event. Valid in time-relative usage ("at bind", "pre-bind", "post-bind") and to describe the operation succeeding/failing ("the bind succeeded", "C# bind threw"). Don't use it as a name for the resulting policy or quote.
+- **New business**: a quote or policy written for a first term, as against a renewal of an existing
+  policy.
 - **Product line**: Homeowner (HO), Commercial (CO), Flood, DBB.
 - **Element**: an input on a quote that the agent answers. `EFQuoteElement` on the quote, `EFDefaultElement` for the config's set, named by `QuoteElementName`.
 - **Config**: an `IStateConfig` implementer, see § "What identifies a config/IStateConfig" below. In pre-bind writing a bare "config" means this. Any other kind (appsettings, a build configuration) gets named as such, never left as a bare "config".

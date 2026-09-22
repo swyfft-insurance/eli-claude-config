@@ -50,6 +50,13 @@ side:
   Terragnoli (`U03JA79NY8L`) posts many of them. The rater's own `version_history` tab has an
   `Analyst` column naming who made each change, which cross-checks the channel.
 
+**Name the product line in the first sentence, every time.** The channel carries both Homeowner and
+Commercial raters, and the same state and carrier exist in both: NY QBE has
+`HO_ES_QBE_NY_Rater.xlsm` and `CO_ES_QBE_NY_Rater.xlsm`. "The QBE NY rater" therefore names nothing,
+and the actuaries have to guess which product they are being asked about. Say Homeowner or
+Commercial up front, name the rater file, and repeat the product line wherever the message names a
+state, a carrier or a config. This applies to every message and every reply in that channel.
+
 The flow when a rater edit is warranted:
 
 1. **The edit is made on SharePoint, by a human.** Eli usually makes it himself directly on SharePoint; routing the change to the actuaries instead is always a valid option (some devs prefer it).
@@ -164,19 +171,22 @@ formula cells emit only formula text unless `-IncludeFormulaValues:true` is pass
 (`pwsh ~/.claude/scripts/Build-Solution.ps1` — the wrapper lives in `~/.claude/scripts/`, NOT the repo
 root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
 
-## Scope stays provisional until the rater diff exists
+## The diff is the requirement
 
-Rater plans are a deliberate exception to plan-mode's "resolve every open question before execution."
-You can't see what the rater changed while authoring — the new rater `.xlsm` arrives only at
-execution, when you place it and diff it against the captured baselines. So a rater plan is a
-**ticket-shaped outline, hardened by the diff right after the files are placed:**
+`plan-mode.md` § Plan Types § "Excel Rater (ByPeril)" governs, and is read before authoring: the
+entire plan is provisional until the diff has been run, so the plan is written in two parts around
+the scoping checkpoint and nothing about the C# is decided before it.
 
-- Write the C# change list from the **ticket's stated scope, and label it provisional.** Don't assert
-  as fact what the rater changed — mark every ticket-derived scope claim unverified (e.g. *"per
-  ticket; unverified until the diff"*). This is the one place a plan may carry unverified items,
-  because they're flagged and a checkpoint resolves them.
-- You may read the **old, on-disk** rater (`ReadExcel`) to sharpen the provisional scope, but that's
-  the baseline, not the change — still provisional.
+Three things are routinely mistaken for the diff, and none of them is:
+
+- **The old, on-disk rater.** It is the baseline. Reading it says what the rater did before the
+  delivery, never what the delivery changed.
+- **The `version_history` sheet.** Intent, not a change list. See § "The `version_history` sheet".
+- **The ticket's technical notes.** A statement of what the filer expects the change to require.
+
+The diff itself is the `ExpectedResults/` baseline diff, regenerated as soon as the raters are
+placed. It needs no seeder change and no reseed, which is why it comes before both. See § "Plan
+shape" for the run and § "Why the baseline diff, not `DumpRater`" for why this dump and no other.
 
 ## The `version_history` sheet — intent, not the change list
 
@@ -189,27 +199,37 @@ change is functional.
 
 ## Implement the seeder first
 
-The seeder is the first layer that reads the actual rater sheets and their layout, so sheet-name mismatches, shifted columns, and non-opt-in-carrier breakage surface there — concretely, not as a guess. Every downstream layer (premium, rater service, elements, validation) depends on seeded factor data and can't run until a full reseed is green. Order: seeder → green full reseed → premium / rater service / elements / validation. Implement the seeder late and layout or opt-in breakage only shows up when the work looks finished.
+This orders the implementation, which starts at the scoping checkpoint. It never puts the seeder
+before the diff: the diff is what says whether the seeder changes at all, and the delivered sheets
+are often exactly what it has to be changed to read.
+
+Within the implementation, the seeder goes first. It is the first layer that reads the actual rater
+sheets and their layout, so sheet-name mismatches, shifted columns, and non-opt-in-carrier breakage
+surface there concretely rather than as a guess. Every downstream layer (premium, rater service,
+elements, validation) depends on seeded factor data and can't run until a full reseed is green.
+Order: seeder → green full reseed → premium / rater service / elements / validation. Implement the
+seeder late and layout or opt-in breakage only shows up when the work looks finished.
 
 ## Rating changes have an outsized blast radius
 
 Premium is extremely sensitive: a change that leaks onto a state or carrier you didn't intend silently mis-prices quotes and policies — a leak here is a mispriced policy, not just a failed test. So before touching any shared base in the rating stack, read the actual inheritance chain of the class you're editing, and contain the change by construction (see `refactoring.md` § "Contain a shared-base change by construction").
 
-## Plan shape — the same five steps for both products
+## Plan shape — the same four steps for both products
+
+Steps 1 to 3 are the plan written up front. Step 4 is written at the checkpoint, from the diff.
 
 1. Branch.
 2. **(You) place the rater(s).** Overwrite the canonical rater under `Data/`. A state's E&S rater is
    one file shared by its carriers, so propagate it byte-identical to every in-scope carrier file and
    hash-verify.
-3. **Implement the seeder and reseed** (see § "Implement the seeder first"). Nothing downstream runs
-   until a full reseed is green.
-4. **Scoping checkpoint — HARD STOP.** Run the validation tests for the affected leaves. The
-   `RaterFileContents` baselines rewrite themselves locally on that run (see
-   `~/.claude/rules/captured-asserts.md`). Read the `ExpectedResults/` diff and reconcile it against
-   the provisional plan. Diff within the provisional scope means proceed. Diff showing more means
-   surface the delta and expand the plan before writing any C#. **This is where provisional becomes
-   verified.**
-5. **Implement** the C# the diff dictates, then **verify**: re-run the validation tests, review the
+3. **Scoping checkpoint — HARD STOP.** Regenerate the `RaterFileContents` baselines for the affected
+   leaves, which rewrite themselves locally on that run (`~/.claude/rules/captured-asserts.md`).
+   Filter to `RaterFileContents_ShouldMatchCaptured` by method: it dumps the placed workbooks, and
+   the premium comparisons in the same classes rate against seeded factor rows that are still the old
+   ones. Read the `ExpectedResults/` diff, give every touched sheet a verdict, and write the
+   implementation plan from it. **This is where provisional becomes verified.**
+4. **Implement** what the diff dictates, seeder first (§ "Implement the seeder first"), then a green
+   full reseed, then the rest of the C#. **Verify**: run the full validation suite, review the
    regenerated diff, and confirm C# premium equals Excel premium across every index of every affected
    leaf. Each playbook lists the extra suites its product requires.
 
@@ -219,8 +239,8 @@ Premium is extremely sensitive: a change that leaks onto a state or carrier you 
 `SetExcelValues` before dumping, so the baseline reflects the rater's factors, formulas and structure
 and nothing else. A raw `DumpRater` of the on-disk file also captures whatever stray inputs someone
 left in the workbook from clicking around, which makes it ad-hoc debugging rather than a scoping
-tool. The baseline diff is the same drift-free mechanism at both the step-4 scoping checkpoint and
-the step-5 verification.
+tool. The baseline diff is the same drift-free mechanism at the scoping checkpoint and again at
+verification.
 
 The fact lives on `ExcelRaterValidationTestBase`, so both products inherit it and neither can override
 it away.

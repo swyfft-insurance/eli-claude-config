@@ -22,8 +22,8 @@ This file holds only what is Commercial's own.
 
 ## The Commercial verification surface
 
-The shared five-step plan shape is in `excel-rater-plans-common.md`. These are the suites its steps 4
-and 5 run for Commercial:
+The shared plan shape is in `excel-rater-plans-common.md`. These are the suites its scoping
+checkpoint and its verification run for Commercial:
 
 - **Premium parity and baselines** — the `CommercialEAndSValidationTests{Carrier}{State}` and
   `CommercialAdmittedValidationTests{Carrier}{State}` classes in

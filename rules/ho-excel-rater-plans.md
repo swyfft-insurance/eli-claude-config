@@ -25,8 +25,8 @@ Always read the seeding/sheet-mapping, rater-service, and validation-test docs â
 
 ## The Homeowner verification surface
 
-The shared five-step plan shape is in `excel-rater-plans-common.md`. These are the suites its steps 4
-and 5 run for Homeowner:
+The shared plan shape is in `excel-rater-plans-common.md`. These are the suites its scoping
+checkpoint and its verification run for Homeowner:
 
 - **Premium parity and baselines** â€” the `ByPerilEAndSValidationTests*` and
   `ByPerilAdmittedValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`.

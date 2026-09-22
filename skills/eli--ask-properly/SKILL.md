@@ -28,6 +28,19 @@ formatted like this:
 - A question whose "yes" fires a gated write (GitHub, YouTrack, Slack, a git commit or push) is a
   plain yes/no question with no lettered options. The hook accepts only a bare "y" or "yes" for
   those, so lettered options hand Eli an answer the hook rejects.
+- **`y/n` is only for a single gated write.** A question whose yes fires one GitHub, YouTrack,
+  Slack, git commit or push call is a plain yes/no, because the hook accepts only a bare "y". Every
+  other question gets numbered options, including design decisions, plan approval, rule changes and
+  which findings to apply. A y/n on those asks Eli to approve something he cannot see the shape of.
+- **One question per decision.** Independent items are separate questions, never one question whose
+  options are subsets. A subset option hides which item Eli is ruling on, and it forces a package on
+  him when he would have split it.
+- **The question carries what is being decided.** Show the text, the name, or the line, before and
+  after. A question that refers to a change without showing it can only be answered by scrolling
+  back and reconstructing it.
+- **Each option names the state it leaves behind.** Not the reasoning for it, and not a description
+  of the change as an action. Options within a question are parallel: same shape, same level of
+  detail, each readable on its own.
 
 ## Job 2: Ask the question you skipped
 

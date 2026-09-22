@@ -284,12 +284,55 @@ from tracing alone and each with a promise the next query would prove it. All fo
 3. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
 4. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
 
+<!-- Rewritten 2026-09-17 during SW-56217 — Eli: the carve-out read as one provisional section
+     inside an otherwise normal plan, so the Step 5 architecture Q&A ran on C# the diff decides and
+     the ticket's technical notes were treated as a design to validate -->
 ### Excel Rater (ByPeril)
 
-A distinct plan type for rater-update tickets: actuarial delivers a new rater `.xlsm` and the C# is brought into agreement with it. The change can land on any sheet — base rates, any factor table, inputs, fees, optional coverages, layout. The ticket gives a general outline of what's changing, but the precise footprint isn't pinned down until you diff the placed file. Almost always declared `Feature` in YouTrack, but distinct enough to call out here. It **follows the Feature HARD STOP sequence above, plus one added HARD STOP**: a scoping checkpoint after the rater is placed and before any C#, reconciling the regenerated-baseline diff against the provisional scope.
+A plan type for rater-update tickets: actuarial delivers a new rater `.xlsm` and the C# is brought
+into agreement with it. The change can land on any sheet: base rates, any factor table, inputs,
+fees, optional coverages, layout. Almost always declared `Feature` in YouTrack.
 
-It **inherits every other rule in this file** — the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig ticket-note requirements, and the full Verification structure. The **one** carve-out: scope stays provisional until the rater diff exists at execution (you can't see the change while authoring). When this is the ticket's plan type, reading the matching playbook in full is **MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or `~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared `~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads, the plan shape, the component→Excel-signal map,
-and the rater-edit flow).
+**The entire plan is provisional until the diff has been run. Full stop.** The requirement is the
+diff between the delivered rater and the captured baselines, and that diff does not exist until the
+files are placed, the seeder runs, and the validation tests regenerate the baselines. Nothing
+available before that point substitutes for it. The ticket states intent, the `version_history`
+sheet is the actuary's changelog, and the rater on disk is the old one. A plan written from any of
+them is a guess.
+
+So a rater plan is authored in two parts, and the part written up front is short.
+
+**Part 1, written now.** Branch, place the raters, regenerate the baselines, scoping checkpoint.
+That is the whole plan file until the checkpoint clears. No code is written in Part 1, the seeder
+included: the diff is what says which code changes, and the delivered sheets may be exactly what
+the seeder has to be changed to read.
+
+**Part 2, written at the checkpoint, from the diff.** Every sheet's verdict, the C# change list, the
+configs, the version lookups, the quote defs, the tests, and the Verification section. Implementation
+starts here, seeder first (`excel-rater-plans-common.md` § "Implement the seeder first").
+
+The Gates and Parts A and C apply throughout. Part B is satisfied in Part 2, in full, and is not
+owed before the diff exists.
+
+Four consequences, none of them optional:
+
+- **No architecture Q&A before the diff.** `/eli--create-plan-from-ticket` Step 5 does not run on a
+  rater plan. Which class gets the behavior, how a factor is looked up, which name or version a
+  lookup runs under, whether a helper is parameterized or duplicated: each is a decision the diff
+  makes for free, and asking it now hands Eli a ruling to make on evidence nobody has.
+- **No reading ahead into the C#** to find what the ticket's technical notes got wrong. That is the
+  checkpoint's job, and doing it early does it against the old rater, so the answer can be wrong on
+  top of being premature.
+- **No provisional C# change list.** Don't transcribe the ticket's technical notes into the plan as
+  steps, flagged or otherwise. The ticket is linked from the plan header; the diff supplies the list.
+- **Reaching the outline in a couple of exchanges is correct**, not a sign the Q&A was skipped.
+
+It follows the **Feature** HARD STOP sequence above, plus the scoping checkpoint as an added HARD
+STOP after the rater is placed and before any C#. Reading the matching playbook in full is
+**MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or
+`~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared
+`~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads,
+the plan shape, the component→Excel-signal map, and the rater-edit flow).
 
 <!-- Added 2026-09-09, SW-55584 -->
 **Every Excel Rater (ByPeril) plan carries a "Rater defect found during execution" section.
@@ -319,8 +362,8 @@ written. `Read` that section when writing the edit step and again when executing
 **The product's parity suite is the guard. Never write a unit test for a rater-parity defect.** A
 unit test asserts C# against C#. The parity suite asserts C# against the rater.
 
-Only the fresh-rater carve-out drops. With no delivery there is no baseline diff, so scope is not
-provisional and there is no scoping checkpoint.
+Only the two-part authoring drops. With no delivery there is no baseline diff, so the plan is
+written whole up front and there is no scoping checkpoint.
 
 - **What happened:** SW-55585 was planned as a plain Bug Fix. The playbooks fell out of scope along
   with the type, and a unit test was proposed for a defect the Commercial parity sweep already
