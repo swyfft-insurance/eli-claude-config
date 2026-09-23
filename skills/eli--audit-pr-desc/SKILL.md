@@ -77,7 +77,27 @@ The deliverable is the corrected description, never the act of reading.
 
 Then read the body file, start to finish.
 
-## 2. Verdict pass
+## 2. Necessity pass, before any rule is checked
+
+A description can be true in every sentence, fit every rule and the budget, and still be mostly
+content the reviewer gets from the diff. The rule passes below cannot catch that: they check that a
+sentence is allowed, never that it is needed. So this pass runs first and deletes before anything
+else is judged.
+
+Walk every narrative sentence (everything outside Ticket Link and Verification) and record one row
+per sentence in `artifacts/pr/body-audit.md`: does the diff, or a comment or doc the diff adds, already
+tell the reviewer this? Name where. **Yes means delete.** The sentence survives only when the row
+names the specific question a reviewer would ask that neither the diff nor its comments answer.
+Examples of survivors: a fix that lives in a binary the diff cannot show, a ruling from the ticket or
+Slack that explains code that looks wrong, a deviation from the ticket's stated scope.
+
+Fewer sentences than the budget allows is the expected result. The budget is a ceiling.
+
+- **What happened:** a description for four placed raters passed every rule row at 95 of ~100 words
+  and three tagged surprises. Three of the four bold blocks restated seeder, generator and baseline
+  changes the diff showed and a doc comment the diff added.
+
+## 3. Verdict pass
 
 Every rule gets its own row and its own verdict, and the rows are written down. The table lives at
 `artifacts/pr/body-audit.md` beside the body, one row per `##` heading of the two rule files, with
@@ -91,7 +111,7 @@ pass may be summarized as "the rest are fine".
 | **N/A** | State why. |
 | **Violated** | Fix the draft, then re-record as Satisfied. |
 
-### 2a. Derive the rows at run time
+### 3a. Derive the rows at run time
 
 The rows come from the rule files when the skill runs, never from a list written here:
 
@@ -102,16 +122,18 @@ grep -n '^## ' ~/.claude/rules/pr-creation.md ~/.claude/rules/comments-docs-and-
 For `pr-creation.md`, the bullet list above its first `##` is one row per bullet as well. Walk each
 file top to bottom and give every heading its row before moving to the next file.
 
-### 2b. Rows every PR description gets on top of the headings
+### 3b. Rows every PR description gets on top of the headings
 
 - **The word budget, counted rather than estimated.** Count the narrative words and write the number
   in the row. Intent and blast radius together get ~100. Each surprise gets up to 75, quotes included.
+  These are ceilings on what survived the necessity pass, never an allowance to fill.
   Verification is exempt from the budget but not from brevity: one line per suite, nothing wrapping
   it. A draft over budget loses content; it is never reflowed to fit.
 - **One row per surprise, naming its kind.** `pr-creation.md` allows three kinds: a deviation from
   the ticket, an unrelated change riding along, a decision with a non-obvious alternative. The row
-  names which one, in those words. A block that implements the AC is none of the three and is
-  deleted. A block whose subject is a conflict between two sources quotes both sources verbatim.
+  names which one, in those words, and the reviewer question from the necessity pass that the block
+  answers. A kind with no unanswered question is not a surprise. A block that implements the AC is
+  none of the three and is deleted. A block whose subject is a conflict between two sources quotes both sources verbatim.
 - **Title.** Every ticket in the body's Ticket Link section appears in the title in its own
   brackets, the product line follows in parens, and `Part N` is present when the PR delivers part of
   a multi-PR ticket.
@@ -122,9 +144,9 @@ description is the archetypal case it was written for: pre-change behavior takes
 post-change behavior takes present, and a sentence mixing a durable fact with a fixed defect gets
 split rather than forced into one tense.
 
-## 3. Claim audit
+## 4. Claim audit
 
-A separate pass over different objects. Step 2 asks whether the draft satisfies a rule; this asks
+A separate pass over different objects. Step 3 asks whether the draft satisfies a rule; this asks
 whether a sentence in it is true.
 
 Every factual claim is **verified** or **deleted**. There is no third disposition, and "the ticket
@@ -146,7 +168,7 @@ A claim that fails is **deleted**, never rephrased. A rewrite is a new unverifie
 banner of a fix, per `comments-docs-and-external-writing.md` § "Fixing a failed claim means deleting
 it".
 
-## 4. Fix
+## 5. Fix
 
 Fix every violation in the body file, then present the corrected description and nothing else.
 

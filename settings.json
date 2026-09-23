@@ -5,6 +5,10 @@
   },
   "permissions": {
     "allow": [
+      "Edit(~/.claude/skills/**)",
+      "Edit(~/.claude/rules/**)",
+      "Edit(~/.claude/hooks/**)",
+      "Edit(~/.claude/scripts/**)",
       "Bash(dotnet test:*)",
       "Bash(dotnet build:*)",
       "Bash(dotnet restore:*)",
@@ -119,10 +123,12 @@
       "Skill(review-pr:*)",
       "Skill(diff)",
       "Skill(diff:*)",
-      "Read(//c/Users/eli.koslofsky/**)"
+      "Read(//c/Users/eli.koslofsky/**)",
+      "PowerShell(& \"$HOME/.claude/scripts/:*)",
+      "Bash(pwsh -NoProfile -File \"$HOME/.claude/scripts/:*)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -182,7 +188,8 @@
       "$defaults",
       "Bash(sqlcmd:*) scoped to local/dev/beta Swyfft databases in this project",
       "Bash(teamcity:*) read/status queries in this project",
-      "Bash(dotnet test:*) and Bash(dotnet build:*) in this project"
+      "Bash(dotnet test:*) and Bash(dotnet build:*) in this project",
+      "Running ~/.claude/scripts/Run-ByPerilAuditDiagnostic.ps1 (PowerShell or pwsh) — the user's own read-only audit diagnostic, written for Claude to run, including against the read-only prod-copy database"
     ],
     "soft_deny": [
       "$defaults",

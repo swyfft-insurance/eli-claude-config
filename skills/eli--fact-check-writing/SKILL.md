@@ -21,6 +21,20 @@ errors are caught in wave 1, not discovered by escalating standards across passe
 
 ## Fix discipline (every wave)
 
+**The default outcome of every wave is the input, unchanged.** Retain the original text. A sentence
+is edited only when what it asserts is false, and then by deletion or by substituting the verified
+value (the quote, the literal name, the number). Nothing else is a reason to touch a sentence: not
+that it could be tighter, not that it characterizes rather than enumerates, not that a narrower
+phrasing would be easier to defend, not that the auditor would have written it differently. A
+framing or emphasis the author chose is the author's, and "incomplete" is not "wrong".
+
+Every change in the output must trace to one named false claim. A change that cannot be traced that
+way is a rewrite, and a rewrite is the failure this skill exists to prevent.
+
+- **What happened:** three architectural characterizations ("answers what the house is",
+  "initialization from property data", "a carrier branch inside `ElementService`") were cut as
+  overclaims. None was false. The text lost its point.
+
 Per § "Fixing a failed claim means deleting it — rewrites create new unverified claims":
 **DELETE IT. Deletion is the default fix and needs no justification.** Replacement is the
 exception, allowed only when the replacement is already-verified material already in hand: the

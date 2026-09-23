@@ -45,6 +45,8 @@ Repeat until he says he was working, or until a day comes back with work items.
 python ~/.claude/skills/eli--standup/standup.py --working-days-back 2
 ```
 
+Keep the list of working days Eli said he was out. Step 3 names them in the draft.
+
 A window anchored on a day Eli was not working reports that day as empty, which reads as a day he
 got nothing done.
 
@@ -92,7 +94,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
   - `to` = "Develop" → "picked up" or "started developing"
   - `to` = "Review" → "finished coding"
   - `to` = "Blocked" → "blocked" (read the ticket's `comments` in `ticketDetails` to explain why)
-  - `to` = "Done" → skip. Closing a ticket is not standup content, whatever the reason it was closed.
+  - `to` = "Done" → "closed out". Several Done moves on the same day become one bullet ("closed out seven log monitor tickets").
   - All other values (Backlog, Ready for Dev, Ready for Test, Test, Tested, Failed Test) → skip. Ticket housekeeping, not coding.
   - Same-day collapse: if a ticket has BOTH a Develop and Review transition on the same day, that means the whole ticket was completed in one day. Emit ONE bullet — don't narrate both transitions as separate bullets.
   - Example: SW-49790 moves to Develop and Review on Wednesday → "SW-49790 — picked up and finished the Hadron LA EachElementOption test failure, opened PR 19974"
@@ -110,6 +112,9 @@ The draft contains only the format chosen in Step 0 — never both.
 
 ### Slack format
 
+- When Step 1b walked back over days Eli was out, the last-working-day header names them:
+  `**Thursday** (out Friday and Monday, PTO)`. The reader otherwise sees a gap and reads it as
+  nothing landing.
 - Section headers in bold (`**...**`), using the label chosen above ("Yesterday"/"Today" or the day names). The `slack_send_message` tool takes standard markdown, not Slack mrkdwn — use `**bold**` and `[text](url)` links, which the tool converts to Slack formatting on send.
 - Each bullet: ticket as Markdown link `[SW-XXXXX](youtrack_url)`, ticket summary in quotes, action, PR as link `[PR #XXXX](pr_url)`
 - Concise — one line per bullet
@@ -120,6 +125,8 @@ The draft contains only the format chosen in Step 0 — never both.
 
 **Two sections, same as the Slack format: last working day, then Today.** Use the day labels chosen in Step 2 ("Yesterday"/"Today", or the day names after a weekend). Those two are the only headers the file ever contains. Never add a group, bucket, or category heading of any kind.
 
+- When Step 1b walked back over days Eli was out, the last-working-day header names them:
+  `Thursday (out Friday and Monday, PTO)`.
 - Under each day, one entry per story (a ticket / piece of work): a short plain-English story name on its own line, then bullet(s) for what moved that day.
 - **A story appears exactly once, under the day it was picked up.** Never repeat a story under both days. Its bullets cover everything that happened across the whole window and end with where it stands now (in review, merged, continuing).
 - A story picked up before the window goes under the earlier day, with the bullet saying when it actually started ("started last Tuesday").

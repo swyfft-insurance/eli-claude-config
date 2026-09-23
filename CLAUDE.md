@@ -68,6 +68,7 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. The SessionSt
 | Standup | `standup.md` | generating any standup update |
 | Code Ownership | `code-ownership.md` | a ticket names a team or owner, or a fix lands outside pre-bind |
 | Domain Reference | `swyfft-domain.md` | working with HomeownerStateConfig, carrier names, or PR descriptions |
+| Release Schedule | `release-schedule.md` | saying when code reached beta or prod |
 | Test Execution | `testing-execution.md` | running tests (filters, output capture, scope) |
 | Test Writing | `testing.md` | writing tests, TDD, investigation |
 | Seeding | `seeding.md` | seeding (BLOCKED — use `/eli--seed` skill instead) |

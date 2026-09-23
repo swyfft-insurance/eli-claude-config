@@ -45,6 +45,38 @@ rather than in a batch at the end.
 Before acting on scope, state which requirements came from a comment or an attachment rather than
 the description, so a scope extension buried in a screenshot cannot go missing.
 
+## The AC is whatever the ticket requires, wherever it says it
+
+Most tickets have no section headed "Acceptance Criteria." The AC is still there: it is the
+requirement, stated however the author stated it, whether as a quoted email, a current-vs-wanted
+table, a bulleted list, a Current Result / Expected Result pair, or a sentence in a comment.
+Extract it and present it as the AC.
+
+Never report that a ticket "has no AC section," that the AC is "not labeled," or that the
+requirement is "implied." Those are observations about formatting, and the reader already knows
+the ticket's shape. Saying it is pedantry, and it reads as stalling.
+
+- **What happened:** asked for a ticket's AC, the reply opened with "There is no section titled
+  Acceptance Criteria" before quoting the requirement. Second occurrence.
+
+<!-- Added 2026-09-22 during SW-56226 — Eli: technical notes in tickets are written by other
+     developers' agents and are never the AC for business-logic work -->
+## Technical notes in a ticket are not the AC
+
+A ticket's "Mechanism" / "Technical notes" / code-pointer section is a lead to verify, not a
+requirement.
+
+For business-logic work the AC is the business behavior. A technical note cannot add a criterion
+or stand in for one. A note that fails verification is a finding to raise, not a constraint to
+plan around.
+
+Exception: a ticket whose subject is the technical change itself (refactor, rename, migration).
+There the technical statement is the requirement.
+
+- **What happened:** SW-56226 prescribed `SetDefault`, stating it "can never overwrite an agent's
+  choice or an already-created quote's stored value." 7,339 of 7,376 prod rows had the guard flag
+  off.
+
 - Match implementation detail to ticket type:
   - **User stories / behavioral features**: WHAT and WHY only — requirement, business reason / constraint, acceptance criteria. No code samples, file paths, class names, internal mechanisms, or named refactors. Implementation details belong in the plan file or PR description; they rot the moment the code changes. Tickets are read by Biz, UW, QA, and devs across teams — none need the implementation surface.
   - **Bugs**: code pointers help the dev start the investigation — file paths, methods, line numbers, SolarWinds log queries.

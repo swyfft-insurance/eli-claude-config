@@ -97,6 +97,10 @@ Use the full filename or class-prefixed shorthand:
 
 See `swyfft-domain.md` § "Generator and Lookup vs Config Versions" for the technical detail on why these numbering schemes are independent.
 
+## Long-running commands run in the background
+
+Any command that can take more than a few seconds runs with `run_in_background: true`: builds, tests, seeds, SolarWinds searches, diagnostics. A foreground run blocks the turn, so Eli can't talk to you or interrupt it.
+
 ## Stop Means Stop
 When user says "stop" — ZERO more tool calls. Words only.
 

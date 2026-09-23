@@ -49,6 +49,7 @@ side:
   by reading the channel for the delivery post carrying that rater's SharePoint link. Alex
   Terragnoli (`U03JA79NY8L`) posts many of them. The rater's own `version_history` tab has an
   `Analyst` column naming who made each change, which cross-checks the channel.
+- **Ehren** (`U1F5C7Q3W`), the pre-bind manager, on every message, tagged or cc'd.
 
 **Name the product line in the first sentence, every time.** The channel carries both Homeowner and
 Commercial raters, and the same state and carrier exist in both: NY QBE has
@@ -138,6 +139,29 @@ The flow when a rater edit is warranted:
    ```
 
    Never remark on the mismatch between the delivered name and the repo path.
+
+<!-- Added 2026-09-23 -->
+## What a message to the channel is for
+
+The actuaries' SharePoint copy is what their next delivery is built from. A rater change they don't
+know about gets undone by that delivery. A change they would object to on actuarial grounds never
+reaches them to object to. Every message here keeps their picture of their own rater accurate, and
+gives Blake and Ehren what they need to judge rate impact and versioning.
+
+Two kinds come out of rater work: an edit made on SharePoint, and an edit or defect handed to the
+actuaries to make. Either way the message carries:
+
+- The product line and the rater file, linked to its SharePoint copy.
+- What the rater did, and why that was wrong or had to change, in the actuaries' terms: the sheet,
+  the cell, what a quote got. When the rater moved to match live C# rather than being wrong on its
+  own terms, say so. It is not a defect in their formula, and knowing that is what keeps them from
+  reverting it.
+- What changed, or what is being asked, precisely enough to find.
+- The premium impact, stated either way, and whether the config is live.
+- The `version_history` entry and the ticket link.
+
+None of that is a template. The message is as long as the reasoning needs.
+
 
 ## MANDATORY plan header — the rater-parsing HARD RULE (physically insert into EVERY rater plan)
 

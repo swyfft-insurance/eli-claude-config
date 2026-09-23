@@ -40,9 +40,13 @@ If a rule appears anywhere in this file, it must be reflected in the plan. A pla
 **This is the most important rule in this file.** Plans are co-designed, not generated. Do NOT dump a long plan file as the first response to "plan this." Long plan dumps look thorough but bury bad assumptions in volume — a wrong decision in 200 lines costs far more to unwind than the same decision caught after a single back-and-forth question.
 
 Default workflow:
-1. Ask the foundational architectural questions in tight clusters (2–3 related at a time). Wait for answers.
-2. Summarize decisions back briefly so misunderstandings get caught before they're baked in.
-3. Draft the plan file only after the design is settled — concise outline first, full prose second.
+1. Establish the AC. Present the numbered AC list, built per `youtrack.md` § "The AC is whatever
+   the ticket requires, wherever it says it" and § "Technical notes in a ticket are not the AC",
+   each criterion naming its ticket source (description, comment N, attachment). Wait for
+   confirmation. Every later question and the plan's AC coverage map key off these numbers.
+2. Ask the foundational architectural questions in tight clusters (2–3 related at a time). Wait for answers.
+3. Summarize decisions back briefly so misunderstandings get caught before they're baked in.
+4. Draft the plan file only after the design is settled — concise outline first, full prose second.
 
 If the user pushes back on any part of an in-flight plan, STOP and discuss — don't silently re-draft the whole thing.
 
@@ -117,6 +121,11 @@ creates this layout; the dump scripts (`read-ticket`, `Run-DotnetTest`, `Run-See
 Every plan file must begin with this block after the title and type:
 
 > **Execute steps in order. Never skip ahead, reorder, or deviate. If you encounter anything that prevents adherence to this plan, HARD STOP — explain the blocker and wait for instructions.**
+
+## Acceptance criteria (MANDATORY)
+
+Directly under the preamble: the numbered AC list confirmed in Q&A, each with its ticket source.
+The AC coverage map maps onto these numbers and nothing else.
 
 ## IMPORTANT: Step 0a — Confirm the ticket(s) are in Develop
 
@@ -341,7 +350,8 @@ after the plan is written. When one is small enough to fix ourselves, the sectio
 STOP, then prepare the edit to the full standard in `excel-rater-plans-common.md` § "Rater edits —
 when warranted, and the SharePoint flow" before anything downstream runs. The section is written
 whether or not a defect is suspected at plan time. A plan without it is incomplete, and
-`/eli--plan-audit` fails it.
+`/eli--plan-audit` fails it. The section also carries the channel message for the edit, per
+`excel-rater-plans-common.md` § "What a message to the channel is for".
 
 <!-- Added 2026-09-04 while planning SW-55585 -->
 ### Excel Rater bug
@@ -544,7 +554,7 @@ missing test or seeder override.
 A written step, in the plan's own post-verification sequence, to run `/eli--audit-pr-desc` on the drafted body file **before the description is presented**. Mandatory at execution time (Part C § "Post-Test-Approval Sequence" step 6) — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional, exactly like the code-complete audit above.
 
 ### AC coverage map
-Table mapping every AC from the ticket → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
+Table mapping every AC in § Acceptance criteria → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
 
 ### UI acceptance criteria need a screenshot
 
