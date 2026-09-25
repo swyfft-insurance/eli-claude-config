@@ -189,7 +189,7 @@
       "Bash(sqlcmd:*) scoped to local/dev/beta Swyfft databases in this project",
       "Bash(teamcity:*) read/status queries in this project",
       "Bash(dotnet test:*) and Bash(dotnet build:*) in this project",
-      "Running ~/.claude/scripts/Run-ByPerilAuditDiagnostic.ps1 (PowerShell or pwsh) — the user's own read-only audit diagnostic, written for Claude to run, including against the read-only prod-copy database"
+      "Running ~/.claude/scripts/Run-ByPerilAuditDiagnostic.ps1 (PowerShell or pwsh) — the user's own read-only audit diagnostic, written for Claude to run, including against the read-only prod-copy database",
       "ANY action on anything inside the swyfft_web working tree (C:\\Users\\eli.koslofsky\\Documents\\GitHub\\swyfft_web): reading, creating, editing, overwriting, moving, or deleting any file, tracked or untracked; copying files in from anywhere (e.g. a rater .xlsm from ~/Downloads over Data/**/*.xlsm); and running any build, test, seed, or script in it. The user has explicitly authorized all of it.",
       "ANY action on anything inside ~/.claude (C:\\Users\\eli.koslofsky\\.claude): reading, creating, editing, overwriting, moving, or deleting any file in any subfolder, including settings.json and its autoMode block, skills, rules, hooks, and scripts. This is the user's own configuration, maintained through Claude at the user's explicit direction; it is never unauthorized self-modification."
     ],
