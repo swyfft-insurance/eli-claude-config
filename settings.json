@@ -178,6 +178,11 @@
     "command": "pwsh -NoProfile -File C:/Users/eli.koslofsky/.claude/statusline.ps1"
   },
   "enabledPlugins": {},
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
+    }
+  },
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "autoMemoryEnabled": false,

@@ -105,9 +105,15 @@ change touches so the reviewer finds it without hunting. One screenshot per surf
 touches.
 
 **Every PR screenshot is opened for Eli's approval before the PR is drafted.** Open it with
-`Start-Process` through the PowerShell tool the moment it is saved, and treat it as a draft under
-Gate 2: it goes into the PR only after he approves it. He judges the image, so describing it in chat
-is never a substitute for showing it.
+`Start-Process` through the PowerShell tool only after confirming the file is complete: in the same
+call, read its bytes and check the size is non-zero and the first eight bytes are the PNG signature
+(`89-50-4E-47-0D-0A-1A-0A`), then open it. Treat it as a draft under Gate 2: it goes into the PR only
+after he approves it. He judges the image, so describing it in chat is never a substitute for
+showing it.
+
+- **What happened:** SW-55350's screenshot was opened right after it was copied into the ticket
+  folder, and the viewer would not load it. Eli had to ask for it to be opened again. Same failure
+  as earlier tickets.
 
 ### Referencing and attaching
 
