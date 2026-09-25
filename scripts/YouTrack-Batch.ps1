@@ -18,6 +18,8 @@ $module = Join-Path $HOME '.claude/hooks/youtrack_batch.py'
 
 if ($Stage) {
     if (-not $File) { throw '-Stage requires -File <batch.json>' }
+    # Staging an editComment reads the comment's current text, so stage needs the token too.
+    $env:YOUTRACK_API_TOKEN = [Environment]::GetEnvironmentVariable('YOUTRACK_API_TOKEN', 'User')
     python $module stage --file $File
     exit $LASTEXITCODE
 }

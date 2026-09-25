@@ -19,8 +19,19 @@ Batch JSON shape:
       {"type": "setReleaseStage", "issue": "SW-1", "value": "NA"},
       {"type": "setAssignee",     "issue": "SW-1", "value": "eli.koslofsky"},
       {"type": "addFields",       "issue": "SW-1",
-       "fields": {"Carrier": ["QBE"], "USState": ["NC", "NY"]}}
+       "fields": {"Carrier": ["QBE"], "USState": ["NC", "NY"]}},
+      {"type": "attach",          "issue": "SW-1", "file": "~/.claude/tickets/SW-1/artifacts/x.txt"},
+      {"type": "editComment",     "issue": "SW-1", "commentId": "4-123", "text": "..."}
   ]}
+
+An editComment action names an existing comment by id (/eli--read-ticket returns each comment's
+id). Staging fetches the comment's current text into the action, so the approved rendering shows
+the old text beside the new one. Execution re-fetches the comment and refuses to overwrite it if
+it changed after staging.
+
+An attach action names a file under ~/.claude/tickets/. Staging records the file's size and
+SHA-256 in the action, so the approval binds to the file's exact content: a file edited after
+staging fails validation and cannot be uploaded.
 """
 
 import argparse
@@ -74,7 +85,38 @@ FIELD_VALUES = {
         "LA", "NC", "WA", "SC", "VA", "OK", "MS", "GA",
     ],
 }
-ACTION_TYPES = ["comment", "link", "setStage", "setReleaseStage", "setAssignee", "addFields"]
+ACTION_TYPES = [
+    "comment", "link", "setStage", "setReleaseStage", "setAssignee", "addFields", "attach",
+    "editComment",
+]
+COMMENT_ID_RE = re.compile(r"^\d+-\d+$")
+# Attachments come only from ticket work folders, so a batch cannot upload an arbitrary file.
+ATTACH_ROOT = os.path.normcase(os.path.realpath(os.path.expanduser("~/.claude/tickets")))
+MAX_ATTACH_BYTES = 10 * 1024 * 1024
+
+
+def _attach_path(file_value):
+    return os.path.realpath(os.path.expanduser(str(file_value)))
+
+
+def _file_sha256(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _fingerprint_attachments(actions):
+    """Record each attached file's size and hash at stage time. Validation later requires the
+    file on disk to still match, so what uploads is exactly what was approved."""
+    for a in actions:
+        if isinstance(a, dict) and a.get("type") == "attach" and "file" in a:
+            path = _attach_path(a["file"])
+            a["file"] = path
+            if os.path.isfile(path):
+                a["bytes"] = os.path.getsize(path)
+                a["sha256"] = _file_sha256(path)
 
 
 def canonical_json(actions):
@@ -114,6 +156,8 @@ def validate(batch):
             "setReleaseStage": {"type", "issue", "value"},
             "setAssignee": {"type", "issue", "value"},
             "addFields": {"type", "issue", "fields"},
+            "attach": {"type", "issue", "file", "bytes", "sha256"},
+            "editComment": {"type", "issue", "commentId", "text", "oldText"},
         }[atype]
         extra = set(a.keys()) - allowed_keys
         if extra:
@@ -141,7 +185,68 @@ def validate(batch):
                 errors.append(f"{where}: Assignee value {a.get('value')!r} not in {ASSIGNEE_VALUES}")
         elif atype == "addFields":
             errors.extend(_validate_fields(a.get("fields"), where))
+        elif atype == "attach":
+            errors.extend(_validate_attach(a, where))
+        elif atype == "editComment":
+            if not COMMENT_ID_RE.match(str(a.get("commentId", ""))):
+                errors.append(f"{where}: commentId {a.get('commentId')!r} does not match <digits>-<digits>")
+            text = a.get("text")
+            if not isinstance(text, str) or not text.strip():
+                errors.append(f"{where}: new comment text is empty")
+            elif len(text) > MAX_COMMENT_CHARS:
+                errors.append(f"{where}: new comment text is {len(text)} chars; max {MAX_COMMENT_CHARS}")
+            if not isinstance(a.get("oldText"), str):
+                errors.append(f"{where}: current comment text was not fetched at stage time")
+            elif a.get("oldText") == text:
+                errors.append(f"{where}: new comment text is identical to the current text")
     return errors
+
+
+def _fetch_comment_text(issue, comment_id, token):
+    req = urllib.request.Request(
+        f"{YOUTRACK_BASE}/api/issues/{issue}/comments/{comment_id}?fields=id,text",
+        method="GET",
+        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode("utf-8", "replace")).get("text") or ""
+
+
+def _fetch_old_comment_texts(actions):
+    """Freeze each edited comment's current text into its action, so the approval shows exactly
+    what is being replaced. Returns a list of error strings."""
+    edits = [a for a in actions if isinstance(a, dict) and a.get("type") == "editComment"]
+    if not edits:
+        return []
+    token = os.environ.get("YOUTRACK_API_TOKEN", "")
+    if not token:
+        return ["YOUTRACK_API_TOKEN is not set; staging an editComment needs it to read the current text"]
+    errors = []
+    for a in edits:
+        a.pop("oldText", None)
+        if not ISSUE_RE.match(str(a.get("issue", ""))) or not COMMENT_ID_RE.match(str(a.get("commentId", ""))):
+            continue
+        try:
+            a["oldText"] = _fetch_comment_text(a["issue"], a["commentId"], token)
+        except Exception as ex:
+            errors.append(f"cannot read comment {a['commentId']} on {a['issue']}: {ex}")
+    return errors
+
+
+def _validate_attach(a, where):
+    path = _attach_path(a.get("file", ""))
+    if not os.path.normcase(path).startswith(ATTACH_ROOT + os.sep):
+        return [f"{where}: attach file {path!r} is not under {ATTACH_ROOT}"]
+    if not os.path.isfile(path):
+        return [f"{where}: attach file {path!r} does not exist"]
+    size = os.path.getsize(path)
+    if size == 0:
+        return [f"{where}: attach file {path!r} is empty"]
+    if size > MAX_ATTACH_BYTES:
+        return [f"{where}: attach file is {size} bytes; max {MAX_ATTACH_BYTES}"]
+    if a.get("bytes") != size or a.get("sha256") != _file_sha256(path):
+        return [f"{where}: attach file {path!r} changed since it was staged"]
+    return []
 
 
 def _validate_fields(fields, where):
@@ -187,6 +292,16 @@ def render(actions):
             pairs = "; ".join(
                 f"{name} = {', '.join(values)}" for name, values in sorted(a["fields"].items()))
             lines.append(f"{i}. {a['issue']}: add {pairs}")
+        elif a["type"] == "attach":
+            lines.append(
+                f"{i}. {a['issue']}: attach {os.path.basename(a['file'])} "
+                f"({a['bytes']} bytes, sha256 {a['sha256'][:HASH_CHARS]})")
+        elif a["type"] == "editComment":
+            lines.append(f"{i}. {a['issue']}: edit comment {a['commentId']}. Current text:")
+            lines.append(a["oldText"])
+            lines.append("--- replaced with:")
+            lines.append(a["text"])
+            lines.append("---")
     lines.append(f"=== END BATCH {h} ===")
     return "\n".join(lines)
 
@@ -217,7 +332,11 @@ def stage(file_path):
     except Exception as ex:
         print(f"ERROR: cannot read batch file: {ex}", file=sys.stderr)
         return 1
-    errors = validate(batch)
+    fetch_errors = []
+    if isinstance(batch, dict) and isinstance(batch.get("actions"), list):
+        _fingerprint_attachments(batch["actions"])
+        fetch_errors = _fetch_old_comment_texts(batch["actions"])
+    errors = fetch_errors + validate(batch)
     if errors:
         for e in errors:
             print(f"ERROR: {e}", file=sys.stderr)
@@ -249,7 +368,42 @@ def _api(method, url, payload, token):
         return resp.status, resp.read().decode("utf-8", "replace")
 
 
+def _upload_attachment(a, token):
+    boundary = f"----youtrackbatch{a['sha256'][:HASH_CHARS]}"
+    name = os.path.basename(a["file"])
+    with open(a["file"], "rb") as fh:
+        content = fh.read()
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="{name}"\r\n'
+        f"Content-Type: application/octet-stream\r\n\r\n"
+    ).encode("utf-8") + content + f"\r\n--{boundary}--\r\n".encode("utf-8")
+    req = urllib.request.Request(
+        f"{YOUTRACK_BASE}/api/issues/{a['issue']}/attachments?fields=id,name,size",
+        data=body,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Accept": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return resp.status, resp.read().decode("utf-8", "replace")
+
+
 def _run_action(a, token):
+    if a["type"] == "attach":
+        return _upload_attachment(a, token)
+    if a["type"] == "editComment":
+        if _fetch_comment_text(a["issue"], a["commentId"], token) != a["oldText"]:
+            raise RuntimeError(f"comment {a['commentId']} changed after staging; not overwritten")
+        return _api(
+            "POST",
+            f"{YOUTRACK_BASE}/api/issues/{a['issue']}/comments/{a['commentId']}?fields=id",
+            {"text": a["text"]},
+            token,
+        )
     if a["type"] == "addFields":
         # One command per field/value pair. A single query listing two values of the same
         # field parses greedily, and this project has prefix pairs ("Clear Blue" and

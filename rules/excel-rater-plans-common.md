@@ -116,7 +116,7 @@ The flow when a rater edit is warranted:
    renaming a tab) get the menu path and every field, each exact value in a code block.
 
    In ALL cases, exact steps. Generic instructions ("fix the formula on the sheet") are banned.
-3. **Tell the actuaries and document the change in the rater's `version_history` tab.**
+3. **Document the change in the rater's `version_history` tab.**
 4. **After the SharePoint edit, Eli downloads the file from SharePoint** and the agent places that download into the repo `Data` folder (the standard rater-placement step).
 
    **The delivered filename never matches the repo path, and its carrier token does not scope the
@@ -139,6 +139,12 @@ The flow when a rater edit is warranted:
    ```
 
    Never remark on the mismatch between the delivered name and the repo path.
+5. **Tell the actuaries, last.** The message to `#dev-analytics-rater-handoff` goes out only after
+   the PR carrying the edited rater is created, and it links that PR. It is the final step of the
+   flow, and nothing follows it.
+
+   - **What happened:** the channel message for SW-55486's `Screened_Enclosures!D11` edit was
+     drafted for sending before the PR existed.
 
 <!-- Added 2026-09-23 -->
 ## What a message to the channel is for
@@ -161,6 +167,30 @@ actuaries to make. Either way the message carries:
 - The `version_history` entry and the ticket link.
 
 None of that is a template. The message is as long as the reasoning needs.
+
+### Rounding changes
+
+Everything in § "What a message to the channel is for" applies. This section adds what is
+particular to rounding.
+
+**What rounding consistency means.** Consistency is between a rater and the live C# that prices
+against it. It is never between one rater and another. The C# mirrors the rater it was built from,
+rounding included, and the raters have always rounded differently from one another. The validation
+tests and the audit compare each rater only with its own C#, so a gap of a few cents between the
+two fails them and gets filed as a bug. The C# is what's in force, so the fix only ever moves the
+rater. Moving the C# instead would re-rate in-force quotes and policies, which needs versioning.
+
+**What the message tells the actuaries.** They may not remember any earlier message, so every
+rounding message says all of this itself:
+
+- Where the rater rounds and where the C# rounds, for this value: the step and the precision on
+  each side.
+- That the rater now rounds that value the way its own C# does. That is the whole reason for the
+  edit.
+- That other raters rounding the same value differently is expected and stays as it is.
+
+**What it never says.** Never call the old rounding an error in the actuaries' formula, and never
+suggest making rounding uniform across raters.
 
 
 ## MANDATORY plan header — the rater-parsing HARD RULE (physically insert into EVERY rater plan)
@@ -194,6 +224,21 @@ formula cells emit only formula text unless `-IncludeFormulaValues:true` is pass
 `ReadExcelTask.cs`, and `ReadNamedRangesTask.cs`. Build the console once
 (`pwsh ~/.claude/scripts/Build-Solution.ps1` — the wrapper lives in `~/.claude/scripts/`, NOT the repo
 root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
+
+<!-- Added 2026-09-24 while planning SW-56613 -->
+## A rater plan's AC
+
+The rater is the acceptance criteria (`Swyfft.Services/Premium/AGENTS.md` § "The rater is the
+acceptance criteria"), so every rater plan's AC includes these, whatever the ticket says:
+
+- The C# rates every new or changed config exactly as the rater does.
+- Every existing config rates exactly as before (§ "No re-rating live business").
+- The rater seeds correctly.
+- Every Excel rater validation test passes on every affected leaf.
+
+The ticket's own AC follows, extracted per `youtrack.md`, go-live dates included.
+
+- **What happened:** SW-56613's first AC list was built from the ticket alone.
 
 ## The diff is the requirement
 
@@ -238,9 +283,9 @@ seeder late and layout or opt-in breakage only shows up when the work looks fini
 
 Premium is extremely sensitive: a change that leaks onto a state or carrier you didn't intend silently mis-prices quotes and policies — a leak here is a mispriced policy, not just a failed test. So before touching any shared base in the rating stack, read the actual inheritance chain of the class you're editing, and contain the change by construction (see `refactoring.md` § "Contain a shared-base change by construction").
 
-## Plan shape — the same four steps for both products
+## Plan shape — the same five steps for both products
 
-Steps 1 to 3 are the plan written up front. Step 4 is written at the checkpoint, from the diff.
+Steps 1 to 4 are the plan written up front. Step 5 is written at the checkpoint, from the diff.
 
 1. Branch.
 2. **(You) place the rater(s).** Overwrite the canonical rater under `Data/`. A state's E&S rater is
@@ -250,9 +295,10 @@ Steps 1 to 3 are the plan written up front. Step 4 is written at the checkpoint,
    leaves, which rewrite themselves locally on that run (`~/.claude/rules/captured-asserts.md`).
    Filter to `RaterFileContents_ShouldMatchCaptured` by method: it dumps the placed workbooks, and
    the premium comparisons in the same classes rate against seeded factor rows that are still the old
-   ones. Read the `ExpectedResults/` diff, give every touched sheet a verdict, and write the
-   implementation plan from it. **This is where provisional becomes verified.**
-4. **Implement** what the diff dictates, seeder first (§ "Implement the seeder first"), then a green
+   ones. Read the `ExpectedResults/` diff and give every touched sheet a verdict. **This is where provisional becomes verified.**
+4. **Versioning check — HARD STOP.** Run § "The versioning check" on the scoping diff and record
+   every sheet's verdict in the plan. Part 2 is not written until every sheet is versioned or inert.
+5. **Implement** what the diff dictates, seeder first (§ "Implement the seeder first"), then a green
    full reseed, then the rest of the C#. **Verify**: run the full validation suite, review the
    regenerated diff, and confirm C# premium equals Excel premium across every index of every affected
    leaf. Each playbook lists the extra suites its product requires.
@@ -279,19 +325,30 @@ current shape, whether a named range exists, what a fee cell's formula is, which
 input drift. One grep across the `_NamedRanges.txt` files answers "which raters have this cell" for
 every leaf that has a baseline.
 
-## The scoping diff demands a verdict on EVERY sheet — none is presumed noise
+<!-- Added 2026-09-24 while planning SW-56613 — Eli: verify the actuaries versioned every delivery,
+     on every sheet, not just seeded ones -->
+## The versioning check (MANDATORY on every delivered rater)
 
-Enumerate every sheet the diff touches and record an explicit verdict for each: versioned-safe, inert,
-or break. Never let a sheet pass by omission. Working from the ticket's factor list and skimming the
-rest is how a break ships, because the parity tests cannot catch an unversioned change that the seeder
-faithfully mirrors into C#. The diff verdict is the only guard.
+With every `Versions` cell holding the version an existing config's `ByPerilVersionLookup` writes,
+the delivered rater must compute exactly what the old rater computed, for every input an existing
+quote can hold. The parity suite cannot prove this: an unversioned change that C# faithfully
+mirrors passes parity, and the in-force book silently re-rates.
 
-A **seeded factor sheet** gets a stricter bar. There is no innocent layout change to seeded data. If a
-seeded sheet's values differ at all, either properly versioned rows were added, with V1 holding the
-prior values and the new behavior on V2, or the change is wrong. An unversioned value change on an
-existing tab is a backwards-compatibility break exactly like an unversioned new factor.
-Reference-shift noise exists only on formula sheets, where `Rating_Algorithm` references auto-shift
-around inserted rows, never on data tabs.
+Record a verdict for every sheet the diff touches: versioned, inert, or break.
+
+- **A table's values.** Existing versions' rows hold exactly their prior values. New values sit
+  only on a new version's rows. This holds whether C# seeds the table, replicates its formula, or
+  never reads it.
+- **A table versioned for the first time.** The prior table survives unchanged as V1, and every
+  formula reading the table selects on the new version key.
+- **A formula.** A changed calculation branches on a version cell. A reference shifted around an
+  inserted row is inert. That shift happens only on formula sheets, never on data tabs.
+- **The `Versions` sheet and `_NamedRanges.txt`.** Every newly versioned table has its own row and
+  named range. Existing version cells keep their names, because C# writes each one by name through
+  `TableNameToExcelCellVersionName`.
+- **A new input option** is inert only if no existing quote can hold it.
+
+A break is handled by the plan's "Rater defect found during execution" section.
 
 - **What happened:** SW-52867, the LA/TX `Ordinance_Law` values changed unversioned (1.15 on
   Fire and Hurricane only, to 1.25/1.4/1.65 on all perils). The audit enumerated only the new factor

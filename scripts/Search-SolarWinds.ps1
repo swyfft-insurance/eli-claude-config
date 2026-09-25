@@ -74,8 +74,12 @@ if (-not $token) {
 if (-not $StartDate) { $StartDate = (Get-Date).AddDays(-1).ToString('yyyy-MM-dd') }
 if (-not $EndDate) { $EndDate = (Get-Date).ToString('yyyy-MM-dd') }
 
-$start = [DateTime]::Parse($StartDate)
-$end = [DateTime]::Parse($EndDate)
+# Every boundary is UTC, the API's zone, whether the input is a bare date or a ...Z timestamp.
+$utcStyles = [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal
+$start = [DateTime]::Parse($StartDate, [Globalization.CultureInfo]::InvariantCulture, $utcStyles)
+$end = [DateTime]::Parse($EndDate, [Globalization.CultureInfo]::InvariantCulture, $utcStyles)
+# A bare EndDate means the whole day, so it ends at that day's last second, not its first.
+if ($EndDate -match '^\d{4}-\d{2}-\d{2}$') { $end = $end.AddDays(1).AddSeconds(-1) }
 if ($start -eq $end) {
     Write-Error "StartDate and EndDate resolve to the same timestamp ($start). Use -EndDate with the next day or a T23:59:59Z suffix."
     exit 1

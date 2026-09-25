@@ -64,3 +64,6 @@ that are not true. Deleted claims leave no trace in the output.
   answer your own questions.
 - The audit is the work. Running the Reads and then re-pasting the message unchanged is theater —
   if you found nothing to fix, be suspicious of the audit, not proud of the message.
+- Steps 2 and 3 are not optional. Before presenting, `msg-audit.md` must exist in the scratchpad
+  with a verdict row for every heading from the grep, and the transcript must show the
+  `/eli--fact-check-writing` Skill call. If either is missing, the audit did not run.

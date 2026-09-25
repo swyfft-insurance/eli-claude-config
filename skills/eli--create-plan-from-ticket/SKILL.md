@@ -73,6 +73,11 @@ If no existing file, proceed to Step 5.
 
 ## Step 5 — Q&A — Architecture (the main event)
 
+**Excel Rater (ByPeril) plans skip Steps 5 to 7.** `plan-mode.md` § Plan Types § "Excel Rater
+(ByPeril)" runs no architecture Q&A before the diff and writes Part B, the Verification section
+included, in Part 2. Establish the AC per `excel-rater-plans-common.md` § "A rater plan's AC", then
+go to Step 7.5.
+
 > **This is the most important step in the skill. Do not rush it. Do not call it done after 2-3 questions.**
 
 ### One thing at a time, every question carries its evidence (MANDATORY)
@@ -130,11 +135,9 @@ After Pass 1 feels exhausted, sweep the canonical category checklist as a final 
 
 Plan-type-conditional. Bug Fix plans don't need API-shape questions; Refactoring plans need safety-net coverage questions; Feature plans need all of these.
 
-### Asking the plan type
+### Stating the plan type
 
-During this phase, ask the user explicitly: **"What plan type is this — Bug Fix, Refactoring, or Feature?"** Each type has a different HARD STOP sequence (per plan-mode.md Part B § Plan Types).
-
-Then, as its own question, settle whether the change is versioned or unversioned, per `plan-mode.md` § "Versioned or unversioned: every plan says which". When the ticket already says, confirm it rather than ask.
+State the plan type and the versioned/unversioned answer, with the evidence that settles each: the plan-type test in `plan-mode.md` § "Picking the type" and the ticket text. Ask only when that evidence leaves the answer genuinely open. Each type has a different HARD STOP sequence (per plan-mode.md Part B § Plan Types).
 
 ### Hard rule: "Ready to outline?" defaults to NO
 
@@ -195,6 +198,9 @@ After AC walk + checklist sweep, ask the user: **"Anything else specific to this
 Draft a **concise outline** in chat (not the full plan). The outline shows section structure and key decisions, not full prose, not all the research details.
 
 Then ask: **"Outline good as-is, or want revisions?"**
+
+The outline goes to Eli only to settle an open decision. When every item in it comes from the
+ticket, the rules, or checks already run, there is nothing to approve: go to Step 7.5.
 
 - If the user requests changes → iterate, redraft, ask again
 - Default behavior = continue iterating, not "done"

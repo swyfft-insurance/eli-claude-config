@@ -28,6 +28,7 @@ The script:
 
 ## After Execution
 
-1. Read the output file to answer the user's question
-2. Report: how many logs found, which days, and the key content
-3. Do NOT summarize or paraphrase log messages — show exact quotes
+1. **A zero is checked before it is reported.** If the filter should have matched a record already known to exist (on disk, in the ticket, or found by an earlier search), zero means the search is wrong. Stop and report the search as defective, never the zero as a finding.
+2. Read the output file to answer the user's question
+3. Report: how many logs found, which days, and the key content
+4. Do NOT summarize or paraphrase log messages — show exact quotes

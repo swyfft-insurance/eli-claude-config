@@ -311,7 +311,7 @@ them is a guess.
 
 So a rater plan is authored in two parts, and the part written up front is short.
 
-**Part 1, written now.** Branch, place the raters, regenerate the baselines, scoping checkpoint.
+**Part 1, written now.** Branch, place the raters, regenerate the baselines, scoping checkpoint, versioning check.
 That is the whole plan file until the checkpoint clears. No code is written in Part 1, the seeder
 included: the diff is what says which code changes, and the delivered sheets may be exactly what
 the seeder has to be changed to read.
@@ -336,8 +336,8 @@ Four consequences, none of them optional:
   steps, flagged or otherwise. The ticket is linked from the plan header; the diff supplies the list.
 - **Reaching the outline in a couple of exchanges is correct**, not a sign the Q&A was skipped.
 
-It follows the **Feature** HARD STOP sequence above, plus the scoping checkpoint as an added HARD
-STOP after the rater is placed and before any C#. Reading the matching playbook in full is
+It follows the **Feature** HARD STOP sequence above, plus the scoping checkpoint and the versioning
+check as added HARD STOPs after the rater is placed and before any C#. Reading the matching playbook in full is
 **MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or
 `~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared
 `~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads,
@@ -384,6 +384,10 @@ written whole up front and there is no scoping checkpoint.
 For LogMonitor tickets on audit-doc generation failures (`GenerateAuditDocs - GenerateAuditDoc` signatures, HO or Commercial). These tickets are catch-alls: the LogMonitor matches the error *signature*, not specific quotes or root causes, so one ticket covers every quote currently failing the audit — often several distinct root causes at once. A failing quote re-fires on every audit run until an actual fix lands (failed audits are never marked audited); it never stops failing on its own.
 
 **Non-prod (beta) mismatches on not-yet-launched configs are often expected, not defects.** A config that hasn't launched (no prod book — e.g. still on V1) takes premium-bearing changes **in place** — changes that would normally require a new version get applied directly to the existing quote def, because beta is a sandbox (the in-place convention is documented with the state-config versioning rules). Consequence: a beta quote purchased before such an in-place change re-rates differently after it, so its audit shows DB(bind) ≠ Excel/Recompute(now) by design. Before treating a beta audit mismatch on an unlaunched config as a defect, verify the timeline: if a premium-bearing in-place change landed on the config after the quote was purchased, the mismatch is expected fallout, not a bug.
+
+**A Commercial copy can be audited before its first recalculation.** The Commercial copy pipeline saves the copy without recalculating it (`CopyActorCollection` runs `CopyQuote`, `SaveQuote` and `UpdateQuoteDefinitionByQuoteIdOrFail`). `CopyQuoteToActor.CopyTo` does not copy the quote lines: "Don't bother copying the quote lines, because those will be recreated when we recalculate everything." A copy made a policy's current quote can be selected by the audit inside that window, and the audit then crashes reading a required quote line (SW-53573: `LossRatio`, in `CommercialEAndSExcelRaterService.SetExcelValues`).
+
+- **Recognizing it:** in the quote id's logs, a `CommercialQuoteCopyService` result is followed by the audit, with no `CommercialQuoteRecalculationService` result between them.
 
 The defense-in-depth model: the ByPeril Excel integration tests are the first line of defense — they're supposed to catch C#-vs-rater problems before anything ships. The production audit-doc job is the second line. So any failure that surfaces in audit docs is, by definition, a failure that got past the Excel tests — meaning the work on an audit-doc bug isn't done at "diagnose and fix the defect." It must also answer: why didn't the Excel integration tests catch this scenario? And where coverage is possible, extending the tests to cover that scenario class is part of the fix — so the same class of failure gets caught at the first line next time. The carve-out: some scenario classes genuinely can't be covered by the Excel tests — the ghost reprice, for example, is post-bind data mutation, not anything a rater-vs-C# comparison harness can exercise — so "when possible" is a real qualifier, not a loophole.
 
@@ -435,6 +439,13 @@ See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the
 1. **Prefer folding over stacking — *only* as a default when the ticket is silent on version structure.** When the ticket or epic explicitly dictates fold vs stack, follow the ticket — it takes precedence, and you do NOT justify the choice or label it a "deviation" in code, doc comments, or the plan. You're implementing the requirement, not departing from a rule. (Fold-vs-stack detail lives in `Swyfft.Services/Common/Homeowner/CLAUDE.md`.)
 2. **Tag every touched config with its ticket** (always required, independent of fold vs stack, and independent of product line). Add the one-line `///` ticket breadcrumb per the canonical convention — `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket". This covers **every config the change touches, not just new ones** — a re-pointed lookup or an in-place edit to a not-yet-live V1 is a gated change too, so annotate those and fix any stale "Based on Vn" pointer the change invalidates.
    - **Editing an existing config:** add (don't replace) your ticket line to its comment.
+   - **A config's ticket lines are its history, never a claim about current behavior.** Each
+     `///` line records a user story the config carries. A later story that changes or undoes that
+     behavior adds its own line below the earlier one. It never deletes or rewrites the earlier
+     line, and never calls it false. The "delete a false claim" rule in
+     `comments-docs-and-external-writing.md` does not reach these lines.
+     - **What happened:** SW-55350 reverts SW-51684's roof age cap on 11 live Vave configs. The
+       SW-51684 line on each was called false and proposed for deletion.
    - **Creating a new config:** put your ticket line in the new config's comment.
 
 **MANDATORY, NON-NEGOTIABLE — the ticket-note convention is a physical plan artifact.** Any plan that adds, edits, re-points, or otherwise touches ANY `IStateConfig` implementer MUST (a) list every config it touches with the exact `///` ticket note each will carry, and (b) reproduce the "Tag Each Config Version With Its Ticket" convention (canonical in `Swyfft.Services/Common/CLAUDE.md`) VERBATIM at the top of the plan file. This has been missed before; it must never be missed again. A plan touching a config without this block physically inserted is incomplete — HARD STOP.

@@ -38,6 +38,9 @@ So in chat:
 - **Never trail the number in parens** at the end of a bullet or sentence — `... the Commercial quote location (SW-51875)` is exactly the format Eli hates. The number leads; it does not trail.
 - **When several tickets are in play, define the shorthands once at the top of the message** (`SW-XXXXX <short title>` = what it is), then reuse the shorthand — which already carries the number — throughout.
 - **Never write a bare ticket number** (one not glued to its shorthand), and never write a sentence whose meaning depends on Eli knowing which ticket a number points to.
+- **PR numbers and ticket section numbers get the same treatment.** Write a PR as
+  `#22956 Vave CO fee split activation`, never a bare `#22956`. Name a ticket section by what it
+  says ("the ticket's GroupName fix"), never by its number.
 
 Example shorthand block at the top of a message:
 > **SW-51860 Rater** = new QBE FL CO ISO rater; **SW-51875 CO snapshot** = both census years on the Commercial quote location; **SW-51876 CO config knobs** = census-year fields on CommercialStateConfig; **SW-51810 Census seeding** = 2020 polygons + fire data.

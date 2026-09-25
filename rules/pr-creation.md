@@ -72,6 +72,18 @@ Never include:
 
 The test on every sentence: would the reviewer reach this on their own from the diff? Then cut it.
 
+## Audit-doc fixes: the audit re-run leads Verification
+
+A PR fixing an audit-doc failure is verified by re-running the audit on the record that failed,
+with the fix in place. For Homeowner that is `HomeownerExcelQuoteAuditDiagnosticTests`, and for
+Commercial it is `CommercialExcelQuoteAuditDiagnosticTests`. Each runs the audit's own rater fill
+and `ComparePremium` on the record, so it is the audit itself, not a stand-in for it. That bullet
+comes first in Verification and reads like this:
+
+```markdown
+- Re-ran the production audit on <policy number>, the policy whose audit failed, against a prod copy with <the fix>: passes. `<HomeownerExcelQuoteAuditDiagnosticTests | CommercialExcelQuoteAuditDiagnosticTests>` runs the audit's own rater fill and `ComparePremium` on that record, and <what the fix now reproduces>.
+```
+
 ## Never editorialize against the change
 
 The description states what the change does and why. It does not argue against itself. "Unrelated",

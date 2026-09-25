@@ -29,6 +29,22 @@ for the host rather than reading it back.
 When the locator turns out to be written down nowhere, that is the gap above. Record it in the rules
 file that governs the work, so the next ticket starts with the address instead of a search.
 
+## An auto-mode block on routine work is a settings gap, not a handoff
+
+When the auto-mode classifier blocks a step that is part of the work (placing a rater, writing a
+tracked file, running a sanctioned script), never hand the command to Eli to run himself. In the
+same message that reports the block, offer both of these:
+
+- **Switch out of auto mode for this step.** Eli toggles the mode, the step retries under the
+  normal permission prompt, and he approves it there.
+- **An `autoMode.allow` entry** in `~/.claude/settings.json` covering that class of step, drafted
+  in full, so the next occurrence doesn't block. The classifier also blocks edits to
+  `settings.json` itself as self-modification, so this edit also goes through outside auto mode.
+
+- **What happened:** placing an edited FL rater into its four `Data/` carrier files was blocked as
+  irreversible destruction. The reply offered Eli the copy command to run by hand and never
+  mentioned leaving auto mode.
+
 ## A skill that did not do its job is broken, and the skill gets fixed where it lives
 
 When a skill, script or hook under `~/.claude/` produces a wrong result, misses what it exists to
