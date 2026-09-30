@@ -18,6 +18,23 @@ Every test conforms to FIRST. A test that breaks one of these gets fixed before 
   nothing to eyeball.
 - **Timely** — written with the code or before it. § "TDD Hard Stop" below is how that is enforced.
 
+## Never write a test that restates the code
+
+A test earns its place by failing when the behavior is wrong. Two shapes never can. Don't write
+them, and decline a reviewer's request for one.
+
+- **Change-detector test.** It restates the code, usually config or a declaration, so it fails on
+  every intentional change and gets updated in the same commit. It detects that a change happened,
+  never that the change was wrong.
+- **Tautological test.** Its expected value comes from the code under test, so it can't fail on
+  its own.
+
+A declaration, such as a factory mapping, a config boundary list or a constant, has no logic to
+test. A test of one only says the business rule is the business rule.
+
+Captured asserts are the exception. They detect change on purpose, and the diff review is the check
+(`captured-asserts.md`).
+
 ## TDD Hard Stop
 Bug fixes: write failing test → run → verify it FAILS → HARD STOP for approval → then fix.
 Refactoring: write safety-net test → run → verify it PASSES → HARD STOP for approval → then refactor.
