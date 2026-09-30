@@ -125,6 +125,20 @@ Add to the same pass:
 
 A file marked N/A without a reason counts as unaudited, the same as a rule with no verdict.
 
+**Prove every section got a row, mechanically.** After writing the table, run this for each file
+marked applies, and for `plan-mode.md`:
+
+```bash
+grep '^## ' "<rules file>" | sed 's/^## //' | while IFS= read -r heading; do
+  grep -qF -- "$heading" ~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md \
+    || echo "MISSING: <rules file> :: $heading"
+done
+```
+
+Any `MISSING` line fails the audit: walk that section against the plan, record its row, and rerun
+until nothing prints. A one-line verdict standing in for a whole file is exactly what this catches,
+and it is how a rule gets skipped while the audit reports the file as covered.
+
 ## 3. Claim audit
 
 A separate pass over different objects. Step 2 asks whether the plan satisfies a rule; this asks
@@ -145,6 +159,13 @@ Claims a plan gets wrong most often, each verified individually and never on tru
 - **Every claim inherited from the ticket.** Tickets are drafts, often AI-authored, and their own
   footers often say so. A ticket claim that survives verification is recorded with your own evidence,
   never as "per ticket".
+- **Every AC item.** Each one quotes a requirement the ticket states. An item sourced to an
+  inference, to background text, or to the technical notes is not AC and comes out of the list.
+- **Every step's scope.** Each step traces to an AC item or to a mandatory rule the plan names. A
+  step that traces to neither is deleted.
+- **Every step's premise.** A step that adds a column, a class, or an edit to shared code rests on a
+  claim that it is needed, even when no sentence states it. Verify that claim in the code, and
+  record the evidence beside the step.
 
 Flagging provisional is permitted only where the declared type's own rules permit it, and never for a
 fact readable while authoring. Labeling a verified item provisional drains the flag of meaning at the

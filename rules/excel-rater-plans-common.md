@@ -139,6 +139,14 @@ The flow when a rater edit is warranted:
    ```
 
    Never remark on the mismatch between the delivered name and the repo path.
+
+   **Check the placed rater before anything else runs.** Run `RaterFileContents_ShouldMatchCaptured`
+   alone, by method, on one leaf per distinct rater file (the hash check above groups them). The
+   baseline diff must be the prepared edits and the `version_history` row, and nothing else. A
+   missing edit, a wrong value, or any other change: HARD STOP.
+
+   - **What happened:** SW-54842 placed four edited raters and queued the 42-minute parity suite
+     without checking them.
 5. **Tell the actuaries, last.** The message to `#dev-analytics-rater-handoff` goes out only after
    the PR carrying the edited rater is created, and it links that PR. It is the final step of the
    flow, and nothing follows it.
@@ -154,16 +162,28 @@ know about gets undone by that delivery. A change they would object to on actuar
 reaches them to object to. Every message here keeps their picture of their own rater accurate, and
 gives Blake and Ehren what they need to judge rate impact and versioning.
 
+**The reader owns the rating algorithm.** The actuaries are the product owners of how Swyfft rates a
+risk: the tiers, the factors, what is filed, and what a change does to premium. The rater is where
+they write that algorithm down, in Excel because they don't code. The C# is our implementation of
+it. So a message to them tells a product owner what changed in how their algorithm behaves, and
+why, in rating terms. Sheet and cell addresses are locators so they can find the change, not the
+substance.
+
+**The rater is ours.** Write "the rater" or "our raters", never "your rater" or "your formulas".
+Second person pins every defect on the actuaries.
+
 Two kinds come out of rater work: an edit made on SharePoint, and an edit or defect handed to the
 actuaries to make. Either way the message carries:
 
 - The product line and the rater file, linked to its SharePoint copy.
-- What the rater did, and why that was wrong or had to change, in the actuaries' terms: the sheet,
-  the cell, what a quote got. When the rater moved to match live C# rather than being wrong on its
-  own terms, say so. It is not a defect in their formula, and knowing that is what keeps them from
+- What the rating algorithm did, and why that was wrong or had to change, in rating terms: what a
+  quote got, and where in the rater (the sheet and cell). When the rater moved to match live C#
+  rather than being wrong on its own terms, say so. It is not a defect in their formula, and knowing that is what keeps them from
   reverting it.
 - What changed, or what is being asked, precisely enough to find.
-- The premium impact, stated either way, and whether the config is live.
+- The premium impact, stated either way, with the reason. When the edit only moves the rater to
+  match the live C#, no premium can move: the C# is what charges, and it did not change. Say that.
+  Whether the config is live matters only when what the C# charges changes.
 - The `version_history` entry and the ticket link.
 
 None of that is a template. The message is as long as the reasoning needs.

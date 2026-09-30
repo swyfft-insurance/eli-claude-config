@@ -28,6 +28,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# git ls-files lists only the current directory, while git diff always covers the repo. Running from
+# the repo root keeps both halves, and -Path, relative to the same place.
+$RepoRoot = 'C:\Users\eli.koslofsky\Documents\GitHub\swyfft_web'
+Set-Location $RepoRoot
+
 # Local 'development' is routinely stale on a machine that lives on feature branches, so the
 # remote-tracking ref is the baseline whenever it exists.
 function Get-DevelopmentRef {

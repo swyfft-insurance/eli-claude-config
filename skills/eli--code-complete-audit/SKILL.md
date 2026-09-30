@@ -34,15 +34,16 @@ The governing files, in this order:
 ~/.claude/rules/comments-docs-and-external-writing.md
 ~/.claude/rules/testing.md
 ~/.claude/rules/refactoring.md
+~/.claude/rules/swyfft-domain.md
 ```
 
 One wave per `##` section of each file, derived when the skill runs, never from a list written here:
 
 ```bash
-grep -n '^## ' ~/.claude/rules/coding-standards.md ~/.claude/rules/comments-docs-and-external-writing.md ~/.claude/rules/testing.md ~/.claude/rules/refactoring.md
+grep -n '^## ' ~/.claude/rules/coding-standards.md ~/.claude/rules/comments-docs-and-external-writing.md ~/.claude/rules/testing.md ~/.claude/rules/refactoring.md ~/.claude/rules/swyfft-domain.md
 ```
 
-Only these four files. Nothing under the repo (`AGENTS.md`, `.claude/rules/`, subsystem docs) is
+Only these five files. Nothing under the repo (`AGENTS.md`, `.claude/rules/`, subsystem docs) is
 read by this skill; where a personal rule points at a repo document, the pointer stays for the human
 reader and this skill does not follow it.
 
@@ -68,6 +69,20 @@ For each wave, in order:
 Within `comments-docs-and-external-writing.md`, the section holding the comment self-audit runs first
 (its question 1, "should this comment exist at all?", deletes before anything else judges wording);
 the remaining sections then run over the surviving comments.
+
+**Prove every section got a row, mechanically.** After the last wave, run:
+
+```bash
+for f in ~/.claude/rules/coding-standards.md ~/.claude/rules/comments-docs-and-external-writing.md \
+         ~/.claude/rules/testing.md ~/.claude/rules/refactoring.md ~/.claude/rules/swyfft-domain.md; do
+  grep '^## ' "$f" | sed 's/^## //' | while IFS= read -r heading; do
+    grep -qF -- "$heading" ~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md \
+      || echo "MISSING: $f :: $heading"
+  done
+done
+```
+
+Any `MISSING` line fails the audit: run that wave and rerun until nothing prints.
 
 ## 3. Terminate
 

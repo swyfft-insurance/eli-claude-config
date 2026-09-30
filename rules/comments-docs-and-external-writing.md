@@ -154,6 +154,19 @@ and it leaks personal workflow into a team artifact. Name the repo-level thing i
 tests carry, the test class, the project, the command from the repo's own docs. If the only name you
 have is a personal one, describe what it did in plain terms.
 
+## Posted text speaks as Eli: "I", never "we"
+
+Anything posted under Eli's account (YouTrack comments, Slack messages, PR descriptions, PR replies)
+is written in Eli's voice. His decisions and his actions are "I". "We" credits a decision or an
+action to a group that never made it, and it leaves the reader unable to tell who acted.
+
+| Bad | Good |
+|---|---|
+| "We're pushing the Hadron V3 go-live back a week." | "I'm pushing the Hadron V3 go-live back a week." |
+
+- **What happened:** two SW-56006 comments to Ehren opened with "We're moving" and "We're pushing"
+  for go-live decisions Eli made alone.
+
 ## Call things by their exact name — repeat it, don't vary it
 
 Name each thing by its exact term and repeat that exact term every time you mean it. Never swap in a synonym, a broader category word, or a vaguer umbrella term to avoid repetition. Varying vocabulary so prose doesn't feel repetitive ("elegant variation") is a creative-writing habit; in technical writing the substitute is always less precise than the exact term, so it trades accuracy for style and manufactures ambiguity. Repeating the precise term is correct — not a flaw to fix.

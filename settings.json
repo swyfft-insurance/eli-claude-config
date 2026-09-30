@@ -128,7 +128,7 @@
       "Bash(pwsh -NoProfile -File \"$HOME/.claude/scripts/:*)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {

@@ -32,8 +32,8 @@ checkpoint and its verification run for Homeowner:
   `ByPerilAdmittedValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`.
 - **Config guards** — `/eli--prebind-validation`, which covers config ordering and the quote-def index
   guards.
-- **Renewal migrations** — `MigrationCoverageTests`, on every rater ticket without exception. See the
-  next section.
+- **Renewal migrations:** `MigrationCoverageTests`, on every rater ticket that changes production code.
+  See the next section.
 
 > Run the validation tests through `Run-DotnetTest.ps1` with `-FilterTrait "TestGroup=ByPerilTests"`.
 > Omit the trait and the run also pulls the Commercial validation tests, which the pre-tool hook
@@ -44,7 +44,7 @@ checkpoint and its verification run for Homeowner:
 
 When a rater ticket changes a rated input's option set between config versions, whether values are added, removed or renamed, in-force quotes hold old-set values and cross onto the new config at renewal. `Swyfft.Services/QuoteMigrations` translates element values across config boundaries. A plan that changes an option set MUST include the migration, or confirm an existing one covers the new boundary.
 
-`MigrationCoverageTests` runs whether or not the plan believes an option set changed. The tests are the check on that belief.
+`MigrationCoverageTests` runs on every rater ticket that changes production code, whether or not the plan believes an option set changed. The tests are the check on that belief. A ticket that changes only test code and rater files leaves every config, element and generator as it was, and doesn't run them.
 
 ## Surfaces an HO rater implementation can touch (non-exhaustive)
 

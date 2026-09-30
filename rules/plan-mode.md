@@ -42,8 +42,9 @@ If a rule appears anywhere in this file, it must be reflected in the plan. A pla
 Default workflow:
 1. Establish the AC. Present the numbered AC list, built per `youtrack.md` § "The AC is whatever
    the ticket requires, wherever it says it" and § "Technical notes in a ticket are not the AC",
-   each criterion naming its ticket source (description, comment N, attachment). Wait for
-   confirmation. Every later question and the plan's AC coverage map key off these numbers.
+   each criterion naming its ticket source (description, comment N, attachment). Don't ask Eli to
+   confirm it: extracting the AC is the agent's job. Raise only a conflict the ticket cannot settle,
+   with its evidence. Every later question and the plan's AC coverage map key off these numbers.
 2. Ask the foundational architectural questions in tight clusters (2–3 related at a time). Wait for answers.
 3. Summarize decisions back briefly so misunderstandings get caught before they're baked in.
 4. Draft the plan file only after the design is settled — concise outline first, full prose second.
@@ -74,6 +75,29 @@ No silent punts.
 See `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" — **especially relevant during planning Q&A**. When asking the user to pick between options, every option must be genuinely plausible. Don't pad questions with strawman options the ticket already rules out. If the ticket says do A, B, C, don't ask "do A, B, C or skip them entirely?" — confirm and proceed (or skip the question if the answer is obvious from the ticket).
 
 Filler options during planning are particularly toxic: they slow the discussion, confuse the user into doubting their own reading of the ticket, and erode trust in subsequent genuine concerns.
+
+<!-- Added 2026-09-30 during SW-55860 -->
+## Every question uses the mandated format (MANDATORY)
+
+Every question asked while planning or executing a plan takes one of the two forms in
+`talking-to-eli.md` § "Be concise — this is the top rule" (the Question format row): a yes/no
+question about one action, ending `(y/n)`, or numbered options answered by number. A bare "y", "n"
+or number must answer it completely.
+
+Banned:
+- An open-ended ask: "Anything else?", "Add or drop any?", "Good as-is, or want revisions?"
+- Two questions in one message.
+- A choice described in prose with no question attached.
+
+Check every question against this section before sending it. Having the rule in context is not the
+check.
+
+When a reply fits none of the offered answers, never infer what it meant. Re-ask in the mandated
+format.
+
+- **What happened:** SW-55860's verification step ended with "Anything else to verify?". Eli
+  answered "y", and the reply was treated as approval. The step before it left a three-file vs
+  five-file choice in prose, and "go" was read as picking three.
 
 ## Stop Being Pedantic
 
@@ -439,13 +463,17 @@ See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the
 1. **Prefer folding over stacking — *only* as a default when the ticket is silent on version structure.** When the ticket or epic explicitly dictates fold vs stack, follow the ticket — it takes precedence, and you do NOT justify the choice or label it a "deviation" in code, doc comments, or the plan. You're implementing the requirement, not departing from a rule. (Fold-vs-stack detail lives in `Swyfft.Services/Common/Homeowner/CLAUDE.md`.)
 2. **Tag every touched config with its ticket** (always required, independent of fold vs stack, and independent of product line). Add the one-line `///` ticket breadcrumb per the canonical convention — `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket". This covers **every config the change touches, not just new ones** — a re-pointed lookup or an in-place edit to a not-yet-live V1 is a gated change too, so annotate those and fix any stale "Based on Vn" pointer the change invalidates.
    - **Editing an existing config:** add (don't replace) your ticket line to its comment.
-   - **A config's ticket lines are its history, never a claim about current behavior.** Each
-     `///` line records a user story the config carries. A later story that changes or undoes that
-     behavior adds its own line below the earlier one. It never deletes or rewrites the earlier
-     line, and never calls it false. The "delete a false claim" rule in
-     `comments-docs-and-external-writing.md` does not reach these lines.
-     - **What happened:** SW-55350 reverts SW-51684's roof age cap on 11 live Vave configs. The
-       SW-51684 line on each was called false and proposed for deletion.
+   - **A config's ticket lines name the user stories that ship with its quote def.** For each
+     story, ask one question: does its behavior go live when this quote def does?
+     - **Yes, even if a later story on the same quote def changes or reverts it:** the line stays.
+       The later story adds its own line below. Never delete, rewrite or call false the line of a
+       story that shipped. The "delete a false claim" rule in
+       `comments-docs-and-external-writing.md` does not apply to it.
+     - **No, because the story moved to another config before this quote def went live:** delete
+       the line here and put it on the config that will ship the story.
+     - **What happened:** SW-55350's revert of SW-51684 on live Vave configs got the SW-51684
+       lines proposed for deletion. SW-56877's split of `FLHiscoxEAndSV3` left three moved stories
+       on V3 as "history".
    - **Creating a new config:** put your ticket line in the new config's comment.
 
 **MANDATORY, NON-NEGOTIABLE — the ticket-note convention is a physical plan artifact.** Any plan that adds, edits, re-points, or otherwise touches ANY `IStateConfig` implementer MUST (a) list every config it touches with the exact `///` ticket note each will carry, and (b) reproduce the "Tag Each Config Version With Its Ticket" convention (canonical in `Swyfft.Services/Common/CLAUDE.md`) VERBATIM at the top of the plan file. This has been missed before; it must never be missed again. A plan touching a config without this block physically inserted is incomplete — HARD STOP.
@@ -481,8 +509,10 @@ that test is incomplete, HARD STOP.
 
 - **An existing quote could be created identically today.** Nothing about it is out of step, so
   nothing can strand it or its policy.
-- **The change only affects configs not yet live in prod.** There are no prod quotes or policies to
-  protect, and beta breaking is accepted.
+- **The carrier/state has never launched in prod.** No config on the line has ever been live, so
+  there are no prod quotes or policies to protect, and beta breaking is accepted. A line with any
+  live config never qualifies, even when the change lands only on a parked version: once that
+  version goes live, the line's in-force policies renew onto it.
 
 Decide the first skip from the config, not from the shape of the change: could a quote built under
 the old config be built, unchanged, under the new one?

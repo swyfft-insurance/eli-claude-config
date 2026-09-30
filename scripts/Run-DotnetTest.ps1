@@ -185,6 +185,20 @@ $suffixStr = if ($Suffix) { "_$Suffix" } else { '' }
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmm'
 
 $baseName = "${branch}_${projectName}_${filterStr}${suffixStr}_${timestamp}"
+
+# Windows caps one file name at 255 characters, and a trait + class + method filter plus a suffix can
+# run past it, which fails Tee-Object before dotnet starts. Shorten the filter part to fit, keeping a
+# hash of the full filter string so two different filter sets never share a name.
+$fullFilterStr = $filterStr
+$maxBaseNameLength = 255 - '.txt'.Length
+if ($baseName.Length -gt $maxBaseNameLength) {
+    $filterHash = [Convert]::ToHexString(
+        [Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($filterStr))).Substring(0, 8)
+    $keepLength = [Math]::Max(0, $filterStr.Length - ($baseName.Length - $maxBaseNameLength) - ($filterHash.Length + 1))
+    $filterStr = "$($filterStr.Substring(0, $keepLength))-$filterHash"
+    $baseName = "${branch}_${projectName}_${filterStr}${suffixStr}_${timestamp}"
+}
+
 $outputFile = Join-Path $outputDir "$baseName.txt"
 $trxName = "$baseName.trx"
 
@@ -209,7 +223,7 @@ $testArgs += '--report-trx-filename'; $testArgs += $trxName
 # --- Run ---
 Write-Host "Branch:  $branch" -ForegroundColor Cyan
 Write-Host "Project: $projectName" -ForegroundColor Cyan
-Write-Host "Filters: $filterStr" -ForegroundColor Cyan
+Write-Host "Filters: $fullFilterStr" -ForegroundColor Cyan
 Write-Host "Output:  $outputFile" -ForegroundColor Cyan
 Write-Host "TRX:     $trxName" -ForegroundColor Cyan
 Write-Host ""
@@ -227,7 +241,7 @@ Write-Host "TRX:    $trxName" -ForegroundColor Green
 # on this branch. Fail loudly with a non-zero code so no caller can mistake a no-op for a green suite.
 if ($exitCode -eq 8 -or (Select-String -Path $outputFile -Pattern 'Zero tests ran' -Quiet)) {
     Write-Host ""
-    Write-Host "FAILED: Zero tests ran - filter matched no tests ($filterStr)." -ForegroundColor Red
+    Write-Host "FAILED: Zero tests ran - filter matched no tests ($fullFilterStr)." -ForegroundColor Red
     if ($exitCode -eq 0) { $exitCode = 8 }
 }
 

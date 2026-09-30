@@ -104,6 +104,7 @@ PROCESS:
    python ~/.claude/skills/eli--read-ticket/read-ticket.py {TICKET} pr-review-{TICKET}
    The second argument is required here. These are other people's tickets being reviewed, not Eli's own work, so their dumps go in `pr-review-` prefixed folders. Without it every reviewed ticket creates a folder that looks identical to Eli's ticket work under `~/.claude/tickets/`.
    It accepts the readable ID (SW-XXXXX) or the internal entity ID (2-XXXXX). Form a one-sentence understanding of each. Flag scope mismatch with the PR.
+   Read the dump from the folder the script prints. Never copy its output into a scratchpad file: parallel reviewers share the scratchpad, and a generic filename gets overwritten with another PR's ticket.
 
 2. Fetch PR:
    gh pr view {NUM} --repo swyfft-insurance/swyfft_web --json files,additions,deletions,body,isDraft

@@ -58,3 +58,5 @@ gh-pr-status-cache.json
 jobs/
 .post-approval-state.json
 state/mcp-discover-verdicts.json
+/feedback
+/tickets

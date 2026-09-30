@@ -51,7 +51,7 @@ When a hook blocks an action this skill mandates, the mandate does not lapse and
 
 Auto-detect which subsystems the ticket touches by scanning the ticket body, ACs, and any file paths it mentions. Cross-reference against the "Namespace-Specific Documentation" table in the project root `CLAUDE.md`.
 
-Then **present the detected list to the user** and ask: "Are these the subsystems we need to pre-read? Add/remove any?" Do NOT just read them silently — the user may know about a subsystem you missed, or want to drop one that's not really in scope.
+Then **present the detected list to the user** and ask: "Pre-read these? (y/n)". Do NOT just read them silently. The user may know about a subsystem you missed, or want to drop one that's not really in scope, and says so with "n".
 
 Once confirmed, read each `CLAUDE.md` file in the agreed set.
 
@@ -92,6 +92,8 @@ This governs all Q&A in Steps 5 and 6.
 3. **The decision + numbered options**, each stated as a concrete consequence.
 
 Prefer prose with numbered options over AskUserQuestion when the evidence is substantial (AskUserQuestion truncates it). A question without its evidence is incomplete — the user should never have to go read the ticket or grep the code to answer.
+
+**Every question takes the mandated format.** Before sending any question, `Read` `~/.claude/rules/plan-mode.md` § "Every question uses the mandated format".
 
 **MANDATORY before presenting ANY question — `Read` `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" (don't work from memory).** Every option must be genuinely plausible. You must NEVER present "follow the acceptance criteria" vs "violate them" as a choice — implement the AC. A ticket-deviating path is raised only as an evidenced concern, never as a neutral A/B. Offering a fake choice confuses the user and burns trust for when a real concern surfaces.
 
@@ -141,7 +143,7 @@ State the plan type and the versioned/unversioned answer, with the evidence that
 
 ### Hard rule: "Ready to outline?" defaults to NO
 
-After each cluster of questions, you may ask "ready to draft the outline?" — but the default answer is **NO**. Only proceed when the user explicitly says "yes" or equivalent. If the user gives any answer other than explicit yes (including silence, "let me think", clarifying questions about your last answer), continue Q&A.
+After each cluster of questions, you may ask "Draft the outline now? (y/n)". The default answer is **NO**. Only proceed when the user explicitly says "yes" or equivalent. If the user gives any answer other than explicit yes (including silence, "let me think", clarifying questions about your last answer), continue Q&A.
 
 ### Banned in Q&A
 
@@ -160,7 +162,7 @@ Build the verification section by asking, item by item. Two sub-passes:
 
 For each AC in the ticket, ask:
 
-> "How do we verify AC #N specifically? What command, test, or file-check proves it passes?"
+Propose the command, test, or file-check that proves AC #N, then ask: "Verify AC #N this way? (y/n)"
 
 The user's answer becomes a concrete verification step. Do this AC by AC. Do not batch.
 
@@ -189,7 +191,7 @@ Walk through every item in the checklist below and ask "does this apply to this 
 | Revert `appsettings.json` to local | Plan involved pointing at remote DB |
 | Full project unit-test sweep (no filter) | Refactor that could ripple beyond touched files |
 
-After AC walk + checklist sweep, ask the user: **"Anything else specific to this change that should be verified?"** — to catch verification needs that fit neither bucket.
+After AC walk + checklist sweep, present the full verification list and ask: **"Verification complete as listed? (y/n)"**. An "n" is where needs that fit neither bucket come in.
 
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
@@ -197,7 +199,7 @@ After AC walk + checklist sweep, ask the user: **"Anything else specific to this
 
 Draft a **concise outline** in chat (not the full plan). The outline shows section structure and key decisions, not full prose, not all the research details.
 
-Then ask: **"Outline good as-is, or want revisions?"**
+Then ask: **"Write the plan from this outline? (y/n)"**
 
 The outline goes to Eli only to settle an open decision. When every item in it comes from the
 ticket, the rules, or checks already run, there is nothing to approve: go to Step 7.5.

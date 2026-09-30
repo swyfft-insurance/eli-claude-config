@@ -104,16 +104,30 @@ surrounds it, whether it matches its neighbors. Draw a red outline around the el
 change touches so the reviewer finds it without hunting. One screenshot per surface the change
 touches.
 
-**Every PR screenshot is opened for Eli's approval before the PR is drafted.** Open it with
-`Start-Process` through the PowerShell tool only after confirming the file is complete: in the same
-call, read its bytes and check the size is non-zero and the first eight bytes are the PNG signature
-(`89-50-4E-47-0D-0A-1A-0A`), then open it. Treat it as a draft under Gate 2: it goes into the PR only
-after he approves it. He judges the image, so describing it in chat is never a substitute for
-showing it.
+**The changed element is often below the fold. Scroll it into view, then capture the viewport.** A
+screenshot taken after scrolling is still the whole screen as the user sees it, which is all this
+rule asks for. Scrolling is a routine step of taking the screenshot, never a blocker and never a
+question for Eli. Never swap in a full-page capture, a crop, a resized window or a changed zoom
+level to avoid scrolling.
+
+- **What happened:** SW-56006's `Dwelling Conversion?` row sat below the fold on the quote page. The
+  capture went through a zoom reset, a device-scale override, a window resize and a cropped
+  full-page capture before Eli had to say to scroll.
+
+**Every PR screenshot is opened for Eli's approval before the PR is drafted.** Open it in Photos
+through the PowerShell tool, `Start-Process "ms-photos:viewer?fileName=<full path>"`, only after
+confirming the file is complete: in the same call, read its bytes and check the size is non-zero and
+the first eight bytes are the PNG signature (`89-50-4E-47-0D-0A-1A-0A`), then open it. A bare
+`Start-Process <path>` opens the machine's default `.png` app, which is the Snipping Tool. Treat the
+screenshot as a draft under Gate 2: it goes into the PR only after he approves it. He judges the
+image, so describing it in chat is never a substitute for showing it.
 
 - **What happened:** SW-55350's screenshot was opened right after it was copied into the ticket
   folder, and the viewer would not load it. Eli had to ask for it to be opened again. Same failure
   as earlier tickets.
+- **What happened:** SW-56006's screenshot passed the size and signature check and was opened three
+  times with a bare `Start-Process`, which launched the Snipping Tool. Eli never saw it load
+  properly. Opened in Photos, it loaded.
 
 ### Referencing and attaching
 

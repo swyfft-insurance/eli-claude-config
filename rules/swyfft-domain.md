@@ -69,10 +69,22 @@ version are given, the reference is exact and there is literally zero ambiguity 
 config/IStateConfig it refers to.
 
 ## Generator and Lookup vs Config Versions
-- Generator class version numbers (e.g., `DefaultElementGeneratorByPerilEAndSBenchmarkSpecialtyV6AL`) and `ByPerilVersionLookup` carrier class version numbers (e.g., `ByPerilVersionLookup.Homeowner.FL.EAndS.Hiscox.V1`) do NOT correspond to HomeownerStateConfig version numbers (e.g., `ALByPerilEAndSBenchmarkSpecialtyV6`). They are independent numbering schemes.
-- Always check the factory mapping in `HomeownerDefaultElementGeneratorFactory.cs` to find which generator serves which config version.
-- See `Swyfft.Services/Common/CLAUDE.md` for the detailed rule on `ByPerilVersionLookup` (including: when CREATING a new carrier lookup class, always start at V1).
-- **External writing (PR descriptions, PR comments, Slack, YouTrack):** when a version number like "V1" or "V2" could refer to either a state config or a lookup (both numbering schemes coexist independently), use the class-prefixed shorthand: `HomeownerStateConfig.FLByPerilEAndSHsicV2` for state configs, `ByPerilVersionLookup.Hadron.V2` for lookups. Don't rely on the reader to infer from context — they usually can't, especially when both schemes appear in the same paragraph.
+
+Config versions, element generator versions and `ByPerilVersionLookup` versions are independent
+numbering schemes, in Homeowner and Commercial. A number in one never implies a number in another.
+
+A new element generator takes the next number after the newest generator for its state, carrier and
+rating type, never the version of the config it serves. Find the newest in
+`HomeownerDefaultElementGeneratorFactory.cs` (Homeowner) or `UnityHelper_CommercialDefaultElements.cs`
+(Commercial). The config appears only in that mapping.
+
+- **What happened:** SW-56006 named new Hadron generators `...HsicV3` after `CommercialStateConfig`
+  V3, copying the ticket. The newest Hadron generator was `...HsicV1`.
+
+A new `ByPerilVersionLookup` carrier class starts at V1 (`Swyfft.Services/Common/CLAUDE.md`).
+
+In external writing, qualify every "V1"/"V2": `HomeownerStateConfig.FLByPerilEAndSHsicV2`,
+`ByPerilVersionLookup.Hadron.V2`, or the generator's full class name.
 
 ## Comments and PR Descriptions
 - Describe WHY and WHAT — not the debugging journey.
