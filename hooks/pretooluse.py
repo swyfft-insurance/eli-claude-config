@@ -12,8 +12,10 @@ spent tokens for nothing. Guidance belongs in a block that stops the call.
 import json
 import os
 import re
+import subprocess
 import sys
 import time
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
@@ -23,6 +25,35 @@ except Exception:  # a broken import must not disable every other rule here
         return None
 
 RULES_DIR = os.path.expanduser("~/.claude/rules")
+
+# Branches never force-pushed, whatever the gh stack catalog says.
+PROTECTED_PUSH_BRANCHES = {"development", "beta", "master", "main"}
+
+
+def gh_stack_branches(repo_dir):
+    """Every branch of every gh stack in this clone's catalog (<git common dir>/gh-stack)."""
+    try:
+        common_dir = subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            cwd=repo_dir, capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        catalog = json.loads(Path(common_dir, "gh-stack").read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError, subprocess.CalledProcessError):
+        return set()
+    return {b["branch"] for stack in catalog.get("stacks", []) for b in stack.get("branches", [])}
+
+
+def is_stacked_lease_push(cmd, repo_dir):
+    """True only for `git push --force-with-lease <remote> <branch>...` where every branch is in a
+    gh stack. A fix to a lower layer is rebased into every layer above it, and those layers can only
+    be updated by a force-push. The lease refuses the push if the remote branch moved since the last
+    fetch."""
+    match = re.fullmatch(
+        r"\s*git\s+push\s+--force-with-lease\s+[\w.-]+((?:\s+(?!-)[\w./-]+)+)\s*", cmd)
+    if not match:
+        return False
+    stacked = gh_stack_branches(repo_dir)
+    return all(b in stacked and b not in PROTECTED_PUSH_BRANCHES for b in match.group(1).split())
 
 
 
@@ -784,10 +815,30 @@ def main():
             sys.exit(2)
 
         # BLOCK: git push --force / --force-with-lease — destructive to remote history.
-        if re.search(r"git\s+push\s+.*--force|git\s+push\s+.*-f\b", cmd):
+        # The one exception is a lease push of gh stack branches (is_stacked_lease_push).
+        if re.search(r"git\s+push\s+.*--force|git\s+push\s+.*-f\b", cmd) \
+           and not is_stacked_lease_push(cmd, data.get("cwd")):
             print(
                 "BLOCKED: Do not force-push. This rewrites remote history. "
-                "If you need to fix a commit, create a new commit instead.",
+                "If you need to fix a commit, create a new commit instead. "
+                "A gh stack branch can be pushed with `git push --force-with-lease <remote> <branch>`.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        # BLOCK: git fetch without --no-write-fetch-head. `git pull` merges from FETCH_HEAD, so any ref
+        # an agent fetches into this clone can be merged into the checked-out branch by a pull.
+        # Checked per command segment so one flagged fetch cannot cover an unflagged one. No bypass.
+        fetch_segments = [
+            seg for seg in re.split(r"&&|\|\||[;|\n]", cmd)
+            if re.search(r"\bgit(?:\s+-[Cc]\s+(?:\"[^\"]*\"|'[^']*'|\S+))*\s+fetch\b", seg)
+        ]
+        if any("--no-write-fetch-head" not in seg for seg in fetch_segments):
+            print(
+                "BLOCKED: git fetch without --no-write-fetch-head. `git pull` merges from FETCH_HEAD, "
+                "so any ref fetched into this clone can be merged into the checked-out branch by a "
+                "pull. Add --no-write-fetch-head to every git fetch. "
+                "See ~/.claude/rules/git-safety.md. No bypass.",
                 file=sys.stderr,
             )
             sys.exit(2)

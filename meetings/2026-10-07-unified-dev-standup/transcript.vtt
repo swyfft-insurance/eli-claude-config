@@ -1,0 +1,524 @@
+WEBVTT
+
+00:14:15.856 --> 00:14:16.656
+<v Ken Smith>Good morning.</v>
+
+00:14:17.536 --> 00:14:20.096
+<v Ken Smith>Let's go ahead and get started. And Alex, you're up.</v>
+
+00:14:21.456 --> 00:14:42.936
+<v Alex Good>Yep, so yesterday picked up where Ryan left off on the ticket that was supposed to monitor the prod deploys and kind of put those statuses out in Slack. So I added the slot swap to the reporting and hopefully now it's going to show in the right.</v>
+
+00:14:43.536 --> 00:14:51.776
+<v Alex Good>Slack channel also ported another group of PowerShell tests that we had over to Pester and this morning.</v>
+
+00:14:53.136 --> 00:14:53.856
+<v Alex Good>So...</v>
+
+00:14:55.016 --> 00:15:07.456
+<v Alex Good>Homeowner doc validation was the only, or sorry, homeowner deck pages were the only bank group that wasn't writing its results to the EF.</v>
+
+00:15:09.456 --> 00:15:17.456
+<v Alex Good>Policy validation table, so filled in that gap. And then this afternoon, I'm going to look at a log monitor ticket that I have in my name. That's it.</v>
+
+00:15:20.736 --> 00:15:23.856
+<v Ken Smith>All right, thank you very much, Alex. Andrew.</v>
+
+00:15:24.936 --> 00:15:44.256
+<v Andrew Parkins>Morning, yep. So, yesterday in the morning I was working on improving diagnostics output for tracking down issues when request fail. Had a meeting with Verisk about their 360 value API, and from there they pointed me how to how their docs work, which is a little weird, but...</v>
+
+00:15:45.336 --> 00:15:55.056
+<v Andrew Parkins>Anyway, I got the username and password, so I started working, kicking the tires on that guy. I'll be kicking the tires some more today and then sending out some technical questions. And that's probably it for me.</v>
+
+00:15:56.896 --> 00:15:57.616
+<v Ken Smith>Thank you, Andrew.</v>
+
+00:15:58.816 --> 00:15:59.456
+<v Ken Smith>Research it.</v>
+
+00:16:00.656 --> 00:16:23.536
+<v Chris Harrington>Hi everybody, good morning. So yesterday we had a meeting to go over some of the commercial statement of value stuff, and this is kind of a spiral a bit. So I've been looking at modifying how the landing page for the commercial landing page works a little bit, removing some fields, adding some fields, that kind of thing. So put together a Marc for what I think they should look like, and I'm going to bring that up with the front end sync in just a little bit here.</v>
+
+00:16:24.896 --> 00:16:47.456
+<v Chris Harrington>And then the rest of my time has been spent on some bug fixes that I have with the new purchase page. There's a couple that are outstanding. And then I still have this pull request open for requiring an agent to opt in for before his cox high value referral gets created in Zendesk. We've got a pull request open for that. I'd love to get merged in as soon as possible so everybody has some free eyes.</v>
+
+00:16:47.976 --> 00:17:06.856
+<v Chris Harrington>And then for the rest of the day, I think it's going to be making sure that that statement of value is Mark is pretty good spot. And then I did get a ticket from Drew earlier for updating the, making a fix or something to the purchase moratorium page. So this feels like a pretty good time to modernize that page. So I'll be looking at that today too.</v>
+
+00:17:07.376 --> 00:17:08.656
+<v Chris Harrington>That's it, no blockers.</v>
+
+00:17:09.936 --> 00:17:12.096
+<v Ken Smith>Thank you, Chris. For Schenk.</v>
+
+00:17:13.056 --> 00:17:32.856
+<v Chris Schenk>Morning. Yesterday I worked on the accept reject plan and got finished up and began working on a PRD for the new soft decline workflow changes that were requested by Roman on Monday. Today I'm coding out that accept reject stuff and I'm hopefully going to finish the soft decline.</v>
+
+00:17:32.936 --> 00:17:35.056
+<v Chris Schenk>The clients that PRD work and log down.</v>
+
+00:17:35.856 --> 00:17:38.736
+<v Ken Smith>Thank you, Chris. Dan.</v>
+
+00:17:40.096 --> 00:18:01.416
+<v Dan Melson>Let's see, yesterday, yesterday I was working on the, I had to redo some of the stuff for the risk selection decline logging. It was logging as, it's logging as warning and it's dumping the exception and the stack trace and all that information. One of the tickets was to cut some of those down. My initial one, I cut all the risk selections down and made them debug and</v>
+
+00:18:03.456 --> 00:18:20.896
+<v Dan Melson>And not, or I didn't make them debug. I made them not not display all that, but Justin brought up the point that sometimes we really want the stack trace. So I rewrote that so that it only does specific ones that we know for state closed, county closed, things like that. They now log as debug.</v>
+
+00:18:21.296 --> 00:18:40.496
+<v Dan Melson>with just a limited message and stuff, the information that was requested on the ticket. So I got that wrapped up and that's merging today. And now I'm working on the full sprinkler systems for QBE South Carolina commercial. It's not showing up in the drawer and it needs to be</v>
+
+00:18:40.976 --> 00:18:49.456
+<v Dan Melson>full sprinklers required for a frame type or 4 plus stories. So that's what I'm doing now and that's about it.</v>
+
+00:18:50.376 --> 00:18:51.216
+<v Ken Smith>Thank you, Dan.</v>
+
+00:18:53.056 --> 00:18:53.696
+<v Ken Smith>Darius.</v>
+
+00:18:56.656 --> 00:19:16.296
+<v Darius Carrick>Hey there. So yesterday worked on a bunch of e-signature PRs. I have two features left for that for the binding requirements UI that I'm wrapping up today. I also reviewed a PR from Konstantin that fixed an issue with the underwriting notes sync.</v>
+
+00:19:16.496 --> 00:19:22.136
+<v Darius Carrick>I got that approved and through. And then I also...</v>
+
+00:19:24.120 --> 00:19:28.600
+<v Darius Carrick>SOV stuff that Chris was talking about and we both kind of have</v>
+
+00:19:28.760 --> 00:19:29.160
+<v Darius Carrick>Um...</v>
+
+00:19:30.120 --> 00:19:49.400
+<v Darius Carrick>similar but slightly different options for the landing page changes. And I've got that up as like a little prototype so we can look at both of those and see which ones we want to demo to business or if we want to show them both. But I think kind of the key thing there is the way the landing page changes.</v>
+
+00:19:50.040 --> 00:20:08.120
+<v Darius Carrick>takes in the number of buildings and then the way that we fill out the schedule. So there's some interesting ways to do that. And then today, I had an e-signature demo with business. And as a result of that, they asked me also to create them a</v>
+
+00:20:08.280 --> 00:20:27.560
+<v Darius Carrick>a reference guide that underwriting and customer support can use in case they get calls from agents or need to support something. So I'm going to work on that as well. And also there's some new binding requirement changes for commercial. So I scheduled a meeting with Jennifer.</v>
+
+00:20:28.120 --> 00:20:30.440
+<v Darius Carrick>Alexis to go over those tomorrow.</v>
+
+00:20:31.480 --> 00:20:32.120
+<v Darius Carrick>Um...</v>
+
+00:20:33.400 --> 00:20:53.160
+<v Darius Carrick>And then yeah, I have several meetings after that today. And just continuing on the e-signature stuff. One other thing to note with that is the bold sign sandbox has an API limit of 50 requests per hour. So that was filling up my.</v>
+
+00:20:53.560 --> 00:21:08.760
+<v Darius Carrick>my requests pretty quick with TeamCity web UI acceptance tests. It actually blocked me from doing my demo completely this morning. So I put a PR through to shut the e-signature off for those web UI acceptance tests on TeamCity.</v>
+
+00:21:09.840 --> 00:21:10.440
+<v Darius Carrick>That's it for me.</v>
+
+00:21:11.480 --> 00:21:13.000
+<v Ken Smith>Alright, thank you, Darius.</v>
+
+00:21:14.360 --> 00:21:14.840
+<v Ken Smith>Eli.</v>
+
+00:21:17.240 --> 00:21:32.920
+<v Eli Koslofsky>Yeah, today and yesterday I've been working on some Vave commercial underwriting guideline tickets, had some feedback from Konstantin that I addressed, and I've got the</v>
+
+00:21:34.160 --> 00:21:52.840
+<v Eli Koslofsky>first four of them queued to merge, and then I'm going to work on the next three. And then I'm also just working on a log monitor bug for Laurel. Or not log monitor, one of the, you know, a test that failed. And that's it.</v>
+
+00:21:54.520 --> 00:21:59.320
+<v Ken Smith>All right, thank you very much. Let's see, Eric.</v>
+
+00:22:00.760 --> 00:22:19.960
+<v Eric Chen>Hey everyone. Yesterday did a handful of things, but the main thing was for Hadron commercial on rewrites or reprices. I fixed the deductible is not showing up, and that's the first part of the of getting my work out for.</v>
+
+00:22:20.680 --> 00:22:39.000
+<v Eric Chen>form rewrite bugs. The second part will be covering the additional coverage section. And before I proceed with that, I'll probably have to check with a handful of people, mostly Jay. I'll probably ask you about some work you did last year, so I know that's terrifying. Other than that,</v>
+
+00:22:39.720 --> 00:22:49.120
+<v Eric Chen>Once I finish that up, I think I promised Drew a little bit of NFIP work, at least some progress. But those two things should take up the rest of my day.</v>
+
+00:22:50.920 --> 00:22:52.040
+<v Ken Smith>Great. Thank you, Eric.</v>
+
+00:22:53.120 --> 00:22:53.560
+<v Ken Smith>James.</v>
+
+00:22:59.320 --> 00:23:03.640
+<v James Whitfield>Hello, everybody. Yesterday, I spent the bulk of the day on...</v>
+
+00:23:05.000 --> 00:23:21.080
+<v James Whitfield>Production testing, various tickets, mainly focused on some of the changes and, excuse me, the advisor space and claims. Also today, working on beta.</v>
+
+00:23:22.520 --> 00:23:41.000
+<v James Whitfield>Picking things out to see what I can grab and test. Also added some tickets on QB Commercial. Remainder dates will be on QBE Commercial post-buying. I started testing that a little while ago. And I might jump back to beta for some testing high priority tickets ticket board. That's it.</v>
+
+00:23:42.600 --> 00:23:44.120
+<v Ken Smith>All right, thanks, James.</v>
+
+00:23:44.360 --> 00:23:44.600
+<v James Whitfield>Yep.</v>
+
+00:23:45.560 --> 00:23:46.040
+<v Ken Smith>Gena.</v>
+
+00:23:50.520 --> 00:24:09.000
+<v Jannatul Mustafa>Hello. So yesterday I had completed working on the reprice and endorsements as well as claims. And today I've been assigned to some tickets on U-Track. So just going through those and also questioning any concerns that I have with the assignee.</v>
+
+00:24:11.000 --> 00:24:12.120
+<v Jannatul Mustafa>That's all. Thank you.</v>
+
+00:24:12.760 --> 00:24:13.400
+<v Ken Smith>Thanks, Ken.</v>
+
+00:24:14.520 --> 00:24:14.920
+<v Ken Smith>Jay.</v>
+
+00:24:17.960 --> 00:24:36.760
+<v Jay Kint>Good morning. SPOL, still ongoing. I managed to get the seven PRs up, two of them are merged in. Number 3, Ron noticed a couple things. Thank you, Ron, for looking at that. And so I had, between me and Claude, got those</v>
+
+00:24:36.840 --> 00:24:56.360
+<v Jay Kint>resolved. I'm now working on just getting a merge that had some conflicts taken care of. Hopefully get that pushed and then it should be able to. I do need a second review on that. After that I got four more to go. So it's been much slower than I'd anticipated. I'd hoped that it would only take a little bit of time.</v>
+
+00:24:57.000 --> 00:25:17.320
+<v Jay Kint>maybe a day or two to get this through the seven PRs, but so still working on that. After that, I currently in, I think I've wrapped up most of the bugs I was working on, so I need to chair, I need to pull some for my queue, log monitor and some, I think it was a test failure too, it's still ongoing, I need to get those in.</v>
+
+00:25:18.920 --> 00:25:34.600
+<v Jay Kint>That Zendesk ticket turns out it was already fixed can in a previous log monitor bug, so that was kind of easy. That was nice, and yeah, I think I think that's probably it for me. Oh, we had we had a meeting yesterday with Phi Sigma.</v>
+
+00:25:25.880 --> 00:25:26.360
+<v Ken Smith>Kay.</v>
+
+00:25:36.040 --> 00:25:57.880
+<v Jay Kint>And that was very productive. They're going to send over a new document. Turns out that there are some incongruities between their documentation and their implementation. Who would have guessed? Yeah, well, and that's just, I was deathly afraid that maybe I had missed something. And so I was like, they're going to get into this meeting and say, oh, you just need to do this, this, and this. I'm like, oh, duh.</v>
+
+00:25:47.800 --> 00:25:49.320
+<v Ken Smith>Really, I don't think we had noticed.</v>
+
+00:25:58.240 --> 00:26:19.840
+<v Jay Kint>But turns out it really was their problem. So thankfully. So they have, I should be getting a document either later today or tomorrow with some updated instructions and samples. And I'll take it from there and start trying to put together a composed loop on a claim life cycle. It'll be very small, won't have all the things it needs, but it should hopefully have enough to just</v>
+
+00:26:19.960 --> 00:26:26.920
+<v Jay Kint>just kind of give us a very proof of concept of how the workflow might go. So yeah, that should be it for me.</v>
+
+00:26:27.840 --> 00:26:28.600
+<v Ken Smith>Thank you, Jay.</v>
+
+00:26:29.960 --> 00:26:30.440
+<v Ken Smith>Jill.</v>
+
+00:26:31.400 --> 00:26:51.720
+<v Jill Ashley>Hello, let's see. Yesterday I spent some time, I met with Maureen and Chrissy and spent some time figuring out how to properly warn the user when there's an inconsistency between agents and IMS producer contacts. All seems to come down to somebody adding a producer contact in IMS and giving them Swift login without adding them in Swift.</v>
+
+00:26:52.240 --> 00:27:03.880
+<v Jill Ashley>And then we had a meeting about onboarding and I picked some of that work back up. And then today I will be primarily working on adding MEP to some South Carolina policy docs and notices. That's all.</v>
+
+00:27:05.080 --> 00:27:05.960
+<v Ken Smith>Great. Thanks, Jill.</v>
+
+00:27:07.240 --> 00:27:07.640
+<v Ken Smith>Jill.</v>
+
+00:27:08.640 --> 00:27:09.880
+<v Joe Nichols>Hello.</v>
+
+00:27:11.600 --> 00:27:13.480
+<v Joe Nichols>So yesterday.</v>
+
+00:27:17.240 --> 00:27:21.480
+<v Joe Nichols>was asking some questions about the tickets and also</v>
+
+00:27:23.640 --> 00:27:26.160
+<v Joe Nichols>Just got a PR for a.</v>
+
+00:27:27.640 --> 00:27:35.240
+<v Joe Nichols>Thing with invoice numbers, the make payment page was displaying an internal one that looks an awful lot like a...</v>
+
+00:27:37.480 --> 00:27:43.720
+<v Joe Nichols>External invoice number, but it's not the same number, so...</v>
+
+00:27:44.880 --> 00:27:46.040
+<v Joe Nichols>That's.</v>
+
+00:27:47.200 --> 00:27:48.120
+<v Joe Nichols>That's in PR.</v>
+
+00:27:50.360 --> 00:27:50.760
+<v Joe Nichols>Good.</v>
+
+00:27:52.280 --> 00:27:53.560
+<v Joe Nichols>Yeah, more bugs.</v>
+
+00:27:55.520 --> 00:28:04.200
+<v Joe Nichols>either one or two more with the address sync stuff. And yeah, that's it for now.</v>
+
+00:28:05.320 --> 00:28:06.040
+<v Ken Smith>Thanks, Jill.</v>
+
+00:28:07.160 --> 00:28:07.560
+<v Ken Smith>Laurel.</v>
+
+00:28:09.400 --> 00:28:27.200
+<v Joe Nichols>So, yesterday I was working on more of the more of the testing the functions that I just added to the mobile the non-failure list on the from the from the CS code to the Excel test. I noticed there was some of the.</v>
+
+00:28:28.200 --> 00:28:48.440
+<v Joe Nichols>Cloud might be trying to figure out which have have a list of the excluded known failures. Now you can go to the Swyfft test three if you want to folder, let me know, and there is XML list you can know which keyword lead to which.</v>
+
+00:28:48.600 --> 00:29:09.120
+<v Joe Nichols>Not an issue from the automation report, and on that yesterday start go back to track down the test failures. I have one test failure, test code failure, push out, PR push out, and today I'm going to continue working on that. I'm going through the failures, so I might...</v>
+
+00:29:24.560 --> 00:29:25.800
+<v Ken Smith>All right, thank you, Laurel.</v>
+
+00:29:27.400 --> 00:29:27.960
+<v Ken Smith>Josh.</v>
+
+00:29:30.440 --> 00:29:49.240
+<v Joshua Spink>Hey everyone, yesterday I was doing a little more work with partner API, knowledge base articles and whatnot, but then shifted over to Vave split allocation work and then chasing down a few other bugs. So yeah, doing split Vave allocations today and...</v>
+
+00:29:49.960 --> 00:29:51.880
+<v Joshua Spink>other release testing in beta. That's it.</v>
+
+00:29:52.680 --> 00:29:54.360
+<v Ken Smith>Thanks, Josh.</v>
+
+00:29:55.320 --> 00:29:55.800
+<v Ken Smith>Justin.</v>
+
+00:29:57.560 --> 00:30:14.680
+<v Justin Harris>I've finished up my work on DP3, so I've switched back to refactoring to get rid of throw of no calls. And then I will be out next week and the week after that for PTO, no blockers.</v>
+
+00:30:15.280 --> 00:30:16.840
+<v Ken Smith>All right. Thanks, Justin.</v>
+
+00:30:17.800 --> 00:30:18.600
+<v Ken Smith>Konstantin.</v>
+
+00:30:26.360 --> 00:30:29.080
+<v Ken Smith>Konstantin, if you're there, we're not hearing you. Muted.</v>
+
+00:30:34.320 --> 00:30:37.320
+<v Ken Smith>All right, we'll come back. Uh, Larry.</v>
+
+00:30:39.320 --> 00:30:58.080
+<v Larry Beall>So I'm just finishing up a couple comments on a couple bug PRs, get those merged in, doing the same with one of the adjuster queue modifications PRs, get that merged in, and then we had a couple of new requests on the way they would like.</v>
+
+00:30:58.160 --> 00:31:10.120
+<v Larry Beall>The new gesture queue to work come in yesterday, so I am ticketed that and getting ready to start working on that as well. So a gesture queue for the foreseeable future, I guess.</v>
+
+00:31:11.720 --> 00:31:12.920
+<v Ken Smith>All right, thanks, Larry.</v>
+
+00:31:14.000 --> 00:31:14.520
+<v Ken Smith>Mahendra.</v>
+
+00:31:22.120 --> 00:31:23.560
+<v Ken Smith>Andrew, I'm not hearing you.</v>
+
+00:31:27.760 --> 00:31:30.920
+<v Ken Smith>All right, we'll come back. Let's see, Mary Kay.</v>
+
+00:31:32.200 --> 00:31:45.080
+<v Mary Kay Hurlburt>Today, I'm working on re-adding the MEP form back to South Carolina lines of business and fixing any EV allocation issues that Josh finds them. That's it.</v>
+
+00:31:45.840 --> 00:31:47.960
+<v Ken Smith>Alright, thanks, Mickey. Melissa.</v>
+
+00:31:50.120 --> 00:31:56.920
+<v Melissa Freeman>Today I have several meetings and working on Zendesk tickets and one very</v>
+
+00:31:58.680 --> 00:32:02.680
+<v Melissa Freeman>difficult commercial renewal. That's it for me.</v>
+
+00:32:04.480 --> 00:32:07.960
+<v Ken Smith>Sorry about that, Melissa. Uh, that is you.</v>
+
+00:32:09.480 --> 00:32:14.040
+<v Mevcun Alacakir>Hey, morning. Yesterday, NP column classification.</v>
+
+00:32:16.760 --> 00:32:19.320
+<v Mevcun Alacakir>SSSTE step removal discussion.</v>
+
+00:32:20.920 --> 00:32:24.200
+<v Mevcun Alacakir>And today, weekly schema review.</v>
+
+00:32:25.800 --> 00:32:28.120
+<v Mevcun Alacakir>invoice cost analysis for September.</v>
+
+00:32:29.280 --> 00:32:38.320
+<v Mevcun Alacakir>SQL vulnerability assessment on the Azure side and working on the SQL audit log reports. That's all I have.</v>
+
+00:32:38.960 --> 00:32:40.200
+<v Ken Smith>Thank you, Madam Jim.</v>
+
+00:32:41.320 --> 00:32:41.640
+<v Ken Smith>Nick.</v>
+
+00:32:43.560 --> 00:32:50.280
+<v Nick Fee>Hi everyone. My day is mainly Zendesk and beta testing, and I have a meeting with Melissa this afternoon. That's it for me.</v>
+
+00:32:51.240 --> 00:32:51.800
+<v Ken Smith>Thanks, Nick.</v>
+
+00:32:52.960 --> 00:32:53.320
+<v Ken Smith>Patti.</v>
+
+00:32:56.920 --> 00:33:20.560
+<v Patti Sundius>Nick is always so fast. And I'm reading something else. So yesterday, QBE Commercial South Carolina post bind testing did some knowledge sharing with Gena. And then today on beta ticket testing and post bind testing for QBE Commercial South Carolina,</v>
+
+00:33:21.240 --> 00:33:26.360
+<v Patti Sundius>and logging tickets as I find issues. And that's it for me. Thanks.</v>
+
+00:33:26.880 --> 00:33:28.760
+<v Ken Smith>Thank you, Patti, Phil.</v>
+
+00:33:30.960 --> 00:33:50.280
+<v @1>Hey everyone. So I got a couple pieces of my Ivan's outbound export fixes out there. I've been working to keep them manageable, which has added a little bit of extra turn, but I think it's worth it. I also got the change out for New Jersey Stamping Office.</v>
+
+00:33:50.680 --> 00:34:09.640
+<v @1>to make sure that they get their SLA transaction numbers generated. There was a corner case. This afternoon, I'll just be shepherding those, pulling off more items related to items as I can put them in and I have</v>
+
+00:34:09.800 --> 00:34:21.160
+<v @1>Some tickets to create and I gotta talk to Jeff, or not Jeff. I'm thinking about the Jeffs I used to work for, but speak with Greg about New York, Sam Bank, so...</v>
+
+00:34:22.920 --> 00:34:23.400
+<v @1>That's it.</v>
+
+00:34:24.880 --> 00:34:25.320
+<v Ken Smith>Thanks, Phil.</v>
+
+00:34:26.560 --> 00:34:27.080
+<v Ken Smith>Good Jill.</v>
+
+00:34:29.160 --> 00:34:40.840
+<v Pi-Chun Wu>Yeah, so work on the SSSSS package modification for another DB and also participate in a meeting to remove Tableau everything.</v>
+
+00:34:42.120 --> 00:34:55.000
+<v Pi-Chun Wu>from the SSL package. And I also going to identify some database table as a candidate for fabric free trial CDC data mirroring. That's it.</v>
+
+00:34:56.280 --> 00:34:57.000
+<v Ken Smith>Thanks, Richard.</v>
+
+00:34:58.000 --> 00:34:58.320
+<v Ken Smith>Warren.</v>
+
+00:35:01.080 --> 00:35:18.680
+<v Warren Hirschbuehler>Morning, everyone. Yesterday, fixed a bug. I think it was QA found it. So they put in a Connecticut address, which we don't have anything for. It basically gave an API error and the page just kind of sat there and looked at you and did nothing. I mean, surface that as a...</v>
+
+00:35:19.840 --> 00:35:38.040
+<v Warren Hirschbuehler>Better error with a toast or an unsupported quote page if you're not logged in. Also fix some tests and policy purchase. There's some questions that were unanswered that blocked the purchase through. And this morning created a, just created a PR.</v>
+
+00:35:39.720 --> 00:35:58.520
+<v Warren Hirschbuehler>Basically, premium errors would throw an invalid operation. I think it was Dave. Anyways, they rejected their they said no, so that premium error bubble up as an error instead of a UI, you know, unsupported or move on with the other quotes, so...</v>
+
+00:35:58.680 --> 00:36:00.840
+<v Warren Hirschbuehler>Pick up up your grades and I have.</v>
+
+00:36:01.800 --> 00:36:08.920
+<v Warren Hirschbuehler>Handful of more bugs and such, and I'll go ping Drew to see if he's got more NFIP stuff, and that's in it, if me.</v>
+
+00:36:09.800 --> 00:36:10.680
+<v Ken Smith>Great. Thanks, Warren.</v>
+
+00:36:11.880 --> 00:36:12.360
+<v Ken Smith>Wendell.</v>
+
+00:36:18.200 --> 00:36:38.920
+<v Wendell Joost>Good morning. I'm thinking about using the cat for Princess Donut and going as Dungeon Crawl, Crawler Carl for Halloween. I got, I couldn't sleep last night, so I went through a bunch of the log monitor tickets and did some triage and turned Claude loose on some.</v>
+
+00:36:39.040 --> 00:36:58.320
+<v Wendell Joost>Fixes for that, I've also got a hefty PR there that I'm going to be talking to the front-end team about in 7 minutes that adds a one-time code for validation when an insured requests.</v>
+
+00:36:59.000 --> 00:37:17.560
+<v Wendell Joost>a cancel policy. And that's to spoke with Michael Manzi and Gena about this. And that replaces the old give us the policy number and the zip code. And that's good enough for us to do whatever. As we are removing humans from the loop.</v>
+
+00:37:17.720 --> 00:37:25.160
+<v Wendell Joost>and automating this stuff, we need better, more secure checks. And let's face it, the humans weren't really checking anyway. So.</v>
+
+00:37:26.520 --> 00:37:45.960
+<v Wendell Joost>That's in the pipeline. And then Ken's Claude was flagging my PRs with changes requested and then lagging review for, and Ken, if you've got some way that I can poke Claude rather than poke you to make those happen, that would be.</v>
+
+00:37:47.640 --> 00:37:52.120
+<v Ken Smith>I uh, I did a re I had a couple more reviews at 7:46 A.m.</v>
+
+00:37:47.720 --> 00:37:47.880
+<v Wendell Joost>A...</v>
+
+00:37:52.920 --> 00:38:04.120
+<v Wendell Joost>Okay, and I think Mike Ludwig got back on those. So we may be, this may be me poking you for one more. So.</v>
+
+00:38:03.160 --> 00:38:05.640
+<v Ken Smith>I, once more, got it. OK.</v>
+
+00:38:05.080 --> 00:38:21.080
+<v Wendell Joost>Yes. So once more on to the breach, dear friends, as they say. So, and then I've got school this afternoon, but I'll be on Slack and Claude will be grinding out code. And that's it for me.</v>
+
+00:38:22.360 --> 00:38:28.600
+<v Ken Smith>Okay, thanks Wendell. All right, back to, let's see, Konstantin, are you there?</v>
+
+00:38:30.360 --> 00:38:49.320
+<v Konstantin Konstantinov>Yeah, sorry, my teams just died right at that moment, or about that moment. So, on my side, I've merged this big PR related to roller architecture, and Darius, I guess, picked up whatever slacks is left after that. I hope, at least I hope so. More things.</v>
+
+00:38:51.160 --> 00:39:10.520
+<v Konstantin Konstantinov>I'm working on two, one log monitor ticket is submitted as a pair that's claim times related, another one is related to phone numbers. The pair is coming shortly, and yesterday I submitted the pair related to changes to renewal notes. I believe Darius mentioned that he's already approved that. I think that's it. Once I'm done with the...</v>
+
+00:39:11.240 --> 00:39:13.960
+<v Konstantin Konstantinov>Work monitor ticket, I'll take a look at my pipeline. That's it for now.</v>
+
+00:39:15.200 --> 00:39:18.600
+<v Ken Smith>Great. Thank you, Konstantin. And Mahendra, if you're there.</v>
+
+00:39:19.080 --> 00:39:26.400
+<v Mahendra Kaushal>Yeah, yesterday was testing the release and verifying tickets.</v>
+
+00:39:27.280 --> 00:39:30.240
+<v Mahendra Kaushal>The same as today, today, that's all I have.</v>
+
+00:39:31.080 --> 00:39:33.680
+<v Ken Smith>Thank you, Mahendra. Let's see, Ehren.</v>
+
+00:39:35.440 --> 00:39:44.800
+<v Ehren Weerheim>Just the usual yesterday meetings, most of the day, and then ticket and clog. Today will be more meetings, more ticket and o'clock. That's it for me.</v>
+
+00:39:46.120 --> 00:39:49.520
+<v Ken Smith>Okay. Thanks, Ehren. Wayne.</v>
+
+00:39:50.800 --> 00:40:09.680
+<v Wayne Allen>Yep, Arnold, trivia for the week is this week in 1969, Monty Python's Flying Circus was first episode. Surprisingly enough, it lasted for one year. That's it. For the impact.</v>
+
+00:40:09.760 --> 00:40:12.960
+<v Wayne Allen>that Monty Python has had, it was only there for a year.</v>
+
+00:40:14.240 --> 00:40:19.840
+<v Wayne Allen>Kind of crazy. Anyway, for myself, yesterday was...</v>
+
+00:40:21.520 --> 00:40:40.240
+<v Wayne Allen>I worked on a feature for Greg to allow him to do policy doc downloads without rewarding, deserting to going to Swyfft test 2. So that is done and merged this morning. And also kind of working on the DP3 IMS configs, going back and forth with Mary Kay.</v>
+
+00:40:40.960 --> 00:40:45.520
+<v Wayne Allen>Today is meeting day, so that's going to be the look of the day between...</v>
+
+00:40:46.960 --> 00:40:53.840
+<v Wayne Allen>There's probably some bugs stumped, and I did get a message back from Inspection Depot about my questions, so I'll look at that. That's it.</v>
+
+00:40:54.720 --> 00:41:13.280
+<v Ken Smith>Great. Thank you, Wayne. On my side, continuing to, I think I've dealt with all of the feedback that I've gotten on my big, let's completely change how we print policy deck PRs and going to need for some QA help on that.</v>
+
+00:41:14.480 --> 00:41:28.560
+<v Ken Smith>Beyond that, oh, and waiting for a full QA pass on that and a couple of, for full Deep City pass on that and a couple of other PRs. Other than that, meetings and emails and such. Thanks, everyone.</v>
+
+00:41:30.560 --> 00:41:31.040
+<v Chris Harrington>Thanks.</v>
+
+00:41:30.800 --> 00:41:33.600
+<v Jill Ashley>Thank you. Thank you. Merci.</v>
+
+00:41:31.680 --> 00:41:34.320
+<v Andrew Parkins>Thanks, Darius. Thanks. Have a good day.</v>
+
+00:41:31.680 --> 00:41:36.240
+<v Mahendra Kaushal>Bye. Thanks. Thanks. Bye. Thanks. Bye.</v>
+
+00:41:32.000 --> 00:41:33.520
+<v Patti Sundius>Thanks. Thank you.</v>
+

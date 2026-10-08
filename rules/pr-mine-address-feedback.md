@@ -42,17 +42,18 @@ This is specific to Copilot. A human reviewer's top-level comment is still real 
 
 <!-- Added 2026-09-03 after PR #22620 — Eli: Ehren's AI reviews are mostly confirmatory; stop
      presenting acknowledgements as decisions. -->
-## An inline comment is not automatically a request
+## A review comment is not automatically a request
 
-Read each inline comment and decide from its own words whether it asks for anything. Length is not
-actionability, and neither is a file:line anchor.
+Read each comment, inline or top-level, and decide from its own words whether it asks for anything.
+Length is not actionability, and neither is a file:line anchor.
 
 This matters most on the AI-authored reviews Ehren posts, signed "Reviewed as Claudulina (AI)".
 Those verify the change against the code and record what they checked, so most of their text
 confirms the PR is correct, and an APPROVED state says so outright.
 
 **Present only the actionable content for a ruling.** Actionable means a change is requested, a
-question is asked, or a claim is wrong and the record should not carry it. Confirmations,
+question is asked, or a claim is wrong and the record should not carry it. A wrong claim that
+another reply on the PR has already corrected is not actionable. Confirmations,
 verification receipts, precedent notes, and context recorded for a future reader need no decision
 from Eli, and surfacing them as decisions buries the real ones.
 

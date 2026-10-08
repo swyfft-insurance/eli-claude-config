@@ -400,6 +400,18 @@ for. So the first response is never to narrow the sweep, which hides the finding
 get the rows into the rater. If neither fits the ticket, exclude it with a TODO naming the story that
 will. Treat an existing narrowing the same way: it may be suppressing exactly this.
 
+<!-- Added 2026-10-05 during SW-53906 -->
+## Rater logic that singles out counties must be swept
+
+The element sweep compares C# with the rater only in the counties it rates. When a delivered rater's
+diff shows a small set of counties, or groups of counties, that the rater treats differently from the
+rest of the state (a formula naming counties, or a lookup that names some and defaults the others),
+the sweep must rate at least one county from each group. Part 2 of the plan, written at the scoping
+checkpoint, adds any county the sweep doesn't already rate.
+
+Data that varies by every county or zip, such as a table with a row for each, is out of scope. It
+singles no county out, and sweeping every location would take far too long.
+
 ## The sentinel checks prove every cell is written
 
 Two facts on the shared base guard the write side, which the premium comparison cannot see:

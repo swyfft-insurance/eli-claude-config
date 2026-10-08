@@ -49,7 +49,9 @@ Review: @<author> (<state>)
 
 Only address **actionable** points — things that require a code change, an explanation, or a decision. Skip positive observations, summaries, and "looks good" comments. Present the actionable items to the user.
 
-**Read `~/.claude/rules/pr-mine-address-feedback.md` § "An inline comment is not automatically a request" before triaging.** An inline comment is not a request just because it exists, is long, or is anchored to a line — the AI-authored reviews Ehren posts are mostly confirmatory, and a soft aside buried in one ("worth a line in the PR body") is not a change request. Presenting a confirmation as a decision buries the decisions that are real.
+When nothing is actionable, say so in one line and stop. Never present a non-actionable item for a ruling.
+
+**Read `~/.claude/rules/pr-mine-address-feedback.md` § "A review comment is not automatically a request" before triaging.** An inline comment is not a request just because it exists, is long, or is anchored to a line — the AI-authored reviews Ehren posts are mostly confirmatory, and a soft aside buried in one ("worth a line in the PR body") is not a change request. Presenting a confirmation as a decision buries the decisions that are real.
 
 **Presentation rules:**
 
@@ -227,6 +229,12 @@ This posts an issue comment on the PR conversation tab.
 ### 6. Repeat
 
 Move to the next actionable item. Repeat until all are addressed.
+
+## Reviewer shorthand
+
+- **"IB"** is Konstantin's (`kkkmail`) shorthand for "Iron Blockhead": the AI coding agent. A comment
+  headed "For IB:" is written as instructions to the agent. It is still a reviewer's request,
+  triaged and researched like any other comment, and the decision on it is still Eli's.
 
 ## Important
 

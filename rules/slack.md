@@ -28,3 +28,18 @@ approves the destination along with the text.
 - **What happened:** Patti posted a retest result top level in a DM, and the conversation was
   running top level. The reply went into a new thread under her message, and Eli had to repost it
   top level after it was sent.
+
+## Messages with a screenshot
+
+The Slack MCP has no file upload, so a message carrying an image goes out as a Slack draft that Eli
+finishes and sends himself.
+
+1. Present the text for approval as usual, stating the destination, with `*[screenshot]*` marking
+   where the image goes.
+2. On approval, create it with `slack_send_message_draft` in that channel, passing `thread_ts` for a
+   thread reply. Leave the placeholder out.
+3. Open the returned `channel_link` with `Start-Process` through the PowerShell tool.
+4. Eli drags the screenshot in and sends it.
+
+Slack allows one attached draft per channel. On `draft_already_exists`, tell Eli and wait. The
+existing draft is his.

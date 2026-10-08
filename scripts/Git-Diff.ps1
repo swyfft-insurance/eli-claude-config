@@ -14,6 +14,10 @@
 
 .PARAMETER StatOnly
     Show only --stat summary, not full diff.
+
+.PARAMETER Base
+    Optional ref that `branch` and `all` compare against instead of origin/development. For a branch
+    in a gh stack, pass the branch below it (origin/<branch>) so the diff holds only this layer.
 #>
 [CmdletBinding()]
 param(
@@ -23,7 +27,9 @@ param(
 
     [string]$Path,
 
-    [switch]$StatOnly
+    [switch]$StatOnly,
+
+    [string]$Base
 )
 
 $ErrorActionPreference = 'Stop'
@@ -33,13 +39,7 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = 'C:\Users\eli.koslofsky\Documents\GitHub\swyfft_web'
 Set-Location $RepoRoot
 
-# Local 'development' is routinely stale on a machine that lives on feature branches, so the
-# remote-tracking ref is the baseline whenever it exists.
-function Get-DevelopmentRef {
-    git rev-parse --verify --quiet origin/development 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) { return 'origin/development' }
-    return 'development'
-}
+. (Join-Path $PSScriptRoot '_Diff-Helpers.ps1')
 
 # git diff shows tracked files only. Files created on the branch are untracked until staged, so
 # every mode that reads the working tree renders them as full additions.
@@ -74,6 +74,12 @@ function Show-TrackedDiff {
     & git @gitArgs
 }
 
+$baseRef = if ($Base) {
+    git rev-parse --verify --quiet $Base | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Base ref '$Base' does not exist. Fetch it first." }
+    $Base
+} else { Get-DevelopmentRef }
+
 switch ($Mode) {
     'local' {
         Write-Host "=== DIFF: Uncommitted changes (working tree vs last commit) ===" -ForegroundColor Cyan
@@ -89,16 +95,14 @@ switch ($Mode) {
             Write-Host ""
         }
 
-        $devRef = Get-DevelopmentRef
-        Write-Host "=== DIFF: Committed changes on this branch vs $devRef ===" -ForegroundColor Cyan
-        Show-TrackedDiff -Range "$devRef...HEAD" -ScopePath $Path -Stat:$StatOnly
+        Write-Host "=== DIFF: Committed changes on this branch vs $baseRef ===" -ForegroundColor Cyan
+        Show-TrackedDiff -Range "$baseRef...HEAD" -ScopePath $Path -Stat:$StatOnly
     }
     'all' {
         # The merge base is where this branch left development. Working tree vs that point covers
         # every commit on the branch plus every uncommitted edit in one diff.
-        $devRef = Get-DevelopmentRef
-        $mergeBase = (git merge-base $devRef HEAD).Trim()
-        Write-Host "=== DIFF: Everything on this branch vs $devRef (committed + uncommitted + untracked) ===" -ForegroundColor Cyan
+        $mergeBase = (git merge-base $baseRef HEAD).Trim()
+        Write-Host "=== DIFF: Everything on this branch vs $baseRef (committed + uncommitted + untracked) ===" -ForegroundColor Cyan
         Show-TrackedDiff -Range $mergeBase -ScopePath $Path -Stat:$StatOnly
         Show-UntrackedFiles -ScopePath $Path -Stat:$StatOnly
     }

@@ -40,12 +40,14 @@ If a rule appears anywhere in this file, it must be reflected in the plan. A pla
 **This is the most important rule in this file.** Plans are co-designed, not generated. Do NOT dump a long plan file as the first response to "plan this." Long plan dumps look thorough but bury bad assumptions in volume — a wrong decision in 200 lines costs far more to unwind than the same decision caught after a single back-and-forth question.
 
 Default workflow:
-1. Establish the AC. Present the numbered AC list, built per `youtrack.md` § "The AC is whatever
-   the ticket requires, wherever it says it" and § "Technical notes in a ticket are not the AC",
-   each criterion naming its ticket source (description, comment N, attachment). Don't ask Eli to
-   confirm it: extracting the AC is the agent's job. Raise only a conflict the ticket cannot settle,
-   with its evidence. Every later question and the plan's AC coverage map key off these numbers.
-2. Ask the foundational architectural questions in tight clusters (2–3 related at a time). Wait for answers.
+1. Establish the AC. Present the numbered AC list in a message of its own, built per `youtrack.md`
+   § "The AC is whatever the ticket requires, wherever it says it" and § "Technical notes in a
+   ticket are not the AC", each criterion naming its ticket source (description, comment N,
+   attachment). End the message with `Plan against these? (y/n)`. Extracting the AC is the agent's
+   job, so the question asks for a go-ahead, never for Eli to build or rework the list. Raise only a
+   conflict the ticket cannot settle, with its evidence. Every later question and the plan's AC
+   coverage map key off these numbers.
+2. Ask the architectural questions one per message, foundational ones first. Wait for each answer.
 3. Summarize decisions back briefly so misunderstandings get caught before they're baked in.
 4. Draft the plan file only after the design is settled — concise outline first, full prose second.
 
@@ -75,6 +77,23 @@ No silent punts.
 See `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" — **especially relevant during planning Q&A**. When asking the user to pick between options, every option must be genuinely plausible. Don't pad questions with strawman options the ticket already rules out. If the ticket says do A, B, C, don't ask "do A, B, C or skip them entirely?" — confirm and proceed (or skip the question if the answer is obvious from the ticket).
 
 Filler options during planning are particularly toxic: they slow the discussion, confuse the user into doubting their own reading of the ticket, and erode trust in subsequent genuine concerns.
+
+## The smallest change that meets the AC (MANDATORY)
+
+The AC sets the size of the change, and the plan implements the smallest change that meets it. A
+repo convention, a doc's taxonomy, or another ticket's precedent never justifies a bigger change
+than the AC needs. When the ticket names the mechanism ("shall be soft declined; override: Override
+Fire Risk"), that mechanism is the design.
+
+Every option in an architecture question states its size: the files it changes, and the classes and
+registrations it adds. The smallest option that meets the AC goes first and is the recommendation.
+A bigger option is recommended only when the smallest one fails the AC, and the recommendation
+names how it fails.
+
+- **What happened:** SW-57020, SW-57074 and SW-57100 needed three dictionary lines. The plan
+  recommended converting three soft declines into new referral classes, citing SW-56156 and the
+  decline table in `RiskSelection/AGENTS.md`, and never stated that option's size. The tickets
+  specified soft declines that an override clears.
 
 <!-- Added 2026-09-30 during SW-55860 -->
 ## Every question uses the mandated format (MANDATORY)
@@ -182,6 +201,9 @@ the index. Format inside the plan:
 
 A plan that omits these gets caught mid-execution by oddities the docs would
 have explained — that's a planner discipline failure.
+
+The pre-reads also list every rules file and skill the work depends on, so the plan works as the
+resume file in `compaction.md`.
 
 A plan that adds or changes a test also lists the test docs as pre-reads:
 `Swyfft.TestUtilities/AGENTS.md`, `Swyfft.TestUtilities/ConstantsAndExpects/AGENTS.md`, the target
@@ -547,11 +569,41 @@ A timestamp is the easiest field in a plan to fabricate: it reads as metadata ra
 it fails no build and no test, and nobody re-reads it. The specific failure is continuing the
 sequence — once one row is real, the next feels like arithmetic instead of a fact.
 
+<!-- Added 2026-10-06 during SW-56943..SW-56967 -->
+## A PR whose base isn't `development` gets its reviewers requested by hand (MANDATORY)
+
+`.github/workflows/auto_request_review.yml` runs only on pull requests whose base is `development`
+(`pr-creation.md` § the `dev` team bullet). A PR with any other base never gets the reviewers
+`.github/auto_request_review.yml` assigns. Every PR above the bottom of a stack is one.
+
+Every plan that creates such a PR carries a step right after `gh pr create` (and `gh stack link`,
+for a stack): `gh pr edit <PR> --add-reviewer <logins>`. The plan derives the logins from
+`.github/auto_request_review.yml` while planning, and the step names them:
+
+- the `per_author` entry for `eli-swyfft`, each group expanded to its members, minus the author
+- every group or login assigned by a `files` glob the PR's diff matches
+
+The step is its own gated write, asked as one bare-yes question. It ends by confirming the requests
+with the `reviewRequests` GraphQL query.
+
+- **What happened:** #23265, the second PR in a stack, got only the `dev` team and two other
+  reviewers. The plan noted that the workflow wouldn't run, and requested no one in its place.
+
 ## Verification Section Structure
 
 Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material.
 
-**The planner MUST drive verification via Q&A, item by item.** Walk through every AC in the ticket and ask "how do we verify this specifically? what command/test/file-check proves AC #N passes?" Then walk through the canonical generic-verification checklist (in `/eli--create-plan-from-ticket` skill) and ask "does X apply here?" for each. Nothing is auto-included; nothing is assumed.
+**The planner proposes the whole verification in one message.** Read every AC, then write one
+proposal that covers all of them: the test, command or check that proves each AC, plus each item
+from the canonical generic-verification checklist (in `/eli--create-plan-from-ticket`) that
+applies, with the reason it applies. Every item comes from the change and says what it proves.
+Nothing goes in by default. End the message with `Verify as proposed? (y/n)`. On any objection,
+re-present the whole proposal, revised.
+
+Never walk the ACs or the checklist one item per message.
+
+- **What happened:** a seven-AC plan walked verification one AC per message, each message ending
+  `Verify AC #N this way? (y/n)`.
 
 ### Execution sequence (before pushing)
 Numbered steps in order, derived from the AC walk-through and canonical-checklist answers. Each `Run-DotnetTest.ps1` line should cross-reference the test artifact it's exercising (defined in the sections below).
@@ -602,6 +654,10 @@ Table mapping every AC in § Acceptance criteria → which subsection covers it.
 A captured assert proves the seeded data, not the screen. When the criterion is about what an agent
 sees, the plan opens the running site, confirms it, and screenshots it for the PR description.
 
+A screenshot is for a change to what the screen itself renders: a new or moved element, changed
+wording, a layout change. A change to which rules fire, shown through the quote page's existing
+decline and premium display, gets no screenshot.
+
 Get a subject through the test helpers, not the site's create flow: a throwaway integration test
 calling the product's quote generator with the config pinned, printing the quote id to open. For
 Commercial, `CommercialQuoteGenerator.CreateCommercialQuote(addressKey, stateConfig)` via the
@@ -614,6 +670,13 @@ via `HoBuilder`. Both are tabulated in `Swyfft.TestUtilities/AGENTS.md`.
 and a declined page shows nothing. Confirm zero premium errors before opening.
 
 The throwaway test stays until Eli says to remove it.
+
+**Starting the local site:** run `pwsh ./RunSwyfftWeb.ps1` from the repo root, in the background. It
+runs `dotnet run --project Swyfft.Web.csproj -c Debug --no-build`, so build first with
+`~/.claude/scripts/Build-Solution.ps1`. The site is up when `https://localhost:5001` answers. A
+Commercial quote opens at `/commercial/<quoteId>/customize`. Stop the site before the next build,
+because a running `Swyfft.Web` locks `Swyfft.Web\bin` (root `AGENTS.md` § "Common Command Execution
+Pitfalls").
 
 ### Transition out of verification
 

@@ -84,10 +84,27 @@ go to Step 7.5.
 
 This governs all Q&A in Steps 5 and 6.
 
-**Present exactly one item per message.** Never bundle a skill/process change with a question, or two questions together, into one blob. One decision, one message — wait for the answer before the next thing.
+**Every message is as short as it can be.** `talking-to-eli.md` § "Be concise" governs every
+plan-mode message. The evidence a question carries is the minimum Eli needs to answer it. Don't
+repeat a finding already reported.
+
+**Present exactly one item per message in Steps 5 and 7.** Step 6's verification is a single
+proposal. An item is anything Eli
+must answer: the AC list, a finding that contradicts the ticket, a question, or a proposed skill or
+rule change. Each one gets its own message, and that message ends with exactly one question in the
+mandated format, so Eli always knows what his reply decides. Never send a message that asks him
+nothing. Wait for the reply before sending the next item.
+
+Step 5 opens in this order, one message each:
+1. The AC list, ending `Plan against these? (y/n)`.
+2. The questions, one per message.
+
+- **What happened:** SW-53906's first Step 5 message carried the AC list, the plan type call and
+  the first architecture question. Once they were split apart, the plan type call went out alone
+  with no question, and Eli had nothing to answer.
 
 **Every question must carry its evidence inline**, because the user has no source material in front of them otherwise:
-1. **Verbatim ticket text** — quote in full every part of the ticket you reference. The moment you name or allude to any ticket element (the title/summary, an acceptance criterion, the repro steps, a section heading), paste its actual text in the same message. Naming or paraphrasing is not enough — the user cannot see the ticket. If the decision is not ticket-derived, say so explicitly: "(not in the ticket — discovered in code)".
+1. **Verbatim ticket text:** quote the ticket text the decision turns on, word for word. Never paraphrase it, and never quote text the decision doesn't turn on. If the decision is not ticket-derived, say so explicitly: "(not in the ticket, discovered in code)".
 2. **The relevant code excerpt** with `file:line`, showing exactly what changes.
 3. **The decision + numbered options**, each stated as a concrete consequence.
 
@@ -96,6 +113,8 @@ Prefer prose with numbered options over AskUserQuestion when the evidence is sub
 **Every question takes the mandated format.** Before sending any question, `Read` `~/.claude/rules/plan-mode.md` § "Every question uses the mandated format".
 
 **MANDATORY before presenting ANY question — `Read` `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" (don't work from memory).** Every option must be genuinely plausible. You must NEVER present "follow the acceptance criteria" vs "violate them" as a choice — implement the AC. A ticket-deviating path is raised only as an evidenced concern, never as a neutral A/B. Offering a fake choice confuses the user and burns trust for when a real concern surfaces.
+
+**MANDATORY before presenting ANY architecture question: `Read` `~/.claude/rules/plan-mode.md` § "The smallest change that meets the AC".**
 
 Bug Fix plans start with Pass 0. Every plan then runs Passes 1 and 2, interleaved:
 
@@ -139,7 +158,11 @@ Plan-type-conditional. Bug Fix plans don't need API-shape questions; Refactoring
 
 ### Stating the plan type
 
-State the plan type and the versioned/unversioned answer, with the evidence that settles each: the plan-type test in `plan-mode.md` § "Picking the type" and the ticket text. Ask only when that evidence leaves the answer genuinely open. Each type has a different HARD STOP sequence (per plan-mode.md Part B § Plan Types).
+Settle the plan type and the versioned/unversioned answer from the evidence: the plan-type test in
+`plan-mode.md` § "Picking the type" and the ticket text. When the evidence settles both, they go in
+the outline (Step 7) and never get a message of their own. Ask only when that evidence leaves the
+answer genuinely open, and then as a question in the mandated format. Each type has a different
+HARD STOP sequence (per plan-mode.md Part B § Plan Types).
 
 ### Hard rule: "Ready to outline?" defaults to NO
 
@@ -154,21 +177,19 @@ After each cluster of questions, you may ask "Draft the outline now? (y/n)". The
 
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 
-## Step 6 — Q&A — Verification
+## Step 6 — Verification proposal
 
-Build the verification section by asking, item by item. Two sub-passes:
+`Read` `~/.claude/rules/plan-mode.md` § "Verification Section Structure". Read every AC confirmed in
+Step 5 and the checklist below, then present one message proposing the whole verification:
 
-### Sub-pass A — Per-AC walk-through
+- **Each AC:** the test, command or check that proves it, naming the test file, its base class and
+  the existing test it follows. One test may cover several ACs, so say which.
+- **The checklist:** each item below that applies, with a one-line reason.
 
-For each AC in the ticket, ask:
+End with `Verify as proposed? (y/n)`. On "n" or any objection, revise and re-present the whole
+proposal.
 
-Propose the command, test, or file-check that proves AC #N, then ask: "Verify AC #N this way? (y/n)"
-
-The user's answer becomes a concrete verification step. Do this AC by AC. Do not batch.
-
-### Sub-pass B — Canonical generic-verification checklist
-
-Walk through every item in the checklist below and ask "does this apply to this plan?" Skip nothing. Even items that obviously apply still get the explicit yes.
+Never ask about one AC or one checklist item per message.
 
 **Always candidates:**
 
@@ -190,8 +211,6 @@ Walk through every item in the checklist below and ask "does this apply to this 
 | DB query review (validate on localhost first) | New or modified SQL |
 | Revert `appsettings.json` to local | Plan involved pointing at remote DB |
 | Full project unit-test sweep (no filter) | Refactor that could ripple beyond touched files |
-
-After AC walk + checklist sweep, present the full verification list and ask: **"Verification complete as listed? (y/n)"**. An "n" is where needs that fit neither bucket come in.
 
 **HARD STOP — `Read` `~/.claude/rules/plan-mode.md` before starting the next step. No exceptions. No "I just read it." No "I remember the rules."**
 

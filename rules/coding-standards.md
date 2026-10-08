@@ -78,6 +78,14 @@ const int maxColumnsToCapture = 64;
 RenderSheet(ws, allRows, maxColumnsToCapture, lines.Add);
 ```
 
+**Scope a constant to its only user.** A constant read by one method is a `const` declared at the
+start of that method, never a field or property on the class. It moves to the class only once a
+second member needs it. Local constants are camelCase: `const double metersPerKilometer = 1_000D;`.
+A value that can't be `const`, such as an array, goes in the same place as a local.
+
+- **What happened:** SW-53906's address selector declared `MetersPerKilometer`, `MissingCoordinate`
+  and a distance sentinel on the class, each read by a single method.
+
 ## ClosedSets
 
 ClosedSets are pervasive in this codebase and carry strict usage rules — parameter typing,
@@ -98,3 +106,83 @@ are typed as the ClosedSet, not `string`/`int`; `.Value` appears only at true sy
 (external APIs, IMS, raw storage), never in internal calls that already accept the ClosedSet;
 comparisons and `.Switch()` follow the documented forms. Fix every violation before announcing
 code-complete. This audit is part of reaching code-complete — not a step the user should ever have to request.
+
+## Dispatch dictionaries: behavior keyed by a value
+
+When behavior varies by a key and only some keys behave specially, declare it as a dispatch
+dictionary: an `IReadOnlyDictionary` from the key to a function, backed by a plain `Dictionary`,
+with one entry per key that behaves differently. Callers look up with `TryGetValue`, and a key
+with no entry takes the default behavior.
+
+```csharp
+private static IReadOnlyDictionary<County, Func<EFHomeownerQuote, decimal>> NamedStormMinimumByCounty { get; } =
+    new Dictionary<County, Func<EFHomeownerQuote, decimal>>
+    {
+        [County.MA.Dukes] = q => ...,
+    };
+```
+
+- An entry with a fixed result ignores its argument (`_ => true`). An entry that needs logic
+  uses it.
+- Declare it once, as a `static` get-only property.
+- `IReadOnlyDictionary` over a `Dictionary` keeps hash lookups and the plain initializer. Use
+  `ImmutableDictionary` only when the dictionary is handed to other code and has to be
+  guaranteed unchangeable.
+- The keys are the complete list of what behaves specially, and code can enumerate them. A test
+  iterates the keys instead of keeping its own copy, so a new entry is covered the day it's added.
+- Prefer it to an `if` or `switch` chain on the key, which buries the keys in control flow. When
+  every member of a ClosedSet needs a result, use the generated `.Switch()`, which takes one
+  branch per member.
+
+Examples:
+- `HomeownerQuoteFactory.ElementNeedsConfirmation`: element name to confirmation predicate
+  (`Swyfft.Services/Quotes/Homeowner/HomeownerQuoteFactory.cs:440`, read at line 327)
+- `HomeownerByPerilEngine.NamedStormMinimumByCounty`: county to named-storm deductible minimum
+  (`Swyfft.Services/QuoteEngine/Homeowner/HomeownerByPerilEngine.cs:766`)
+- `QuoteElementFactory.HomeownerElementFilters`, the element visibility filters: element name to
+  visibility predicate (`Swyfft.Services/Helpers/QuoteElementFactory.cs:69`, read at line 46)
+- `CountyDiscontinuedRule.Discontinued`: state and carrier to county predicate
+  (`Swyfft.Services/RiskSelection/Homeowner/RiskRules/HardDecline/CountyDiscontinuedRule.cs:22`,
+  read at line 189)
+- `BuildingTypeExt.NonHabitationalDisallowed`: state to carrier predicate
+  (`Swyfft.Common/SetDefinitions/CommonSets/BuildingTypeExt.cs:27`)
+
+The first two already have this shape. `HomeownerElementFilters` and `Discontinued` are declared
+`Dictionary`, and `NonHabitationalDisallowed` is declared `ImmutableDictionary`.
+
+## Membership sets: named values that get special treatment
+
+When some values of a type get special treatment, declare them as an `ImmutableHashSet`,
+initialized with a collection expression and named for what membership means. Callers check
+with `Contains`.
+
+```csharp
+public static ImmutableHashSet<RoofType> DurableRoofs { get; } =
+[
+    RoofType.ClayTile,
+    RoofType.ConcreteTile,
+    ...
+];
+```
+
+- Use `{ get; } =`, not `=>`. An expression-bodied property builds a new set on every read.
+  `QuoteConstants.cs:586-587` documents that cost on the `IsConfigSupported` path.
+- A set computed from other data calls `.ToImmutableHashSet()` once, in the same `{ get; } =`
+  form (`PreUpgradeConfirmationConfigs`, `QuoteConstants.cs:339-341`).
+- When a base class needs each subclass to say where it applies, make the set a `virtual`
+  property carrying the base's default, and let subclasses override it.
+  `RiskRule.ApplicableWorkflows` works this way, and the base's `IsApplicable` reads it.
+- A one-off check against two or three values can stay an inline `IsOneOf(...)`. Once the values
+  mean something, or get checked in more than one place, they become a named set.
+- The set can be enumerated, so a test iterates it instead of keeping its own copy.
+
+Examples:
+- `QuoteConstants.DurableRoofs` (`Swyfft.Services/Common/QuoteConstants.cs:367`)
+- `QuoteConstants.FloodZonesThatRequireFloodInsurance` (`QuoteConstants.cs:284-285`)
+- `ByPerilTerritoryRepository.SinkholeProductLineStates`
+  (`Swyfft.Services/Common/ByPerilTerritoryRepository.cs:7-12`, read at line 23)
+- `HomeownerEAndSByPerilPremiumGeneratorQbeTX.HasWindstormMitigationData`
+  (`Swyfft.Services/Premium/Homeowner/TX/EAndS/HomeownerEAndSByPerilPremiumGeneratorQbeTX.cs:172`,
+  read at line 165)
+- `RiskRule.ApplicableWorkflows` and `LoggableWorkflows`, virtual sets that rules override
+  (`Swyfft.Services/RiskSelection/RiskRule.cs:83-92`)

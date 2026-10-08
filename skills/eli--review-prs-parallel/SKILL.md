@@ -30,7 +30,7 @@ Default repo is `swyfft-insurance/swyfft_web` unless the user names another.
 
 ```bash
 # Confirm the local clone is fresh so subagents see current `origin/development`
-git -C /c/Users/eli.koslofsky/Documents/GitHub/swyfft_web fetch origin development
+git -C /c/Users/eli.koslofsky/Documents/GitHub/swyfft_web fetch --no-write-fetch-head origin development
 ```
 
 For each PR, capture (in the main session, cheap):
@@ -58,7 +58,7 @@ Then, for each stacked PR:
 
 - **Fetch the base ref** and tell that PR's agent to read base versions from it, not from
   `origin/development`:
-  `git -C <repo> fetch origin <baseRefName>:<localname> -f`
+  `git -C <repo> fetch --no-write-fetch-head origin <baseRefName>:<localname> -f`
 - **Tell the agent in its prompt** that the PR is stacked, name the parent PR number, and say that
   `gh pr diff` already shows only the incremental change against that base.
 - **Order the presentation parent-first.** Findings in the parent are often the real subject, and
@@ -169,22 +169,23 @@ Create a `TaskCreate` entry per PR review and one for "Synthesize findings" bloc
 
 If any agent exceeds **1.5× the 5-minute budget** (i.e., >7.5 min wall-clock), abandon it via `TaskStop` immediately. No rationalizing, no "still plausible". Drop that PR from the batch and tell Eli so he can re-launch with a tighter scope.
 
-### 3b. A task notification is not a turn — emit NOTHING
+### 3b. Present nothing until every agent has reported
 
-A subagent-completion notification is not a message from Eli, so it never earns a reply. While a
-PR presentation sits awaiting his decision, every notification that arrives produces **zero
-user-facing output**. No acknowledgement, no queue count, no "holding this until you decide", no
-"all six are in", not one word. Mark the task completed, keep the report for its turn in the walk,
-and stop.
+Present the first PR only after the whole fan-out has returned. That means every agent has
+reported or been abandoned under step 3, including any launched late because of the ~8-agent cap.
+Until then, a report that arrives gets no presentation and no commentary.
 
-Reports arriving out of order changes nothing. Agents finish in whatever order they finish, and a
-report that lands early simply waits. Even when every agent has reported and nothing is left to
-run, the answer is still silence until Eli's next real message.
+Staying silent does not keep a question visible. Each agent's report renders in Eli's transcript
+whether or not you reply, so a question asked while agents are still running gets buried under the
+reports that land after it. Waiting for the last report is the only order that leaves the question
+as the last thing on his screen. Once presentations start, nothing is still running, so nothing can
+land between a question and his answer.
 
-Each of those status lines scrolls the pending question off his screen, so he has to hunt back
-through the transcript to find what he was being asked. That is the same harm the one-PR-at-a-time
-rule in step 4 exists to prevent, arriving by a different door: step 4 stops several PRs sharing
-one message, and this rule stops one PR's question being buried under narration of the others.
+While waiting, do step 4b's work on the first PR (read its body, fact-check its findings), so its
+presentation is ready the moment the last report lands.
+
+- **What happened:** #23251 was presented with six agents still running. Seven reports landed
+  below the question, and Eli came back to a ruling he could not find on screen. Recurring.
 
 ### 4. Present ONE PR AT A TIME — mandatory, never a batch
 
@@ -326,10 +327,8 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 - **One PR per message, always.** The parallelism belongs to the subagents, not to the presentation. A summary table covering several PRs, a grouped recommendation list, or any message naming more than one PR's findings violates step 4. This gets corrected every time it happens — do not reinvent the batch table because it looks tidier.
 - **A subagent finding is a hypothesis, not a result.** Step 4b's fact-check is not optional and not a formality: findings from a capped 5-minute review fail verification often, most often by describing intended and already-tested behavior as a defect. Retract rather than rewrite, and never present a finding with a hedge about the part you did not check.
 - **Check every PR's base ref for stacking (step 1b).** Several Swyfft devs stack PRs routinely, Justin especially. A base that is not `development` changes which tree the agent must read, changes the presentation order to parent-first, and is merge-order context Eli needs stated in a sentence. It is never a review finding.
-- **Silence is the whole behavior while a presentation is pending.** A background-task
-  notification is a system event, not a turn, and answering one costs Eli the question he was
-  reading. Never narrate agent arrivals, queue depth, or that the fan-out has finished. Step 3b
-  has the full rule.
+- **No presentation until the last agent reports.** A question asked mid-fan-out is buried by the
+  reports that follow it, whatever you say or don't say. Step 3b has the full rule.
 - **Gate 1.5**: If a finding makes me question whether a PR should be approved at all, STOP and ask Eli. Don't pivot from "clean approve" to "comment-only" on my own.
 - **Gate 2**: Every `pr-review.py` write (approve / comment / request-changes) waits for explicit approval. Acknowledgements aren't approval.
 - **Don't fan out more than ~8 agents at once** — token cost on the user's session is real (`pre-pr-review.md`: "a runaway subagent burns tokens against their session budget").

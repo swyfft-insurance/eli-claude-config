@@ -80,6 +80,20 @@ and no pass may be summarized as "the rest are fine".
 | **N/A** | State why, in the plan file itself. |
 | **Violated** | Fix the plan, then re-record as Satisfied. |
 
+**A rule that governs objects gets a verdict per object, not per heading.** When a section governs
+things the plan holds more than one of (planned tests, case-table columns, configs, steps, code
+excerpts), walk every one and record a row for each: section, object, verdict. One object that
+satisfies the rule never stands in for the rest. A Satisfied row naming one example is the shape
+that lets the rest through unchecked.
+
+Planned tests are the case that has bitten. Every test the plan adds or modifies, and every column
+and assert in its case table, gets its own row against each `testing.md` section.
+
+- **What happened:** the plan for the SW-56943 stack recorded `testing.md` § "Never write a test
+  that restates the code" as Satisfied because no test restated the v2.6 boundary list. No row
+  looked at the case tables, which asserted decline text in four of seven layers. #23265 shipped
+  one of them.
+
 ### 2a. `plan-mode.md`, Parts A, B and C — every plan, every type
 
 The rows are the file's `##` and `###` headings, derived when the skill runs, never from a list

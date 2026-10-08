@@ -20,6 +20,7 @@ If no argument is provided, STOP and ask the user which one they want.
 Optional flags after the mode:
 - `-StatOnly` — show `--stat` summary only
 - `-Path "path/to/file"` — scope to a specific file
+- `-Base "origin/<branch below>"`: compare `branch` or `all` against that ref instead of `origin/development`. Use it for a branch in a gh stack.
 
 ## Run
 

@@ -94,25 +94,112 @@ test change that came out of doing the work is a byproduct of the work, not a st
 Name what a rider is and what produced it. If something genuinely does not belong in the PR, take
 it out instead of shipping it with an apology attached.
 
+<!-- Added 2026-10-05 after #23242 -->
+## Verification reports the end state
+
+When a fix can't reach the tests that passed, the suite passed. Report one result with the fixed tests
+counted as passed. Never list the failing run, and never mark untouched tests as not rerun.
+
+- **What happened:** #23242 listed a fixed NY failure and said the other Commercial classes weren't rerun.
+
 ## Attaching screenshots to a PR
 
-### The screenshot is the whole screen, with the change outlined in red
+### A screenshot shows the change with a reasonable amount of the screen around it, outlined in red
 
-A PR screenshot shows the full web app viewport as the user sees it, never a crop of the changed
-element. A crop strips the context a reviewer uses to judge the change: where it sits, what
-surrounds it, whether it matches its neighbors. Draw a red outline around the element or region the
-change touches so the reviewer finds it without hunting. One screenshot per surface the change
-touches.
+- Never crop down to the changed element alone. Include enough of the surrounding screen that a
+  reviewer sees where it sits and what is beside it, usually its section of the page.
+- Outline the change in red. One screenshot per surface the change touches.
+- Playwright MCP writes files only under the repo. Capture into `demos/` (gitignored), then copy to
+  the ticket's `artifacts/pr/`.
 
-**The changed element is often below the fold. Scroll it into view, then capture the viewport.** A
-screenshot taken after scrolling is still the whole screen as the user sees it, which is all this
-rule asks for. Scrolling is a routine step of taking the screenshot, never a blocker and never a
-question for Eli. Never swap in a full-page capture, a crop, a resized window or a changed zoom
-level to avoid scrolling.
+#### Web page (Playwright MCP)
 
-- **What happened:** SW-56006's `Dwelling Conversion?` row sat below the fold on the quote page. The
-  capture went through a zoom reset, a device-scale override, a window resize and a cropped
-  full-page capture before Eli had to say to scroll.
+1. Sign in, so agent-only elements render:
+   - `browser_navigate`: `https://localhost:5001/sign-in?redirect=<url-encoded page path>`
+   - `browser_fill_form`: `#email-address` = `testbucket@swyfft.com`, `#password` = `swyfftrocks2`
+   - `browser_click`: `#submit`
+2. `browser_wait_for` the changed element's label text.
+3. Close any open dialog by clicking its OKAY button.
+4. Resize the viewport to the document height (`.claude/rules/frontend-styling.md` § "Tile
+   Backgrounds and Full-Page PR Screenshots"). Otherwise Chromium paints the fixed page background
+   only within the original viewport, and the capture comes out white below it.
+   - `browser_evaluate`: `() => ({ scrollH: document.documentElement.scrollHeight, innerH: window.innerHeight, dpr: window.devicePixelRatio })`
+   - `browser_resize`: width `1920`, height `Math.ceil(scrollH * dpr)`
+   - Measure again. Repeat until `innerH` ≥ `scrollH`, or the gap between them stops shrinking.
+5. Outline and capture with `browser_run_code_unsafe`. The outline is an overlay on `body`, so no
+   parent element clips it. The clip is multiplied by `devicePixelRatio`; unscaled, it lands on the
+   wrong rows. For a quote-page element, the box covers its row and its label:
+   ```js
+   async (page) => {
+     const elementDisplayName = '<element display name>';
+     const marginAboveAndBelow = 450;
+     const outlinePadding = 6;
+     const box = await page.evaluate(({ elementDisplayName, outlinePadding }) => {
+       const row = document.querySelector(`[role=radiogroup][aria-label="${elementDisplayName}"]`).closest('.comparison-row');
+       const label = [...document.querySelectorAll('div,span,label,p')]
+         .find(e => e.childElementCount === 0 && e.textContent.trim() === elementDisplayName);
+       const rects = [row.getBoundingClientRect(), label.getBoundingClientRect()];
+       const left = Math.min(...rects.map(r => r.left)), top = Math.min(...rects.map(r => r.top));
+       const right = Math.max(...rects.map(r => r.right)), bottom = Math.max(...rects.map(r => r.bottom));
+       const overlay = document.createElement('div');
+       Object.assign(overlay.style, {
+         position: 'absolute', pointerEvents: 'none', zIndex: '2147483647', boxSizing: 'border-box', border: '3px solid red',
+         left: `${left + scrollX - outlinePadding}px`, top: `${top + scrollY - outlinePadding}px`,
+         width: `${right - left + 2 * outlinePadding}px`, height: `${bottom - top + 2 * outlinePadding}px`,
+       });
+       document.body.appendChild(overlay);
+       return { top, height: bottom - top, width: innerWidth, dpr: devicePixelRatio };
+     }, { elementDisplayName, outlinePadding });
+     const clip = {
+       x: 0,
+       y: Math.max(0, box.top - marginAboveAndBelow) * box.dpr,
+       width: box.width * box.dpr,
+       height: (box.height + 2 * marginAboveAndBelow) * box.dpr,
+     };
+     await page.screenshot({ path: 'demos/<name>.png', clip, scale: 'css' });
+   }
+   ```
+6. `Read` the PNG and confirm the outline and its surroundings are in it.
+
+#### Printed quote (PDF)
+
+1. On the Quote page, `browser_click` the `Print` button. The PDF downloads to `demos/`.
+2. Render each page, and dump the word positions:
+   ```sh
+   pdftoppm -png -r 150 "demos/<pdf>" demos/printed-quote
+   pdftotext -bbox-layout "demos/<pdf>" demos/printed-quote-bbox.html
+   ```
+3. In `printed-quote-bbox.html`, find each item's `<word xMin yMin xMax yMax>` entries, in points on a
+   612 × 792 page. Pick a y-range and an x-range that enclose only that item's words.
+4. Outline the items with the PowerShell tool. One `Get-WordsBox` call per item, with a 0-based page
+   index:
+   ```powershell
+   Add-Type -AssemblyName System.Drawing
+   $demos = "C:\Users\eli.koslofsky\Documents\GitHub\swyfft_web\demos"
+   [xml]$bbox = (Get-Content "$demos\printed-quote-bbox.html" -Raw) -replace '<!DOCTYPE[^>]*>', ''
+   $ns = New-Object System.Xml.XmlNamespaceManager($bbox.NameTable); $ns.AddNamespace('h', 'http://www.w3.org/1999/xhtml')
+   $pages = $bbox.SelectNodes('//h:page', $ns)
+   function Get-WordsBox($page, [double]$yFrom, [double]$yTo, [double]$xFrom, [double]$xTo) {
+     $words = $page.SelectNodes('.//h:word', $ns) | Where-Object { [double]$_.yMin -ge $yFrom -and [double]$_.yMax -le $yTo -and [double]$_.xMin -ge $xFrom -and [double]$_.xMax -le $xTo }
+     [pscustomobject]@{
+       xMin = ($words | ForEach-Object { [double]$_.xMin } | Measure-Object -Minimum).Minimum
+       yMin = ($words | ForEach-Object { [double]$_.yMin } | Measure-Object -Minimum).Minimum
+       xMax = ($words | ForEach-Object { [double]$_.xMax } | Measure-Object -Maximum).Maximum
+       yMax = ($words | ForEach-Object { [double]$_.yMax } | Measure-Object -Maximum).Maximum
+     }
+   }
+   $pointsToPixels = 150 / 72; $paddingPoints = 4
+   function Draw-Outlines($pngIn, $pngOut, $boxes) {
+     $img = [System.Drawing.Image]::FromFile($pngIn); $g = [System.Drawing.Graphics]::FromImage($img)
+     $pen = New-Object System.Drawing.Pen ([System.Drawing.Color]::Red), 4
+     foreach ($b in $boxes) {
+       $g.DrawRectangle($pen, [float](($b.xMin - $paddingPoints) * $pointsToPixels), [float](($b.yMin - $paddingPoints) * $pointsToPixels), [float](($b.xMax - $b.xMin + 2 * $paddingPoints) * $pointsToPixels), [float](($b.yMax - $b.yMin + 2 * $paddingPoints) * $pointsToPixels))
+     }
+     $g.Dispose(); $img.Save($pngOut, [System.Drawing.Imaging.ImageFormat]::Png); $img.Dispose()
+   }
+   Draw-Outlines "$demos\printed-quote-1.png" "$demos\<name>-page-1.png" @(Get-WordsBox $pages[0] <yFrom> <yTo> <xFrom> <xTo>)
+   ```
+5. `Read` each PNG and confirm the outlines sit on the items.
 
 **Every PR screenshot is opened for Eli's approval before the PR is drafted.** Open it in Photos
 through the PowerShell tool, `Start-Process "ms-photos:viewer?fileName=<full path>"`, only after
@@ -184,3 +271,15 @@ Brackets stay reserved for ticket IDs.
 
 Enforced by the same hook. Bypass with `# no-product-line` when the PR has no product line (build,
 CI, tooling).
+
+## "Stacked PRs" means GitHub's stacked pull requests feature
+
+When Eli asks for stacked PRs, he means GitHub's native stacked pull requests, driven by the
+`gh stack` CLI extension (`github/gh-stack`). Never a hand-built chain of PRs whose base is another
+feature branch.
+
+- Docs: https://docs.github.com/en/pull-requests/how-tos/stacked-pull-requests. That page is an
+  index. The content is in its four linked pages: about, quickstart, CLI commands, and roll-out.
+- A stack is one linear chain. The bottom PR targets `development`, each PR above targets the
+  branch below it, and PRs merge bottom-up. Branching stacks are not supported.
+- `development` has a merge queue, so merging a stack adds it to the queue.
