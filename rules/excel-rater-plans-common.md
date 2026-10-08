@@ -41,6 +41,21 @@ the config's live status, and both options. Eli decides.
 The actuaries post every delivery as a link in `#dev-analytics-rater-handoff` (`C06V258BWHJ`), which
 is where to find a file whose folder these two rows don't cover.
 
+**Find the file yourself.** The Microsoft 365 connector reaches this library. Its drive id is
+`b!tBNV3k6K8kCdPLPGZkBK1vEWJmsPHglMlxi9NMlA4v4eCrl5UDM3TZFSpD58-3xY`, and `read_resource` lists a
+folder by its path from the library root, without `Shared Documents`:
+
+- Homeowner: `file:///<driveId>/By-Peril/<STATE>`
+- Commercial EandS: `file:///<driveId>/E&S/<STATE>`
+
+The listing gives each file's name, size and `file:///` URI. `sharepoint_search` gives a file's
+`webUrl`, but not who modified it, so the delivering actuary still comes from the channel post.
+Never ask Eli where a rater is.
+
+**Eli moves files; the agent opens the pages.** No route the agent has reaches a rater's bytes. The
+connector won't open `.xlsm`, Graph file access needs tenant admin approval, and Playwright can't
+reach SharePoint (`Scripts/AgentHooks/validate-browser-url.ps1`).
+
 **Who to tag.** The channel is `#dev-analytics-rater-handoff` (`C06V258BWHJ`). Two on the actuarial
 side:
 
@@ -58,37 +73,26 @@ and the actuaries have to guess which product they are being asked about. Say Ho
 Commercial up front, name the rater file, and repeat the product line wherever the message names a
 state, a carrier or a config. This applies to every message and every reply in that channel.
 
+<!-- Rewritten 2026-10-08: the agent applies the edit through desktop Excel; Eli downloads the
+     rater and drags the edited file back into SharePoint -->
+**Who makes the edit.** When what the rater should say is known, we make the edit ourselves through
+the flow below: a clear mistake whose intent is obvious, or rounding moved to match the live C#
+(§ "Rounding changes"). When what's missing is an actuarial decision, the actuaries make it, and the
+agent hands it to them in `#dev-analytics-rater-handoff` (§ "What a message to the channel is for").
+
 The flow when a rater edit is warranted:
 
-1. **The edit is made on SharePoint, by a human.** Eli usually makes it himself directly on SharePoint; routing the change to the actuaries instead is always a valid option (some devs prefer it).
-2. **The agent prepares the edit; it NEVER applies one.** Programmatic edits of rater `.xlsm` files by the agent are banned.
-   <!-- Rewritten 2026-09-09, SW-55584 -->
-   Eli copies each value in one action. Markdown tables are banned: the terminal draws them with
-   borders and the text inside cannot be selected.
-
-   **Shape.** The workbook filename on its own line, then one block per sheet, headed `Sheet: <name>`.
-   A named range heads its own block by name instead of a sheet.
-   - One numbered item per cell, holding the cell address. Its value goes in a code block directly
-     under it, with no blank line between them.
-   - Never split selecting and pasting into two steps.
-   - No before/after pair. Where a mismatch would mean the wrong workbook, state the current content
-     once, outside the numbered steps.
-   - A `version_history` row is a single step: `Add a row with:` then the cell values separated
-     by ` | `.
-   - The numbered steps are workbook edits only. Telling the actuaries is not one of them; the agent
-     sends that message itself, drafted for approval.
-
-   **Up to three or four cells on a sheet** use the shape above. **More than that** (a full row of
-   real edits, a contiguous block, many scattered edits) uses a paste file:
-   - Holds the full rectangle spanning every edited cell. Tab-separated, one line per row.
-   - Edited cells hold the new content. Every other cell in the rectangle holds its current content,
-     from the pre-dumped baselines, formulas as formulas (`=...`) and values as values.
-   - The step names the cell to select before pasting: the rectangle's top-left corner.
-   - Lives in the ticket's `artifacts/rater-edits/`, named for the sheet and rows it fills.
-   - Opened for Eli with `Start-Process`, in the same message that gives the step, and its contents
-     are NOT reprinted in that message. Open it or print it, never both. Giving the path instead of
-     opening it leaves him to go find it, which `tool-access.md` § "Never make Eli hunt for a link"
-     already bans. Never a relative path.
+1. **Open the rater for Eli.** Find it (§ "Find the file yourself") and open its `webUrl` in Chrome
+   with `Start-Process`. He downloads it.
+2. **Take it from `~/Downloads`.** Chrome saves a repeat download as `name (1).xlsm`. The edited
+   file is always saved under the exact SharePoint filename, so Eli's drag replaces the right file.
+3. **The agent makes the edit, in desktop Excel through COM** (`New-Object -ComObject
+   Excel.Application`). Excel writes the file exactly as a hand edit would, macros, formatting and
+   named ranges included. No other library writes a rater.
+   - The plan lists every edit: each cell and its new content, and every structural change (named
+     range, sheet, tab name). Eli approves that list before Excel opens.
+   - Every changed cell gets an orange fill (`#FFC000`), and every touched sheet gets an orange tab.
+   - Add the `version_history` row, highlighted the same way.
 
    **Adding a row to a lookup table: insert inside the range, then paste the rows the insert got
    wrong.** Excel expands a formula's range reference only when the inserted row lands strictly
@@ -111,13 +115,8 @@ The flow when a rater edit is warranted:
 
    The baseline diff is the proof. Referencing formulas still carrying the old range mean the insert
    was at an edge and the paste hid it.
-
-   **Edits that are not a cell's contents** (adding or repointing a named range, adding a sheet,
-   renaming a tab) get the menu path and every field, each exact value in a code block.
-
-   In ALL cases, exact steps. Generic instructions ("fix the formula on the sheet") are banned.
-3. **Document the change in the rater's `version_history` tab.**
-4. **After the SharePoint edit, Eli downloads the file from SharePoint** and the agent places that download into the repo `Data` folder (the standard rater-placement step).
+4. **Verify before anything else runs.** Place the edited file in the repo `Data` folder (the
+   standard rater-placement step).
 
    **The delivered filename never matches the repo path, and its carrier token does not scope the
    delivery.** SharePoint carries the actuaries' delivery name: product, rating type, sometimes a
@@ -140,14 +139,16 @@ The flow when a rater edit is warranted:
 
    Never remark on the mismatch between the delivered name and the repo path.
 
-   **Check the placed rater before anything else runs.** Run `RaterFileContents_ShouldMatchCaptured`
-   alone, by method, on one leaf per distinct rater file (the hash check above groups them). The
-   baseline diff must be the prepared edits and the `version_history` row, and nothing else. A
-   missing edit, a wrong value, or any other change: HARD STOP.
+   Then run `RaterFileContents_ShouldMatchCaptured` alone, by method, on one leaf per distinct rater
+   file (the hash check above groups them). The baseline diff must be the planned edits and the
+   `version_history` row, and nothing else. The diff doesn't see formatting, so read the highlights
+   back through Excel too. Any mismatch: HARD STOP.
 
    - **What happened:** SW-54842 placed four edited raters and queued the 42-minute parity suite
      without checking them.
-5. **Tell the actuaries, last.** The message to `#dev-analytics-rater-handoff` goes out only after
+5. **Open the SharePoint folder page for Eli.** He drags the file in, and SharePoint saves a
+   same-named file as a new version of it.
+6. **Tell the actuaries, last.** The message to `#dev-analytics-rater-handoff` goes out only after
    the PR carrying the edited rater is created, and it links that PR. It is the final step of the
    flow, and nothing follows it.
 
@@ -234,6 +235,9 @@ missing HARD STOP. Copy it in as the first thing you write, and re-insert it if 
 > defined-name scoping, and it reinvents tooling the repo already owns. When the sanctioned tool is
 > heavyweight (DumpRater needs a console build/run), that cost is the price of correctness — pay it.
 > "It was faster to parse it myself" is never a justification.
+>
+> Desktop Excel through COM is how an approved edit is applied (§ "Rater edits"), and how its
+> highlights are read back. It is never a way to read rater values.
 
 ## Running the Excel dump tasks — pointer
 
@@ -308,9 +312,10 @@ Premium is extremely sensitive: a change that leaks onto a state or carrier you 
 Steps 1 to 4 are the plan written up front. Step 5 is written at the checkpoint, from the diff.
 
 1. Branch.
-2. **(You) place the rater(s).** Overwrite the canonical rater under `Data/`. A state's E&S rater is
-   one file shared by its carriers, so propagate it byte-identical to every in-scope carrier file and
-   hash-verify.
+2. **Place the rater(s).** Find each delivered rater on SharePoint (§ "Find the file yourself") and
+   open its `webUrl` for Eli, who downloads it. Take it from `~/Downloads` and overwrite the
+   canonical rater under `Data/`. A state's E&S rater is one file shared by its carriers, so
+   propagate it byte-identical to every in-scope carrier file and hash-verify.
 3. **Scoping checkpoint — HARD STOP.** Regenerate the `RaterFileContents` baselines for the affected
    leaves, which rewrite themselves locally on that run (`~/.claude/rules/captured-asserts.md`).
    Filter to `RaterFileContents_ShouldMatchCaptured` by method: it dumps the placed workbooks, and
