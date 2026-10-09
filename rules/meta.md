@@ -17,7 +17,13 @@ CLAUDE.md files load in this order — **later = higher priority** (transformer 
 3. Project (`.claude/CLAUDE.md`, `.claude/rules/*.md` — walks from root to CWD)
 4. Local (`CLAUDE.local.md` in each directory) — **highest priority**
 
-Personal behavioral rules live at the user level. Project coding standards live at the project level. If they conflict, project wins (higher priority).
+Personal behavioral rules live at the user level. Project coding standards live at the project
+level. Load order does not settle a conflict between them. Eli does:
+
+- Raise every conflict with Eli when it surfaces. Quote both rules and recommend the personal one.
+- Until he rules, follow the personal rule.
+- His ruling changes one side, personal or repo, so the two stop conflicting. A repo-side change
+  goes through its own PR. A conflict is never left standing.
 
 ## Where to put a new rule
 

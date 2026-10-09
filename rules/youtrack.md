@@ -123,3 +123,15 @@ There the technical statement is the requirement.
   - **What happened:** SW-53981 filed with "minidumps to be attached as soon as they're copied out;
     staged locally meanwhile" — at filing time Windows had already deleted 3 of the 4 dumps, and the
     last one survived only because an elevated copy ran the same hour.
+
+## Tag Eli's tech debt tickets `technical debt`
+
+A ticket Eli files for his own refactor, test-infrastructure or tooling work gets the
+`technical debt` tag when it's created. His work views split on that tag: `tag: {technical debt}`
+shows that work, and `tag: -{technical debt}` shows the work the business asked for. A ticket
+without the tag shows up in the wrong view.
+
+The tag is part of the create draft, listed with the custom fields.
+
+A ticket Eli files for the business, such as a bug or feature with a Business Owner, never gets
+the tag.

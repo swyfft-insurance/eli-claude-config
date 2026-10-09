@@ -48,7 +48,7 @@ here:
 bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | xargs -d '\n' grep -Hn '^## '
 ```
 
-Where a repo file conflicts with a personal rule, the personal rule wins. `frontend-*.md` is left
+A conflict between a repo file and a personal rule is a hard stop (§ 2, step 4). `frontend-*.md` is left
 out because Eli does not work frontend tickets. `powershell.md`, `teamcity.md` and
 `openapi-spec.md` are left out too. Nothing else under the repo is read by this skill, subsystem
 `AGENTS.md` files included. Where a rule points at one of those, the pointer stays for the human
@@ -71,7 +71,9 @@ For each wave, in order:
    audited. The file is never shown to Eli.
 4. Fix every violation in this wave before starting the next, so later waves see the corrected
    code. A fix that would change an approved design, or that the rule leaves to Eli, is a hard
-   stop, not a silent edit.
+   stop, not a silent edit. So is a conflict between a repo rule and a personal rule: quote both,
+   recommend the personal one, and wait for Eli's ruling on which side changes
+   (`~/.claude/rules/meta.md` § "Loading Priority Order").
 5. Re-read this skill file before the next wave.
 
 Within `comments-docs-and-external-writing.md`, the section holding the comment self-audit runs first
@@ -108,7 +110,8 @@ list of what was violated or fixed, no mention that the audit ran.
 
 Two things still reach him:
 
-- **A hard stop**, when a fix would change an approved design or the rule leaves the call to him.
-  Say what is blocked, nothing else.
+- **A hard stop**, when a fix would change an approved design, the rule leaves the call to him, or
+  a repo rule conflicts with a personal rule. Say what is blocked, nothing else. For a conflict,
+  that means both rules quoted and the recommendation.
 - **The build or test consequence**, in one line: whether the fixes contain an executable change,
   since a comment-only or rename-only pass never justifies a re-run.
