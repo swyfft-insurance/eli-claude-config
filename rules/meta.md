@@ -43,15 +43,6 @@ Memory system constraints:
 - Max 5 memory files injected per turn, 60KB session budget
 - `autoDream` consolidates automatically after 24h / 5 sessions
 
-## HTML Comments in Rules Files
-
-HTML comments (`<!-- -->`) are stripped before injection — zero token cost. Use them for maintenance notes:
-
-```markdown
-<!-- Added 2026-03-31 after SW-49029 — Eli correction on PR comment research -->
-- Before responding to any PR comment, research the claim in the codebase.
-```
-
 ## Process for incorporating feedback
 
 When the user corrects your behavior:

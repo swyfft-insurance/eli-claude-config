@@ -48,6 +48,20 @@ A revised draft is shown whole, every time. Never a delta ("the opener becomes X
 never a fragment. Eli approves text he can read top to bottom in one place; a delta makes him
 reassemble it himself.
 
+<!-- Added 2026-10-08 during SW-57182 -->
+### Banned: patching corrections onto a draft built on the wrong model
+
+Never build a revised draft by patching the one before it while it is still framed around a wrong
+model. Each correction gets bolted onto that framing, and the wrong model survives every revision.
+
+When a correction shows the model behind a draft was wrong, write the next draft from scratch on the
+corrected model.
+
+- **What happened:** "That happened because I built each draft by patching the one before it. Every
+  correction you gave got bolted onto a draft that was still framed around my original wrong model."
+  The draft kept calling QBE's `9999999` minimum rate a price after Eli established that it marks an
+  excluded area and can never be rated.
+
 ### A failed publish is retried whole, never trimmed
 
 A gated action that fails on a technical error (schema, validation, transport) gets retried with the

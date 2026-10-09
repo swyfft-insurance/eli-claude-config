@@ -71,13 +71,10 @@ if (failures.Count > 0)
 
 Existing examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (both in `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilValidationTestBase.cs`).
 
-## Test addresses — use the helper, never ask or hardcode
+## Test addresses
 
-When a test needs a valid address for a state/carrier/rating-type, get it from
-`TestAddressHelper.GetTestAddressesFiltered(...)` (`Swyfft.TestUtilities/ConstantsAndExpects/`).
-It reflects over every `*GoodTestAddresses*` class and filters by product line, carrier, rating
-type, state, and county, returning only addresses valid for that combination (and not already in
-use). Never ask the user which address to use, and never eyeball one out of the address files.
+**Unit tests** use `TestAddressHelper.GetTestAddressesFiltered(...)`. They have no database, so a
+shared address is harmless.
 
 ```csharp
 var address = TestAddressHelper.GetTestAddressesFiltered(
@@ -85,25 +82,30 @@ var address = TestAddressHelper.GetTestAddressesFiltered(
     ratingType: RatingType.EAndS, state: StateCode.NY).First();
 ```
 
+**Integration and acceptance tests** hardcode an address no other test class uses. They run on a
+real database, and the helper's `.First()` hands every class with the same filters the same
+address. Hardcoded addresses also make it easier for Laurel to keep the addresses separate.
+
+- **What happened:** two Commercial integration test classes got `GoodTestAddressFL000` from the
+  helper. Both called `ResetCommercialAddressKey`, and the second threw `Some tests have already
+  reset addressKey`.
+
 **The address lists are Laurel's.** `Swyfft.TestUtilities/ConstantsAndExpects/` is maintained by
 Laurel Nichols. Never add, retag or edit an address there to make a test pass. When no address exists
 for a carrier, the test neutralizes the unrelated declines it hits, the way
 `QbeUpgradeConfirmationTests.NeutralizeUnrelatedDeclines` does, and says so in a comment.
 
-<!-- Added 2026-09-02 during SW-55797 — a helper-sourced address was flagged as non-deterministic in
-     review and the recommended fix was to revert to a hardcoded constant -->
-
-**Helper-selected addresses are not a determinism finding.** When the test asserts on something the
-address doesn't feed — a decline, a score, a fee — every address the helper returns for that product
-line, carrier, rating type and state proves the same thing, so a different one next run changes
-nothing. Reverting such a lookup to a hardcoded constant makes the test worse, because constants rot
+**In a unit test, a helper-selected address is not a determinism finding.** When the test asserts on
+something the address doesn't feed — a decline, a score, a fee — every address the helper returns for
+that product line, carrier, rating type and state proves the same thing, so a different one next run
+changes nothing. Reverting such a lookup to a hardcoded constant makes the test worse, because constants rot
 as address viability changes.
 
 When an address attribute *is* the input under test — county, distance to coast, year built,
 territory — filter or pin for that attribute and say why.
 
-Otherwise helper selection is never a defect, and never a FIRST Repeatable violation. Repeatable
-means the same result, not the same scaffolding.
+Otherwise helper selection in a unit test is never a defect, and never a FIRST Repeatable violation.
+Repeatable means the same result, not the same scaffolding.
 
 - **What happened:** a helper-sourced address was flagged as non-deterministic, and the recommended
   fix was to revert to a hardcoded constant.

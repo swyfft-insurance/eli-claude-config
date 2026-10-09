@@ -1,6 +1,6 @@
 ---
 name: eli--code-complete-audit
-description: Audit a code diff against every personal coding, comment, testing and refactoring rule, one rule section per wave, recording a verdict per object and fixing violations in place. Hands back the corrected code.
+description: Audit a code diff against every personal coding, comment, testing and refactoring rule, the repo's root AGENTS.md, and the repo's .NET .claude/rules files, one rule section per wave, recording a verdict per object and fixing violations in place. Hands back the corrected code.
 ---
 
 # Code-Complete Audit
@@ -27,24 +27,31 @@ and test in it.
 
 ## 1. Derive the waves at run time
 
-The governing files, in this order:
+The governing files, in wave order:
 
-```
-~/.claude/rules/coding-standards.md
-~/.claude/rules/comments-docs-and-external-writing.md
-~/.claude/rules/testing.md
-~/.claude/rules/refactoring.md
-~/.claude/rules/swyfft-domain.md
-```
+- `~/.claude/rules/coding-standards.md`
+- `~/.claude/rules/comments-docs-and-external-writing.md`
+- `~/.claude/rules/testing.md`
+- `~/.claude/rules/refactoring.md`
+- `~/.claude/rules/swyfft-domain.md`
+- the repo's root `AGENTS.md`
+- every `.claude/rules/*.md` in the repo except `frontend-*.md`, `powershell.md`, `teamcity.md`
+  and `openapi-spec.md`
 
-One wave per `##` section of each file, derived when the skill runs, never from a list written here:
+`audit-files.sh`, beside this file, prints that list. It reads the repo's `.claude/rules/` when it
+runs, so a rule file added there is audited without editing this skill.
+
+One wave per `##` section of each file, derived when the skill runs, never from a list written
+here:
 
 ```bash
-grep -n '^## ' ~/.claude/rules/coding-standards.md ~/.claude/rules/comments-docs-and-external-writing.md ~/.claude/rules/testing.md ~/.claude/rules/refactoring.md ~/.claude/rules/swyfft-domain.md
+bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | xargs -d '\n' grep -Hn '^## '
 ```
 
-Only these five files. Nothing under the repo (`AGENTS.md`, `.claude/rules/`, subsystem docs) is
-read by this skill; where a personal rule points at a repo document, the pointer stays for the human
+Where a repo file conflicts with a personal rule, the personal rule wins. `frontend-*.md` is left
+out because Eli does not work frontend tickets. `powershell.md`, `teamcity.md` and
+`openapi-spec.md` are left out too. Nothing else under the repo is read by this skill, subsystem
+`AGENTS.md` files included. Where a rule points at one of those, the pointer stays for the human
 reader and this skill does not follow it.
 
 ## 2. Run the waves
@@ -59,7 +66,8 @@ For each wave, in order:
 3. Otherwise walk every object in the diff the section governs and record a verdict for each:
    **Satisfied**, or **Violated** with the fix applied. The verdicts are written to
    `~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md`, one row per section and
-   object. No sampling, no "the rest are fine". A section or object with no row has not been
+   object, labeled `<file name> :: <heading>` (`csharp-patterns.md :: ClosedSets`). Several files
+   share headings, so the file name is what tells their rows apart. No sampling, no "the rest are fine". A section or object with no row has not been
    audited. The file is never shown to Eli.
 4. Fix every violation in this wave before starting the next, so later waves see the corrected
    code. A fix that would change an approved design, or that the rule leaves to Eli, is a hard
@@ -73,16 +81,19 @@ the remaining sections then run over the surviving comments.
 **Prove every section got a row, mechanically.** After the last wave, run:
 
 ```bash
-for f in ~/.claude/rules/coding-standards.md ~/.claude/rules/comments-docs-and-external-writing.md \
-         ~/.claude/rules/testing.md ~/.claude/rules/refactoring.md ~/.claude/rules/swyfft-domain.md; do
+bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | while IFS= read -r f; do
+  name="$(basename "$f")"
+  grep -q '^## ' "$f" || echo "NO SECTIONS: $name"
   grep '^## ' "$f" | sed 's/^## //' | while IFS= read -r heading; do
-    grep -qF -- "$heading" ~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md \
-      || echo "MISSING: $f :: $heading"
+    grep -qF -- "$name :: $heading" ~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md \
+      || echo "MISSING: $name :: $heading"
   done
 done
 ```
 
-Any `MISSING` line fails the audit: run that wave and rerun until nothing prints.
+Any `MISSING` line fails the audit: run that wave and rerun until nothing prints. A `NO SECTIONS`
+line means a governing file has no `##` heading, so none of its rules got a wave. That is a hard
+stop: tell Eli which file.
 
 ## 3. Terminate
 
