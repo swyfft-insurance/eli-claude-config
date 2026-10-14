@@ -4,6 +4,7 @@
 
 - Look up ALL user IDs via `slack_search_users` BEFORE composing. Never guess.
 - **Tag, don't name.** Never mention someone by plain text name in a Slack message. Always use `<@USER_ID>` to tag them.
+- **Drafts show names, not IDs.** In a draft shown for approval, write each tag as the person's name (`@Alex Good`), and list the `<@USER_ID>` each name posts as underneath the draft. A raw ID doesn't tell Eli who is being tagged.
 - Messages CANNOT be deleted. If wrong, ASK the user what to do. Don't send a duplicate.
   - **What happened:** Duplicate message in group DM with CTO. Embarrassing.
 - Slack uses `mrkdwn`: code blocks need blank line after ```, no markdown tables, test in DM first.

@@ -306,6 +306,12 @@ JSON
 python ~/.claude/scripts/pr-review.py comment {NUM} --inline /tmp/inline.json
 ```
 
+**Approve with inline findings** (counts as an approval; each inline thread still blocks merge until resolved). Same JSON file format as above:
+
+```bash
+python ~/.claude/scripts/pr-review.py approve {NUM} --inline /tmp/inline.json
+```
+
 **Request changes** (only if Eli explicitly says so) — body required, inline optional:
 
 ```bash

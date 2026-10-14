@@ -65,4 +65,4 @@ A `Seeding started on...` row in `EFSeedingHistories` without a corresponding co
   `Swyfft.slnx` and then runs `dotnet publish` on `Swyfft.Console` and `Swyfft.LogMonitor`. That
   compiles those two projects and everything they reference, which leaves out every test project.
   Build the test projects separately before any `-NoBuild` test run, or the run tests stale binaries.
-- Never seed when only named ranges or formulas changed in a rater file — tests open .xlsm files directly via COM interop.
+- Never seed when only named ranges or formulas changed in a rater file — tests open .xlsm files directly through NPOI.

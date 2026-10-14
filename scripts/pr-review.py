@@ -18,7 +18,7 @@ Reads (fetching the head SHA, reading comments back) use plain `gh api` GET / `g
 and are intentionally left unblocked by the hook.
 
 Usage:
-  pr-review.py approve <PR#> [--repo OWNER/REPO]
+  pr-review.py approve <PR#> [--inline <comments.json>] [--repo OWNER/REPO]
   pr-review.py comment <PR#> --inline <comments.json> [--body-file <f>] [--repo ...]
   pr-review.py request-changes <PR#> --body-file <f> [--inline <comments.json>] [--repo ...]
 
@@ -165,10 +165,19 @@ def verify_review_state(repo, pr, expected_state):
 
 
 def cmd_approve(args):
-    # APPROVE carries no body, so there is nothing to mangle; still verify the state landed.
-    run(["gh", "pr", "review", str(args.pr), "--repo", args.repo, "--approve"])
+    comments = load_inline(args.inline) if args.inline else []
+    if not comments:
+        # A bare APPROVE carries no body, so there is nothing to mangle; still verify the state landed.
+        run(["gh", "pr", "review", str(args.pr), "--repo", args.repo, "--approve"])
+        verify_review_state(args.repo, args.pr, "APPROVED")
+        print(f"#{args.pr}: APPROVED (verified).")
+        return
+    # One APPROVE review carrying the inline comments, so the approval and its threads land together.
+    result = post_review(args.repo, args.pr, "APPROVE", None, comments)
+    verify_inline(args.repo, args.pr, comments)
     verify_review_state(args.repo, args.pr, "APPROVED")
-    print(f"#{args.pr}: APPROVED (verified).")
+    print(f"#{args.pr}: APPROVE review {result['id']} ({result['state']}) "
+          f"with {len(comments)} inline comment(s) (verified).")
 
 
 def cmd_comment(args):
@@ -200,6 +209,7 @@ def main():
 
     p_app = sub.add_parser("approve")
     p_app.add_argument("pr", type=int)
+    p_app.add_argument("--inline")
     p_app.set_defaults(func=cmd_approve)
 
     p_com = sub.add_parser("comment")

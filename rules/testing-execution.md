@@ -8,15 +8,17 @@
 - Trait filter (when RUNNING via `dotnet test` / `Run-DotnetTest.ps1`): `-- --filter-trait "TestGroup=GroupName"` (NOT `--filter-class`)
 - ByPeril Excel tests: ALWAYS use `-- --filter-trait "TestGroup=ByPerilTests"`. Unfiltered = 900+ tests (45 min).
 
-### ByPeril Excel validation tests run in parallel — no COM, no contention
-The ByPeril Excel validation tests (`ByPerilEAndSValidationTests*` in
-`Swyfft.Services.Excel.IntegrationTests`) do NOT use Excel COM interop, and each leaf exercises a
-different rater `.xlsm`, so there is no shared-file or COM contention. Run the per-state suites
-concurrently — separate `Run-DotnetTest.ps1` calls in one message, one per state. The "Acceptance
-Tests: Serial Execution Required" rule in the project's `.claude/rules/dotnet-testing.md` applies
-ONLY to document-validation and IMS *acceptance* tests — never generalize it to these integration
-tests. Don't invent an execution constraint from a generic "Excel COM isn't thread-safe" prior;
-verify against the docs/code first.
+### ByPeril Excel validation: never split the whole suite into per-state runs
+
+When a change touches a handful of states, run those states' suites concurrently, one
+`Run-DotnetTest.ps1` call per state.
+
+When those states add up to the whole suite, or close to it, run the suite once:
+`-FilterTrait "TestGroup=ByPerilTests"`, no namespace filter. To check, list the suite's classes
+(`-ListTests -ListLevel classes`) and compare them with the states you'd run.
+
+- **What happened:** SW-57182 launched 18 per-state runs at once. Together they were exactly the
+  full suite's 39 classes, and they crashed Eli's machine.
 
 ### Listing tests — read-only discovery (`-ListTests`)
 

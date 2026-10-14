@@ -29,7 +29,7 @@ If you find yourself writing a list of PR numbers with no authors attached, stop
 
 ## Posting the review
 
-- **All posting goes through `~/.claude/scripts/pr-review.py`** (`approve` / `comment --inline <json>` / `request-changes --body-file <f>`). Raw `gh pr review`, `gh pr comment`, and `gh api ... POST .../reviews|/comments` are blocked by the pretooluse hook. The script sends bodies verbatim via `gh api --input` and reads each one back to confirm it landed — exit non-zero means nothing reliable posted, so don't claim success. Reads (`gh pr view`, `gh api ... GET`) are not blocked.
+- **All posting goes through `~/.claude/scripts/pr-review.py`** (`approve [--inline <json>]` / `comment --inline <json>` / `request-changes --body-file <f>`). Raw `gh pr review`, `gh pr comment`, and `gh api ... POST .../reviews|/comments` are blocked by the pretooluse hook. The script sends bodies verbatim via `gh api --input` and reads each one back to confirm it landed — exit non-zero means nothing reliable posted, so don't claim success. Reads (`gh pr view`, `gh api ... GET`) are not blocked.
 - **Gate 2 applies.** NEVER approve, request changes, or post comments without drafting your review and getting explicit approval first. Present your findings and recommendation, then wait.
 - **Approvals don't need body text.** Once findings are presented and the user says to approve, just run `pr-review.py approve <PR#>`. Don't draft "approval text" — the findings themselves are the review.
 

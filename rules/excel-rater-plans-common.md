@@ -91,6 +91,9 @@ The flow when a rater edit is warranted:
    named ranges included. No other library writes a rater.
    - The plan lists every edit: each cell and its new content, and every structural change (named
      range, sheet, tab name). Eli approves that list before Excel opens.
+   - The `version_history` row is drafted in that list word for word: its date, its analyst and its
+     exact text. Eli approves the text with the list. The edit writes the approved text and nothing
+     else.
    - Every changed cell gets an orange fill (`#FFC000`), and every touched sheet gets an orange tab.
    - Add the `version_history` row, highlighted the same way.
 
@@ -146,11 +149,16 @@ The flow when a rater edit is warranted:
 
    - **What happened:** SW-54842 placed four edited raters and queued the 42-minute parity suite
      without checking them.
-5. **Open the SharePoint folder page for Eli.** He drags the file in, and SharePoint saves a
-   same-named file as a new version of it.
+5. **Upload after the PR is up.** Once the PR carrying the edited rater is created, open the
+   SharePoint folder page for Eli. He drags the file in, and SharePoint saves a same-named file as
+   a new version of it. Review and testing can still change the rater, so the SharePoint copy waits
+   for the PR the same way the message in step 6 does.
+
+   - **What happened:** SW-57646's plan put the SharePoint uploads before the commit and the PR.
 6. **Tell the actuaries, last.** The message to `#dev-analytics-rater-handoff` goes out only after
    the PR carrying the edited rater is created, and it links that PR. It is the final step of the
-   flow, and nothing follows it.
+   flow, and nothing follows it. Review and testing can still surface more rater edits, so waiting
+   until the PR exists lets one message cover all of them, with no follow-ups.
 
    - **What happened:** the channel message for SW-55486's `Screened_Enclosures!D11` edit was
      drafted for sending before the PR existed.
@@ -241,7 +249,7 @@ missing HARD STOP. Copy it in as the first thing you write, and re-insert it if 
 
 ## Running the Excel dump tasks — pointer
 
-The three Excel tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI (no Excel/COM); each carries
+The three Excel tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI; each carries
 its exact `-t:...` invocation in a `/// Usage:` header — read the file, don't re-derive it:
 `DumpRaterTask.cs` (dump sheets → JSON; dumps every sheet by default, `-sheet` narrows to one;
 formula cells emit only formula text unless `-IncludeFormulaValues:true` is passed),
@@ -307,6 +315,50 @@ seeder late and layout or opt-in breakage only shows up when the work looks fini
 
 Premium is extremely sensitive: a change that leaks onto a state or carrier you didn't intend silently mis-prices quotes and policies — a leak here is a mispriced policy, not just a failed test. So before touching any shared base in the rating stack, read the actual inheritance chain of the class you're editing, and contain the change by construction (see `refactoring.md` § "Contain a shared-base change by construction").
 
+<!-- Added 2026-10-12 during SW-57182 -->
+## New code goes where the codebase already keeps that kind of code (MANDATORY)
+
+Before creating a class, find the home that already exists:
+
+- **Code only premium generation uses** goes in the premium generator hierarchy: the shared base, or
+  the state and carrier generators below it. An adjacent class for it is wrong.
+- **A small method or constant that more than one subsystem uses** goes in one of the existing static
+  helper classes. That's the codebase's established pattern.
+
+A new static class can be justified, but it's never the default. When a plan adds one, Part 2 says why
+no existing home fits.
+
+- **What happened:** SW-57182 created `DeductibleScaledMinimumPremium`, a static class beside the
+  premium generators, for code that was almost all premium generation. The SAR service imported its
+  relativity formula and config gate from it.
+
+<!-- Added 2026-10-09 during SW-57182 -->
+## Deprecated and run-off carriers are out of scope (MANDATORY step)
+
+A carrier that no longer writes new business is out of scope for every rater ticket unless the
+ticket names it. In Homeowner that is ClearBlue and ClearBlue Specialty (CBS).
+
+Three things must behave for them exactly as before:
+
+- **Tests:** the same tests run, exercising the same scenarios and asserting the same things.
+  Their configs are never a test subject.
+- **Premium calculation:** every quote rates to the same premium, through the same factors.
+- **Seeders:** they read the same rows from their raters and write the same factor rows.
+
+Structure around them may change. A class in their hierarchy can gain members that only in-scope
+classes call, and a class they share can be refactored. When the in-scope carriers need a change
+that would alter what a deprecated carrier runs, refactor so the change doesn't reach them, such as
+a new unified subclass for the in-scope carriers. That refactor is part of the ticket.
+
+Every rater plan names the deprecated and run-off carriers in its states before Part 2's C# change
+list. Its code-complete HARD STOP names each class in the diff that a deprecated carrier runs, and
+shows why its tests, premium and seeding stay the same. Its tests-complete HARD STOP confirms their
+validation tests pass and their baselines show zero diff.
+
+- **What happened:** SW-57182 added assertions to an FL ClearBlue test, changing what it checks.
+  The same ticket then raised members added to product-wide bases as a possible violation, though
+  CBS never calls them.
+
 ## Plan shape — the same five steps for both products
 
 Steps 1 to 4 are the plan written up front. Step 5 is written at the checkpoint, from the diff.
@@ -316,11 +368,33 @@ Steps 1 to 4 are the plan written up front. Step 5 is written at the checkpoint,
    open its `webUrl` for Eli, who downloads it. Take it from `~/Downloads` and overwrite the
    canonical rater under `Data/`. A state's E&S rater is one file shared by its carriers, so
    propagate it byte-identical to every in-scope carrier file and hash-verify.
-3. **Scoping checkpoint — HARD STOP.** Regenerate the `RaterFileContents` baselines for the affected
-   leaves, which rewrite themselves locally on that run (`~/.claude/rules/captured-asserts.md`).
-   Filter to `RaterFileContents_ShouldMatchCaptured` by method: it dumps the placed workbooks, and
-   the premium comparisons in the same classes rate against seeded factor rows that are still the old
-   ones. Read the `ExpectedResults/` diff and give every touched sheet a verdict. **This is where provisional becomes verified.**
+3. **Scoping checkpoint — HARD STOP.** Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`.
+   Then run the three tests below in parallel: three `Run-DotnetTest.ps1` calls in one message, each
+   through the PowerShell tool with `run_in_background`. `Run-DotnetTest.ps1` takes one
+   `-FilterMethod`, so each test needs its own call. None of the three rates a premium. The premium
+   comparisons in the same classes rate against seeded factor rows that are still the old ones.
+
+   - **`RaterFileContents_ShouldMatchCaptured`** regenerates the baselines, and the `ExpectedResults/`
+     diff shows what the delivery changed.
+     ```
+     $env:UPDATE_TEST_EXPECTED_RESULTS='true'; pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" -TicketFolder <folder> -Project Swyfft.Services.Excel.IntegrationTests -FilterTrait "<trait>" -FilterMethod "*RaterFileContents_ShouldMatchCaptured" -NoBuild
+     ```
+   - **`VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp`** reports each rater `Versions` default
+     the newest config doesn't have yet, as a check 2 failure (`EXCEL: V3 | LOOKUP: V2`). The baselines
+     can't show these, because their mapped `Versions` cells hold the newest config's versions, not the
+     rater's.
+     ```
+     pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" -TicketFolder <folder> -Project Swyfft.Services.Excel.IntegrationTests -FilterTrait "<trait>" -FilterMethod "*VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp" -NoBuild
+     ```
+   - **`InputSheet_AllInputCellsShouldBeWrittenByCSharp`** reports each `Input` cell C# doesn't write,
+     such as a new input row.
+     ```
+     pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" -TicketFolder <folder> -Project Swyfft.Services.Excel.IntegrationTests -FilterTrait "<trait>" -FilterMethod "*InputSheet_AllInputCellsShouldBeWrittenByCSharp" -NoBuild
+     ```
+
+   `<trait>` is `TestGroup=ByPerilTests` for Homeowner and `TestGroup=Commercial` for Commercial.
+   Every touched sheet in the diff, and every failure from the two sentinel checks, gets a verdict.
+   **This is where provisional becomes verified.**
 4. **Versioning check — HARD STOP.** Run § "The versioning check" on the scoping diff and record
    every sheet's verdict in the plan. Part 2 is not written until every sheet is versioned or inert.
 5. **Implement** what the diff dictates, seeder first (§ "Implement the seeder first"), then a green
@@ -346,7 +420,7 @@ Every rater's structure is already on disk under
 `Swyfft.Services.Excel.IntegrationTests/ExpectedResults/{TestClass}/`: `_NamedRanges.txt` holds every
 named cell and its target, and the per-sheet dumps hold the rest. To answer a question about a rater's
 current shape, whether a named range exists, what a fee cell's formula is, which fees are wired,
-**read these dumps rather than opening the `.xlsm`**. They need no Excel and no COM, and they carry no
+**read these dumps rather than opening the `.xlsm`**. They need no Excel, and they carry no
 input drift. One grep across the `_NamedRanges.txt` files answers "which raters have this cell" for
 every leaf that has a baseline.
 
