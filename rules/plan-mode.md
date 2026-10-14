@@ -6,772 +6,349 @@ paths:
 
 ## Read repo files with the `Read` tool, code files above all
 
-Opening a repo file with the `Read` or `Edit` tool is what loads that subtree's `AGENTS.md`
-(through its `CLAUDE.md` stub) and the path-scoped `.claude/rules/*.md`. Open a `.cs` file with
-`Read` and its subsystem doc and `csharp-patterns.md` arrive with it. Open the same file with a
-Bash read (`cat`, `sed`, `head`) and nothing arrives. The harness's preference for Bash reads
-exempts jobs Bash cannot do, and this is one. Every read of a repo file, code files first, goes
-through `Read`, while planning and while executing.
+Read every repo file with the `Read` tool, code files first, while planning and executing. A `Read` or `Edit` loads that subtree's `AGENTS.md` and the matching path-scoped `.claude/rules/*.md`; a Bash read (`cat`, `sed`, `head`) loads nothing.
 
-> Gate 1.5 applies here — see `core-behavior.md`.
+Part A covers planning with Eli, Part B what every plan file contains (`/eli--create-plan-from-ticket` enforces it), Part C executing the plan.
 
-This file is organized into three parts by lifecycle stage:
+## FULL-COVERAGE MANDATE
 
-- **Part A: How to PLAN** — rules that apply while drafting a plan with the user
-- **Part B: REQUIRED CONTENT in every plan file** — what must appear in the plan itself (the `/eli--create-plan-from-ticket` skill enforces this)
-- **Part C: How to EXECUTE the plan** — rules that apply while working through the plan after it's drafted
-
-## FULL-COVERAGE MANDATE — read before writing or executing ANY plan
-
-**Every plan must incorporate EVERY rule in this file — Parts A, B, AND C — not merely the sections Part B enumerates.** A plan is not a document that happens to list some sections; it must *embody the entire ruleset*:
-
-- **Part A** — the plan was co-designed via Q&A, with no deferred decisions and only genuine options.
-- **Part B** — every mandated section is written into the file (or marked `N/A — <reason>` for the conditional ones).
-- **Part C** — every execution rule is honored and, where it produces a step, written into the plan: the HARD STOP sequence matching the declared plan type, the code-complete audit, the PR-description audit, build-once-then-parallel test runs, "read every changed captured-assert file," and the post-test-approval sequence.
-
-If a rule appears anywhere in this file, it must be reflected in the plan. A plan that silently drops any rule is incomplete — the same as a missing test or seeder override. This is exactly why the skill mandates re-reading the rules between every step: so nothing falls out of working memory and gets dropped after a couple of actions. `/eli--plan-audit` enforces this mandate. It runs on every plan before the plan counts as written, whether the plan came from `/eli--create-plan-from-ticket` or was written by hand.
+Every plan reflects every rule in this file, not only the sections Part B lists: Part A's co-design, every Part B section (or `N/A — <reason>` for conditional ones), and every Part C rule that produces a step (the plan type's HARD STOP sequence, the code-complete audit, the PR-description audit, build-once-then-parallel test runs, reading every changed captured-assert file, the post-test-approval sequence). A plan that drops a rule is incomplete. `/eli--plan-audit` enforces this on every plan, skill-made or hand-written.
 
 ---
 
-# Part A — How to PLAN
+# Part A: How to PLAN
 
 ## Discuss Before Drafting
 
-**This is the most important rule in this file.** Plans are co-designed, not generated. Do NOT dump a long plan file as the first response to "plan this." Long plan dumps look thorough but bury bad assumptions in volume — a wrong decision in 200 lines costs far more to unwind than the same decision caught after a single back-and-forth question.
+Plans are co-designed, never dumped as the first response. This is the most important rule in this file.
 
-Default workflow:
-1. Establish the AC. Present the numbered AC list in a message of its own, built per `youtrack.md`
-   § "The AC is whatever the ticket requires, wherever it says it" and § "Technical notes in a
-   ticket are not the AC", each criterion naming its ticket source (description, comment N,
-   attachment). End the message with `Plan against these? (y/n)`. Extracting the AC is the agent's
-   job, so the question asks for a go-ahead, never for Eli to build or rework the list. Raise only a
-   conflict the ticket cannot settle, with its evidence. Every later question and the plan's AC
-   coverage map key off these numbers.
-2. Ask the architectural questions one per message, foundational ones first. Wait for each answer.
-3. Summarize decisions back briefly so misunderstandings get caught before they're baked in.
-4. Draft the plan file only after the design is settled — concise outline first, full prose second.
+1. Present the numbered AC in a message of its own, extracted per `youtrack.md` § "The AC is whatever the ticket requires, wherever it says it" and § "Technical notes in a ticket are not the AC", each criterion naming its ticket source (description, comment N, attachment). End with `Plan against these? (y/n)`: a go-ahead, never a request for Eli to build or rework the list. Raise only a conflict the ticket can't settle, with its evidence. Later questions and the AC coverage map use these numbers.
+2. Ask architectural questions one per message, foundational first, waiting for each answer.
+3. Summarize decisions back briefly.
+4. Draft the plan file only once the design is settled: concise outline first, full prose second.
 
-If the user pushes back on any part of an in-flight plan, STOP and discuss — don't silently re-draft the whole thing.
+If Eli pushes back on an in-flight plan, stop and discuss instead of silently re-drafting.
 
 ## No Deferred Decisions
 
-A plan resolves open questions. It does not defer them.
-
-Banned phrases that signal a punted decision:
-- "decide when we get there"
-- "figure out later"
-- "TBD"
-- "we'll see what makes sense"
-- "leave as an exercise"
-
-If you catch yourself writing any of these, STOP and go back to Q&A with the user. The whole point of planning is to resolve every open question BEFORE execution starts — a plan that punts decisions to execution is just a TODO list.
-
-If a decision genuinely cannot be made until something is discovered during execution (e.g., the right filter depends on a method name we haven't picked), either:
-1. Resolve the dependent decision NOW (pick the method name during Q&A), OR
-2. Add an explicit HARD STOP at the discovery point, with the deferred decision called out as the reason for stopping.
-
-No silent punts.
-
-## Q&A Options Must Be Genuine
-
-See `~/.claude/rules/talking-to-eli.md` § "Don't Offer Anti-Pattern Options" — **especially relevant during planning Q&A**. When asking the user to pick between options, every option must be genuinely plausible. Don't pad questions with strawman options the ticket already rules out. If the ticket says do A, B, C, don't ask "do A, B, C or skip them entirely?" — confirm and proceed (or skip the question if the answer is obvious from the ticket).
-
-Filler options during planning are particularly toxic: they slow the discussion, confuse the user into doubting their own reading of the ticket, and erode trust in subsequent genuine concerns.
+A plan resolves every open question before execution. "TBD", "decide when we get there", "figure out later", "we'll see what makes sense" and "leave as an exercise" mark a punted decision: go back to Q&A. When a decision truly depends on something found during execution, either resolve the dependency now or add a HARD STOP at the discovery point naming the deferred decision.
 
 ## The smallest change that meets the AC (MANDATORY)
 
-The AC sets the size of the change, and the plan implements the smallest change that meets it. A
-repo convention, a doc's taxonomy, or another ticket's precedent never justifies a bigger change
-than the AC needs. When the ticket names the mechanism ("shall be soft declined; override: Override
-Fire Risk"), that mechanism is the design.
+The plan implements the smallest change that meets the AC. A repo convention, a doc's taxonomy or another ticket's precedent never justifies more. When the ticket names the mechanism ("shall be soft declined; override: Override Fire Risk"), that mechanism is the design.
 
-Every option in an architecture question states its size: the files it changes, and the classes and
-registrations it adds. The smallest option that meets the AC goes first and is the recommendation.
-A bigger option is recommended only when the smallest one fails the AC, and the recommendation
-names how it fails.
+Every option in an architecture question states its size: files changed, classes and registrations added. The smallest option that meets the AC goes first and is the recommendation. A bigger one is recommended only when the smallest fails the AC, and the recommendation names how.
 
-- **What happened:** SW-57020, SW-57074 and SW-57100 needed three dictionary lines. The plan
-  recommended converting three soft declines into new referral classes, citing SW-56156 and the
-  decline table in `RiskSelection/AGENTS.md`, and never stated that option's size. The tickets
-  specified soft declines that an override clears.
-
-<!-- Added 2026-09-30 during SW-55860 -->
 ## Every question uses the mandated format (MANDATORY)
 
-Every question asked while planning or executing a plan takes one of the two forms in
-`talking-to-eli.md` § "Be concise — this is the top rule" (the Question format row): a yes/no
-question about one action, ending `(y/n)`, or numbered options answered by number. A bare "y", "n"
-or number must answer it completely.
-
-Banned:
-- An open-ended ask: "Anything else?", "Add or drop any?", "Good as-is, or want revisions?"
-- Two questions in one message.
-- A choice described in prose with no question attached.
-
-Check every question against this section before sending it. Having the rule in context is not the
-check.
-
-When a reply fits none of the offered answers, never infer what it meant. Re-ask in the mandated
-format.
-
-- **What happened:** SW-55860's verification step ended with "Anything else to verify?". Eli
-  answered "y", and the reply was treated as approval. The step before it left a three-file vs
-  five-file choice in prose, and "go" was read as picking three.
-
-## Stop Being Pedantic
-
-See `~/.claude/rules/talking-to-eli.md` § "Stop being pedantic" — **especially relevant while reading a ticket and drafting a plan from it.** When you know what the author intended, that is the end of it: act on it and say nothing. It is blatantly obvious — a human reads it and immediately knows exactly what was meant, and it did not trip you up either. So the correction gains nothing and costs multiple turns, time, and tokens. Something that is genuinely wrong and confusing is a different thing — that gets raised.
+Every question while planning or executing takes the Question format in `talking-to-eli.md` § "Be concise — this is the top rule". A bare "y", "n" or number must answer it completely. Banned: open-ended asks ("Anything else?", "Good as-is, or want revisions?"), two questions in one message, and a choice described in prose with no question attached. Check each question against this section before sending it. When a reply fits none of the offered answers, re-ask in the mandated format; never infer.
 
 ## Other planner discipline
 
-- Don't call ExitPlanMode while actively discussing — wait for conversation to conclude.
-- Read docs/CLAUDE.md BEFORE running console tasks. Never guess parameters.
-- **Verify script args before writing them in plans.** When a plan invokes a script (`~/.claude/scripts/Build-Solution.ps1`, `Run-Seed.ps1`, `~/.claude/scripts/Run-DotnetTest.ps1`, etc.), open the script and read its `param(...)` block before writing the flag. Don't pattern-match from a sibling script. A wrong flag in a plan file becomes re-injected as canonical context at every compact — and downstream "explanations" of where it came from are easy to fabricate. Same discipline applies when explaining where a stale arg came from: research before answering, don't speculate.
-- DB queries and log searches are information-gathering — do them DURING planning, not after.
-- Write plan prose with no ambiguous references — repeat the noun rather than leaving "it"/"this"/"that"/"they" for the reader to resolve. See `~/.claude/rules/talking-to-eli.md` § "No Ambiguous References".
-- **Establish ownership during Q&A, not after.** A ticket assigned to Eli carries an assumption
-  that the work is pre-bind, and that assumption is usually right. Occasionally it is wrong: the
-  work turns out to be post-bind, or it straddles the line. Doing it anyway or handing it off is
-  situational and is Eli's call. See `~/.claude/rules/code-ownership.md`.
+- Don't call ExitPlanMode while still discussing.
+- Never guess a script flag or console-task parameter. Before writing one into a plan, read its definition (a script's `param(...)` block, e.g. `~/.claude/scripts/Build-Solution.ps1`, `Run-Seed.ps1`, `~/.claude/scripts/Run-DotnetTest.ps1`), never a sibling's. When explaining where a stale arg came from, research before answering.
+- Run DB queries and log searches during planning, not after.
+- `talking-to-eli.md` § "Don't Offer Anti-Pattern Options" and § "Stop being pedantic" govern every planning question.
+- Settle ownership during Q&A. A ticket assigned to Eli is usually pre-bind, but not always. When the work is post-bind or straddles the line, doing it or handing it off is Eli's call (`~/.claude/rules/code-ownership.md`).
 
 ---
 
-# Part B — REQUIRED CONTENT in every plan file
+# Part B: REQUIRED CONTENT in every plan file
 
-The `/eli--create-plan-from-ticket` skill enforces this structure. Manual plan files must match the same shape.
+`/eli--create-plan-from-ticket` enforces this structure. Hand-written plans match it.
 
 ## Ticket folder, plan, & artifacts
 
-Each ticket's work lives in its own folder — `~/.claude/tickets/{ticket-ids}-{title-slug}/` —
-keyed by ticket ID(s) with a readable title slug (single: `SW-52867-<title>`; multiple: all IDs
-sorted ascending + a combined title, e.g. `SW-51860-SW-52867-<title>`; no "primary" ticket). The
-folder holds:
+Each ticket's work lives in `~/.claude/tickets/{ticket-ids}-{title-slug}/` (single: `SW-52867-<title>`; multiple: all IDs ascending plus a combined title, e.g. `SW-51860-SW-52867-<title>`; no primary ticket):
 
-- **`plan.md`** — the plan, opened with a header block listing every `SW-XXXXX` (with YouTrack
-  links) and the title(s). Tracked in git.
-- **`artifacts/`** — every dump the work produces (ticket dumps, test output, seed logs, SolarWinds
-  dumps). Bulky dumps are gitignored; the small human-authored evidence — `artifacts/db-queries/`
-  (query SQL + results) and `artifacts/pr/` (PR body files) — is tracked in git along with
-  `plan.md`.
+- **`plan.md`**: opens with a header listing every `SW-XXXXX` with its YouTrack link, and the title(s). Tracked in git.
+- **`artifacts/`**: every dump the work produces. Bulky dumps are gitignored. `artifacts/db-queries/` (query SQL and results) and `artifacts/pr/` (PR body files) are tracked in git.
 
-Never scatter artifacts loose or in sibling folders. The `/eli--create-plan-from-ticket` skill
-creates this layout; the dump scripts (`read-ticket`, `Run-DotnetTest`, `Run-Seed`,
-`Search-SolarWinds`, etc.) take the ticket folder name as a required argument and write into its
-`artifacts/`, so everything for a ticket stays together.
+Nothing goes loose or in sibling folders. The dump scripts (`read-ticket`, `Run-DotnetTest`, `Run-Seed`, `Search-SolarWinds`, etc.) take the ticket folder name and write into its `artifacts/`.
 
 ## Plan File Preamble
 
-Every plan file must begin with this block after the title and type:
+Every plan file begins with this block after the title and type:
 
 > **Execute steps in order. Never skip ahead, reorder, or deviate. If you encounter anything that prevents adherence to this plan, HARD STOP — explain the blocker and wait for instructions.**
 
 ## Acceptance criteria (MANDATORY)
 
-Directly under the preamble: the numbered AC list confirmed in Q&A, each with its ticket source.
-The AC coverage map maps onto these numbers and nothing else.
+Directly under the preamble: the numbered AC list confirmed in Q&A, each with its ticket source. The AC coverage map maps onto these numbers and nothing else.
 
-## IMPORTANT: Step 0a — Confirm the ticket(s) are in Develop
+## IMPORTANT: Step 0a: Confirm the ticket(s) are in Develop
 
-**Every plan, every time, before anything else** — before the subsystem pre-reads and before the
-branch. For every YouTrack ticket the plan covers:
+First, before the pre-reads and the branch, for every ticket the plan covers, read its Stage:
 
-1. Read the ticket's current Stage.
-2. If the Stage is earlier than Develop (Backlog, Ready for Dev), move it to Develop and tell the
-   user. This is a workflow-triggered transition — it does NOT need separate Gate 2 approval, the
-   same way the post-PR move to Review doesn't (see `youtrack.md`).
-3. If the Stage is already Develop or later (Review, Ready for Test, Done, Tested), leave the Stage
-   untouched — never move a ticket backward.
-4. If YouTrack is unreachable (VPN down, MCP failing), HARD STOP and ask — don't plan against a
-   ticket whose Stage you can't read.
+- Earlier than Develop (Backlog, Ready for Dev): move it to Develop and tell Eli. No Gate 2 approval needed, same as the post-PR move to Review (`youtrack.md`).
+- Develop or later: leave it. Never move a ticket backward.
+- YouTrack unreachable: HARD STOP and ask.
 
-## Subsystem Pre-Reads — Required Before Step 0b
+## Subsystem Pre-Reads: Required Before Step 0b
 
-Every plan must list the governing `CLAUDE.md` files for the subsystems it
-touches as required pre-reads, **above** Step 0b. Match by topic, not by path —
-the relevant doc often lives in a sibling directory (e.g.,
-`Data/{State}/Homeowner/ByPeril/**/*.xlsm` is governed by
-`Swyfft.Seeding/ExcelLoaders/CLAUDE.md`, not `Data/CLAUDE.md`).
-
-Use the project-root `CLAUDE.md` "Namespace-Specific Documentation" table as
-the index. Format inside the plan:
+Above Step 0b, list as required pre-reads the governing `CLAUDE.md` of every subsystem the plan touches, matched by topic, not path (`Data/{State}/Homeowner/ByPeril/**/*.xlsm` is governed by `Swyfft.Seeding/ExcelLoaders/CLAUDE.md`, not `Data/CLAUDE.md`). The root `CLAUDE.md` "Namespace-Specific Documentation" table is the index. Format:
 
 > **Pre-read (subsystem orientation):**
 > - `Swyfft.Seeding/ExcelLoaders/CLAUDE.md`
 > - `Swyfft.Services.Excel.IntegrationTests/CLAUDE.md`
 
-A plan that omits these gets caught mid-execution by oddities the docs would
-have explained — that's a planner discipline failure.
-
-The pre-reads also list every rules file and skill the work depends on, so the plan works as the
-resume file in `compaction.md`.
-
-A plan that adds or changes a test also lists the test docs as pre-reads:
-`Swyfft.TestUtilities/AGENTS.md`, `Swyfft.TestUtilities/ConstantsAndExpects/AGENTS.md`, the target
-test project's own `AGENTS.md`, and `.claude/rules/dotnet-testing.md`. It also names the base class
-the test will use and what that base supplies.
+The pre-reads also list every rules file and skill the work depends on, so the plan serves as the resume file in `compaction.md`. A plan that adds or changes a test also lists `Swyfft.TestUtilities/AGENTS.md`, `Swyfft.TestUtilities/ConstantsAndExpects/AGENTS.md`, the target test project's `AGENTS.md` and `.claude/rules/dotnet-testing.md`, and names the test's base class and what it supplies.
 
 ## Creating a test's subject: two MANDATORY reads before the arrange
 
-There is one sanctioned way to create each kind of test subject — a quote, a policy, a claim — and it
-is never invented or recalled from memory. Two reads establish it, and both happen before a single
-line of arrange is written:
+Each kind of test subject (quote, policy, claim) has one sanctioned creation path, never recalled from memory. Before writing any arrange, and again before executing that step, read:
 
-1. The test-setup docs, in full:
-   - `Swyfft.TestUtilities/CLAUDE.md` — test types, base classes, and § "Homeowner Quote Setup"
-   - `Swyfft.TestUtilities/ConstantsAndExpects/CLAUDE.md` — test addresses
-   - the target test project's own `CLAUDE.md`, whose test-data section names the creation helper
-   - `.claude/rules/dotnet-testing.md`
+1. The test-setup docs in full: `Swyfft.TestUtilities/CLAUDE.md` (test types, base classes, § "Homeowner Quote Setup"), `Swyfft.TestUtilities/ConstantsAndExpects/CLAUDE.md` (test addresses), the target test project's `CLAUDE.md` (its test-data section names the creation helper), and `.claude/rules/dotnet-testing.md`. Listing them as pre-reads doesn't count.
+2. Existing tests for the same subject, matched on product line, carrier and config family. Copy an arrange from those, never from a test of a different subject.
 
-   Listing these as pre-reads does not satisfy this. They are read before the arrange is written, and
-   read again before that step executes.
-2. The existing tests for the same subject the plan is about, matched on product line, carrier and
-   config family. They show the sanctioned path already working, and what it takes to get past the
-   rules that guard it. Copying an arrange from one of those is correct. Copying one from a test
-   covering a different subject is how the wrong helper gets in.
+The plan carries the exact creation call and the doc sentence that prescribes it. Without both, HARD STOP.
 
-The plan carries the exact creation call and the sentence from the doc that prescribes it. A test
-arrange with neither is incomplete — HARD STOP.
+## IMPORTANT: Step 0b: Create a Branch
 
-The wrong helper fails deep in the arrange, and that failure reads as a product problem, so the
-research goes outward into the code under test instead of back to the doc.
-
-- **What happened:** SW-55983's plan listed the test project's `AGENTS.md` as a pre-read and named
-  the base class, then arranged its quote with a helper recalled from memory rather than the one that
-  doc prescribes.
-
-## IMPORTANT: Step 0b — Create a Branch
-
-**Every plan, every time, no exceptions.** Before any step that writes code:
-1. Check if the current branch is appropriate for this ticket. `development`, `beta`, and `master` are never appropriate. A branch for a different ticket is never appropriate.
-2. If not, create a new branch with `/create-branch` and push it.
+Every plan, before any step that writes code: if the current branch is `development`, `beta`, `master` or another ticket's branch, create one with `/create-branch` and push it.
 
 ## Plan Types
 
-Every plan must declare its type. The type determines the workflow and mandatory stops. Don't stop between individual file edits within the same phase — stop at the defined boundaries.
+Every plan declares its type, which sets its workflow and HARD STOPs. Stop at those boundaries, not between file edits within a phase.
 
-<!-- Added 2026-09-02 while planning SW-55802 — Eli: a "missed requirement" filed as a Bug is a
-     Feature; the Bug type's diagnosis machinery and thin-plan carve-out are both wrong for it -->
+**Closing stops.** Every type ends with these:
+
+1. **HARD STOP: code complete.** Don't print the diff; Eli reviews it in GitHub Desktop. Wait for approval before running tests.
+2. **HARD STOP: tests complete.** Report results and wait for approval.
+3. **HARD STOP: before irreversible actions** (push, PR, seeding, external posts). Wait for approval.
+
 ### Picking the type: the YouTrack IssueType is not the classifier
 
-Ask one question: **does the code do what it was written to do?**
+Ask whether the code does what it was written to do. If yes and someone wants it to do something else, it's a Feature, even when YouTrack says Bug: a missed requirement or a disliked behavior is not a defect, and `IssueType: Bug`, a Current/Expected Result template, Found-in-Stage Beta or a QA reporter don't show a malfunction. If it diverges from its own intent, it's a Bug Fix.
 
-- **Yes, and someone wants it to do something else** → Feature. A requirement nobody implemented is
-  a missed requirement, not a defect.
-- **No, it diverges from its own intent** → Bug Fix.
-
-A ticket filed as a Bug routinely fails that test. `IssueType: Bug`, a Current Result / Expected
-Result template, a Found-in-Stage of Beta, and a QA reporter are all how correct-but-unwanted
-behavior gets reported. None of them says anything malfunctioned.
-
-Missed requirements are often filed as bugs. When the ticket truly is just a missed requirement, or
-worse, a feature that whoever filed it just doesn't like, the plan is treated as a Feature, despite
-the YouTrack type being Bug.
-
-<!-- Restructured 2026-08-19 while planning SW-54482/SW-54691 — Eli: a bug plan can't be cemented
-     before the defect is diagnosed AND proven, and the proof may disprove the bug. The old shape put
-     Investigate/Reproduce inside execution, i.e. after the plan was already written. -->
 ### Bug Fix
 
-Diagnose first, then plan the fix. There is no plan for the investigation. Writing one is ceremony
-that delays the work.
+Diagnose first. No plan is written for the investigation.
 
-1. Investigate. Whatever settles which mechanism fired: reading code, a log search, a SQL query, a
-   diagnostic harness run, a throwaway test, or a test that becomes the regression guard. No form is
-   privileged.
-2. **HARD STOP** — Report the mechanism, its evidence, and a disposition: fix, spin off, not a
-   defect, or already fixed. The last two end the work with no fix plan written. Wait for approval.
-3. Write a **minimal** fix plan: what changes, the test that guards it, how it's verified. Part B
-   applies in full. Every section the fix doesn't touch is marked `N/A` with the reason, never
-   omitted.
-4. **HARD STOP** — Fix plan approved. Wait before writing code.
-5. Fix — write the code fix
-6. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
-7. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
-8. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
+1. Investigate with whatever settles which mechanism fired: code reading, a log search, SQL, a diagnostic harness, a throwaway test, or a test that becomes the regression guard.
+2. **HARD STOP:** report the mechanism, its evidence, and a disposition: fix, spin off, not a defect, or already fixed. The last two end the work with no fix plan.
+3. Write a minimal fix plan: what changes, the guarding test, how it's verified. Part B applies in full; untouched sections are marked `N/A` with the reason, never omitted.
+4. **HARD STOP:** fix plan approved.
+5. Write the fix, then the closing stops.
 
 #### What the diagnosis must establish
 
-- **The defect**: the line or branch where behavior diverges from intent. Short of naming it, say so
-  and name what would settle it.
-- **Evidence per claim**, with hypothesis and proven labeled separately. An uncited causal chain is a
-  story.
-- **The proving test's fate**, if one was written: kept as the regression guard, or discarded.
-- **Noticed, not diagnosed**: one line each for findings outside the defect. Never investigate one to
-  decide whether it belongs, and never bolt one onto another finding as a caveat.
+- **The defect:** the line or branch where behavior diverges from intent. Short of that, say so and name what would settle it.
+- **Evidence per claim**, hypothesis and proven labeled separately.
+- **The proving test's fate**, if one was written: kept as the guard, or discarded.
+- **Noticed, not diagnosed:** one line per finding outside the defect. Never investigate one to decide whether it belongs, and never bolt one onto another finding as a caveat.
 
-Scope is the mechanism the ticket reports plus whatever is reasonably part of that same defect; an
-incomplete bug report doesn't narrow the defect. A diagnosis posted by someone else is where yours
-starts, never where it ends: verify each claim against the code before building on it.
+Scope is the reported mechanism plus whatever is part of the same defect; an incomplete report doesn't narrow it. Someone else's diagnosis is a starting point: verify each claim against the code.
 
 #### Code tracing is only evidence when a stack trace anchors it
 
-With an explicit stack trace, code tracing is great evidence: the runtime named the path and the
-line, so following the frames is fact rather than inference. A trivial cause is provable the same way.
-
-Without either, it is a poor form of evidence and a waste of time. It also does not self-terminate:
-each disproof spawns the next theory, so it loops, announcing a discovered cause every round. Don't
-rely on noticing that happening. No stack trace and no trivial cause means the next action is
-empirical, not another read.
-
-Plenty of upfront research on a non-obvious bug is still wanted. It just has to be a log search, a
-SQL query, or a test, whichever fits.
-
-Never pair a discovery with a claim that the next thing will prove it. Say what the evidence would
-rule out.
-
-**What happened:** SW-54482 shipped a stack trace, and every conclusion inside those frames held up.
-Four causes were then announced for why the census column was empty, which no frame covered, each
-from tracing alone and each with a promise the next query would prove it. All four were wrong.
+Code tracing is evidence only along an explicit stack trace's frames, or for a trivial cause. Otherwise the next action is empirical (a log search, SQL query or test), not another read; upfront research on a non-obvious bug takes that form. Never pair a discovery with a claim that the next step will prove it. Say what the evidence would rule out.
 
 ### Refactoring
 
-1. Write safety-net test — covers the behavior being refactored
-2. **HARD STOP** — TDD checkpoint. Test passes. Wait for approval before refactoring.
-3. Refactor — make the changes
-4. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
-5. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
-6. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
+1. Write a safety-net test covering the behavior being refactored.
+2. **HARD STOP:** TDD checkpoint. The test passes; wait for approval.
+3. Refactor, then the closing stops.
 
 ### Feature
 
-1. Make code changes
-2. **HARD STOP** — Code complete. Don't print the diff — Eli reviews diffs himself (GitHub Desktop). Announce code-complete and wait for approval before running tests.
-3. **HARD STOP** — Tests complete. Report results. Wait for approval before continuing.
-4. **HARD STOP** — Before irreversible actions (push/PR/seeding/external posts). Wait for approval.
+1. Make the code changes, then the closing stops.
 
-<!-- Rewritten 2026-09-17 during SW-56217 — Eli: the carve-out read as one provisional section
-     inside an otherwise normal plan, so the Step 5 architecture Q&A ran on C# the diff decides and
-     the ticket's technical notes were treated as a design to validate -->
 ### Excel Rater (ByPeril)
 
-A plan type for rater-update tickets: actuarial delivers a new rater `.xlsm` and the C# is brought
-into agreement with it. The change can land on any sheet: base rates, any factor table, inputs,
-fees, optional coverages, layout. Almost always declared `Feature` in YouTrack.
+For rater-update tickets: actuarial delivers a new rater `.xlsm`, on any sheet, and the C# is brought into agreement with it. Usually a YouTrack Feature.
 
-**The entire plan is provisional until the diff has been run. Full stop.** The requirement is the
-diff between the delivered rater and the captured baselines, and that diff does not exist until the
-files are placed, the seeder runs, and the validation tests regenerate the baselines. Nothing
-available before that point substitutes for it. The ticket states intent, the `version_history`
-sheet is the actuary's changelog, and the rater on disk is the old one. A plan written from any of
-them is a guess.
+The entire plan is provisional until the diff has run. The requirement is the diff between the delivered rater and the captured baselines, which doesn't exist until the raters are placed and the validation tests regenerate the baselines. The ticket, the `version_history` sheet and the on-disk rater don't substitute for it. The plan has two parts:
 
-So a rater plan is authored in two parts, and the part written up front is short.
+- **Part 1, written now:** branch, place the raters, regenerate the baselines, scoping checkpoint, versioning check. No code, seeder included.
+- **Part 2, written at the checkpoint from the diff:** every sheet's verdict, the C# change list, configs, version lookups, quote defs, tests, Verification. Implementation starts here, seeder first (`excel-rater-plans-common.md` § "Implement the seeder first"). Part B is satisfied here, not before.
 
-**Part 1, written now.** Branch, place the raters, regenerate the baselines, scoping checkpoint, versioning check.
-That is the whole plan file until the checkpoint clears. No code is written in Part 1, the seeder
-included: the diff is what says which code changes, and the delivered sheets may be exactly what
-the seeder has to be changed to read.
+The Gates and Parts A and C apply throughout. Before the diff:
 
-**Part 2, written at the checkpoint, from the diff.** Every sheet's verdict, the C# change list, the
-configs, the version lookups, the quote defs, the tests, and the Verification section. Implementation
-starts here, seeder first (`excel-rater-plans-common.md` § "Implement the seeder first").
+- No architecture Q&A. `/eli--create-plan-from-ticket` Step 5 doesn't run.
+- No reading ahead into the C# to check the ticket's technical notes.
+- No provisional C# change list. Don't transcribe the technical notes as steps.
+- Reaching the outline in a couple of exchanges is correct.
 
-The Gates and Parts A and C apply throughout. Part B is satisfied in Part 2, in full, and is not
-owed before the diff exists.
+It follows the Feature sequence, with the scoping checkpoint and the versioning check as added HARD STOPs before any C#. Reading the matching playbook in full is MANDATORY: `~/.claude/rules/ho-excel-rater-plans.md` (Homeowner) or `~/.claude/rules/co-excel-rater-plans.md` (Commercial), plus `~/.claude/rules/excel-rater-plans-common.md`.
 
-Four consequences, none of them optional:
+**Every Excel Rater (ByPeril) plan carries a "Rater defect found during execution" section. MANDATORY**, whether or not a defect is suspected; `/eli--plan-audit` fails a plan without it. When a defect small enough to fix ourselves surfaces, HARD STOP and prepare the edit to the standard in `excel-rater-plans-common.md` § "Rater edits — when warranted, and the SharePoint flow" before anything downstream runs. The section also carries the channel message, per `excel-rater-plans-common.md` § "What a message to the channel is for".
 
-- **No architecture Q&A before the diff.** `/eli--create-plan-from-ticket` Step 5 does not run on a
-  rater plan. Which class gets the behavior, how a factor is looked up, which name or version a
-  lookup runs under, whether a helper is parameterized or duplicated: each is a decision the diff
-  makes for free, and asking it now hands Eli a ruling to make on evidence nobody has.
-- **No reading ahead into the C#** to find what the ticket's technical notes got wrong. That is the
-  checkpoint's job, and doing it early does it against the old rater, so the answer can be wrong on
-  top of being premature.
-- **No provisional C# change list.** Don't transcribe the ticket's technical notes into the plan as
-  steps, flagged or otherwise. The ticket is linked from the plan header; the diff supplies the list.
-- **Reaching the outline in a couple of exchanges is correct**, not a sign the Q&A was skipped.
-
-It follows the **Feature** HARD STOP sequence above, plus the scoping checkpoint and the versioning
-check as added HARD STOPs after the rater is placed and before any C#. Reading the matching playbook in full is
-**MANDATORY** — `~/.claude/rules/ho-excel-rater-plans.md` for Homeowner or
-`~/.claude/rules/co-excel-rater-plans.md` for Commercial, plus the shared
-`~/.claude/rules/excel-rater-plans-common.md`. Together they hold the complete playbook (pre-reads,
-the plan shape, the component→Excel-signal map, and the rater-edit flow).
-
-<!-- Added 2026-09-09, SW-55584 -->
-**Every Excel Rater (ByPeril) plan carries a "Rater defect found during execution" section.
-MANDATORY.** A delivered rater's defects surface at the scoping checkpoint or in the parity suite,
-after the plan is written. When one is small enough to fix ourselves, the section governs: HARD
-STOP, then prepare the edit to the full standard in `excel-rater-plans-common.md` § "Rater edits —
-when warranted, and the SharePoint flow" before anything downstream runs. The section is written
-whether or not a defect is suspected at plan time. A plan without it is incomplete, and
-`/eli--plan-audit` fails it. The section also carries the channel message for the edit, per
-`excel-rater-plans-common.md` § "What a message to the channel is for".
-
-<!-- Added 2026-09-04 while planning SW-55585 -->
 ### Excel Rater bug
 
-A defect in a rater already on disk, or in C#-vs-rater premium parity. No new rater is delivered.
+A defect in a rater already on disk, or in C#-vs-rater parity, with no new rater delivered. It follows the Bug Fix sequence and inherits the rater playbooks in full: reading `~/.claude/rules/excel-rater-plans-common.md` plus `ho-excel-rater-plans.md` or `co-excel-rater-plans.md` is MANDATORY (HARD RULE header, pre-reads, seeder-first, versioning, verification surface, rater-edit flow). Only the two-part authoring drops: with no delivery there is no baseline diff, so the plan is written whole and has no scoping checkpoint.
 
-Follows the **Bug Fix** HARD STOP sequence above, and inherits the rater playbooks in full: reading
-`~/.claude/rules/excel-rater-plans-common.md` plus `ho-excel-rater-plans.md` or
-`co-excel-rater-plans.md` is MANDATORY, exactly as for a fresh rater. That covers the HARD RULE plan
-header, the pre-reads, seeder-first, blast radius, versioning, the product's verification surface,
-and the rater-edit flow.
+When the fix is the rater, `excel-rater-plans-common.md` § "Rater edits — when warranted, and the SharePoint flow" governs the fix step, and the plan carries the prepared edit before it counts as written. `Read` that section when writing the step and again when executing it.
 
-<!-- Added 2026-09-09, SW-55584 -->
-When the fix is the rater, `excel-rater-plans-common.md` § "Rater edits — when warranted, and the
-SharePoint flow" governs the fix step, and the plan carries the prepared edit before it counts as
-written. `Read` that section when writing the edit step and again when executing it.
-
-**The product's parity suite is the guard. Never write a unit test for a rater-parity defect.** A
-unit test asserts C# against C#. The parity suite asserts C# against the rater.
-
-Only the two-part authoring drops. With no delivery there is no baseline diff, so the plan is
-written whole up front and there is no scoping checkpoint.
-
-- **What happened:** SW-55585 was planned as a plain Bug Fix. The playbooks fell out of scope along
-  with the type, and a unit test was proposed for a defect the Commercial parity sweep already
-  guards.
+**The product's parity suite is the guard. Never write a unit test for a rater-parity defect.**
 
 ### Audit-Doc LogMonitor (catch-all)
 
-For LogMonitor tickets on audit-doc generation failures (`GenerateAuditDocs - GenerateAuditDoc` signatures, HO or Commercial). These tickets are catch-alls: the LogMonitor matches the error *signature*, not specific quotes or root causes, so one ticket covers every quote currently failing the audit — often several distinct root causes at once. A failing quote re-fires on every audit run until an actual fix lands (failed audits are never marked audited); it never stops failing on its own.
+For LogMonitor tickets on audit-doc generation failures (`GenerateAuditDocs - GenerateAuditDoc` signatures, HO or Commercial). The ticket matches an error signature, so it covers every quote currently failing, often with several root causes. A failing quote re-fires every audit run until a fix lands.
 
-**Non-prod (beta) mismatches on not-yet-launched configs are often expected, not defects.** A config that hasn't launched (no prod book — e.g. still on V1) takes premium-bearing changes **in place** — changes that would normally require a new version get applied directly to the existing quote def, because beta is a sandbox (the in-place convention is documented with the state-config versioning rules). Consequence: a beta quote purchased before such an in-place change re-rates differently after it, so its audit shows DB(bind) ≠ Excel/Recompute(now) by design. Before treating a beta audit mismatch on an unlaunched config as a defect, verify the timeline: if a premium-bearing in-place change landed on the config after the quote was purchased, the mismatch is expected fallout, not a bug.
+- **Beta mismatches on unlaunched configs are often expected.** An unlaunched config (no prod book, e.g. still V1) takes premium-bearing changes in place, so a beta quote bought before such a change audits as DB(bind) ≠ Excel/Recompute(now). Check that timeline before calling it a defect.
+- **A Commercial copy can be audited before its first recalculation.** `CopyActorCollection` saves the copy without recalculating (`CopyQuote`, `SaveQuote`, `UpdateQuoteDefinitionByQuoteIdOrFail`), and `CopyQuoteToActor.CopyTo` doesn't copy quote lines. If the copy is a policy's current quote, the audit can select it in that window and crash reading a required quote line (SW-53573: `LossRatio`, in `CommercialEAndSExcelRaterService.SetExcelValues`). In the quote id's logs: a `CommercialQuoteCopyService` result followed by the audit, with no `CommercialQuoteRecalculationService` result between them.
+- **Every audit-doc failure got past the ByPeril Excel integration tests.** The work also answers why those tests missed it, and extends them to cover the scenario class where a rater-vs-C# comparison can. Post-bind data mutation, like the ghost reprice, can't be covered.
 
-**A Commercial copy can be audited before its first recalculation.** The Commercial copy pipeline saves the copy without recalculating it (`CopyActorCollection` runs `CopyQuote`, `SaveQuote` and `UpdateQuoteDefinitionByQuoteIdOrFail`). `CopyQuoteToActor.CopyTo` does not copy the quote lines: "Don't bother copying the quote lines, because those will be recreated when we recalculate everything." A copy made a policy's current quote can be selected by the audit inside that window, and the audit then crashes reading a required quote line (SW-53573: `LossRatio`, in `CommercialEAndSExcelRaterService.SetExcelValues`).
+#### "The errors stopped" is not a diagnosis
 
-- **Recognizing it:** in the quote id's logs, a `CommercialQuoteCopyService` result is followed by the audit, with no `CommercialQuoteRecalculationService` result between them.
-
-The defense-in-depth model: the ByPeril Excel integration tests are the first line of defense — they're supposed to catch C#-vs-rater problems before anything ships. The production audit-doc job is the second line. So any failure that surfaces in audit docs is, by definition, a failure that got past the Excel tests — meaning the work on an audit-doc bug isn't done at "diagnose and fix the defect." It must also answer: why didn't the Excel integration tests catch this scenario? And where coverage is possible, extending the tests to cover that scenario class is part of the fix — so the same class of failure gets caught at the first line next time. The carve-out: some scenario classes genuinely can't be covered by the Excel tests — the ghost reprice, for example, is post-bind data mutation, not anything a rater-vs-C# comparison harness can exercise — so "when possible" is a real qualifier, not a loophole.
-
-#### "The errors stopped" is not a diagnosis — resolve which outcome it was
-
-`GenerateAuditDoc` has four outcomes and only one keeps logging. Read them off `ExcelQuoteAuditServiceBase.GenerateAuditDoc` before interpreting any gap in the logs:
+`ExcelQuoteAuditServiceBase.GenerateAuditDoc` has four outcomes. Read them off the code before interpreting a gap in the logs:
 
 | Outcome | `AuditDocsGeneratedOn` | Logs every run? | Live defect? |
 |---|---|---|---|
-| **Failure** — exception thrown | left NULL | yes — hourly, forever | yes |
-| **MisMatch** — premium differs | **marked** | no — logs once, then never re-selected | **yes** |
-| **Success** — premium matches | marked | no | no |
-| **Skipped** — IMS record gone | marked | warns once | no |
+| **Failure**: exception thrown | left NULL | yes, hourly, forever | yes |
+| **MisMatch**: premium differs | **marked** | no, logs once, then never re-selected | **yes** |
+| **Success**: premium matches | marked | no | no |
+| **Skipped**: IMS record gone | marked | warns once | no |
 
-The marking happens **before** the premium comparison, so a MisMatch counts as marked. A signature that stops firing therefore means only that the crash stopped — it does **not** mean the audit passed. A quote can leave the queue still mis-priced: a defect that needs a fix and will never re-announce itself.
-
-Never write "the audit succeeded" or "this is fixed" from an absence of logs. Separate the outcomes with evidence: a MisMatch logs its own error carrying the quote id, so a quote-id-scoped search across the full window distinguishes MisMatch from Success-or-no-longer-selected; `AuditDocsGeneratedOn` plus the stored premium settles the remainder.
-
-**A quote can walk through several outcomes as code ships.** The table above is not a fixed property of a quote — the same quote can crash for days, then stop crashing once a fix lands and instead record a MisMatch (which marks it, ending the hourly errors), and then have the mismatch cause fixed later with nothing ever re-running to say so.
-
-The logs tell you history. A marked quote is never re-audited, so log reading won't establish whether a quote audits correctly now — run `/eli--byperil-audit-diagnostic` for that, since it executes the audit service's own `ComparePremium` against the live rater.
+Marking happens before the premium comparison, so a signature that stops firing means only that the crash stopped; the quote can leave the queue still mis-priced. Never write "the audit succeeded" or "this is fixed" from absent logs. A MisMatch logs its own error with the quote id, so a quote-id-scoped search across the full window separates MisMatch from Success-or-no-longer-selected; `AuditDocsGeneratedOn` plus the stored premium settles the rest. One quote can move through several outcomes as fixes ship. Logs give history only: to know whether a quote audits correctly now, run `/eli--byperil-audit-diagnostic`, which executes the audit's own `ComparePremium` against the live rater.
 
 Plan shape:
-1. **SolarWinds first** — search the ticket's own search-link terms, from the ticket's filing date ("First seen") to now. The ticket was filed for the quotes in its description, but the "still occurring" comments mean the ticket is still the catch-all for this signature right now — even if the quotes that got it filed have since been fixed. The work list is whatever the search shows still failing.
-2. **Group the current set by distinct failure** (config / state / error shape) and diagnose each group — `/eli--byperil-audit-diagnostic` per quote group, interpreted per the `eli--audit-doc-mismatch-investigation` skill.
-3. **Post an RCA on the ticket for every distinct failure** — including the description's quotes when they no longer fail: that RCA states they now pass, and identifies when/what fixed them where findable (a bonus, not required).
-4. **Spin-off is dealer's choice** — distinct failures may be split into separate tickets (per-failure or per-QuoteDef: SW-48603 → SW-49434…SW-49439) or RCA'd in place on the umbrella ticket (SW-51664's three RCAs). Ask.
-5. The ticket is done only when every failure in the current set has an RCA and a disposition — fix shipped, spun off, or no-action-with-reason.
 
-Any code fix that emerges follows the Bug Fix HARD STOP sequence.
+1. **SolarWinds first:** search the ticket's own search-link terms from its filing date ("First seen") to now. The work list is whatever still fails, not the quotes the ticket was filed for.
+2. **Group by distinct failure** (config, state, error shape) and diagnose each group with `/eli--byperil-audit-diagnostic`, interpreted per the `eli--audit-doc-mismatch-investigation` skill.
+3. **Post an RCA per distinct failure**, including the description's quotes when they now pass. When and what fixed them is a bonus.
+4. **Ask** whether to spin failures off (per failure or per QuoteDef: SW-48603 → SW-49434…SW-49439) or RCA them in place on the umbrella ticket (SW-51664's three RCAs).
+5. Done when every current failure has an RCA and a disposition: fix shipped, spun off, or no action with reason.
 
-A rater fix that emerges takes the **Excel Rater bug** type for that group, rater playbooks and
-rater-edit flow included.
+A code fix follows the Bug Fix sequence. A rater fix takes the Excel Rater bug type for that group.
 
-## Seeder Overrides — Required for every new not-yet-live state config
+## Seeder Overrides: required for every new not-yet-live state config
 
-Whenever a plan adds a new `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig`, or `DbbStateConfig` whose production go-live date is in the future, the plan MUST include a corresponding seeder override entry — concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders — for every new config. The planner is responsible for computing dates that satisfy the strict-monotonic ordering rule. Skip this step only when prod go-live is in the past.
+A plan adding a `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig` or `DbbStateConfig` with a future prod go-live carries a seeder override for each, with concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders, computed per `quote-def-dates-and-ordering.md` § "Computing a new override's dates".
 
-**Computing the dates** — overrides exist to activate the new quote defs in local/dev/beta *earlier* than their real prod go-live (in `QuoteDefinitions.txt`), so the configs are testable before launch. Set `NewQuotesOn` to today or yesterday so the config is the active version on merge. Set `RenewalOn` to a date strictly after the predecessor's effective `RenewalOn` and not shared with any other config's `RenewalOn` in the family — the predecessor being the config declared immediately before the new one in its State/Carrier/RatingType group (the current latest version in that family, usually what you `sourceConfig:` from), using its own override if it has one else its `QuoteDefinitions.txt` value (go read it). `RenewalOn` may equal `NewQuotesOn` or fall later, and `NewQuotesOn` must likewise be unique among the family's `NewQuotesOn`s. Both constraints are enforced by `EnsureConfigOrderWithDatabase` (orders each State/Carrier/RatingType group by `RenewalOn`) and `HoQuoteDefs_WithNonProdOverrides_ShouldNotViolateUniqueIndexes` (composite unique indexes on `NewQuotesOn` and `RenewalOn`), both run by `/eli--prebind-validation` — don't hand-verify.
+**MANDATORY:** a plan adding a `HomeownerStateConfig`, `FloodStateConfig` or `DbbStateConfig` runs `/eli--quote-def-override-audit` during planning, before computing the new dates; removing a predecessor's stale override changes the `RenewalOn` the new one must clear. Remove flagged overrides in the new overrides' product lines, or record why one stays. Leave other product lines alone. The audit doesn't cover Commercial (`quote-def-dates-and-ordering.md` § "Finding stale overrides").
 
-See `~/.claude/rules/swyfft-domain.md` § "Seeder Overrides — Purpose" for the date defaults, the four override mechanisms (HO uses `Seeder.cs`; Flood/Commercial/DBB use `EnvironmentFilters.cs:#if NONPROD`), and the common traps.
+## State-config changes: fold-vs-stack and version doc-comments (MANDATORY, every product line)
 
-**MANDATORY — run the override audit BEFORE computing new overrides.** Any plan that adds a new `HomeownerStateConfig`, `FloodStateConfig`, or `DbbStateConfig` MUST run `/eli--quote-def-override-audit` during planning, before the new override dates are computed. Remove flagged overrides in the same product line(s) as the new overrides, or record why one stays. Leave flagged overrides in other product lines alone. Removing a predecessor's stale override changes the predecessor's effective `RenewalOn` back to its prod date, which changes what the new override's `RenewalOn` must clear — so auditing after the overrides are written forces recomputing them. (Commercial overrides aren't covered by the audit.) The audit deterministically diffs every HO/Flood/DBB override against `QuoteDefinitions.txt` and lists the ones whose config is already live — don't hand-compare. See `~/.claude/rules/quote-def-dates-and-ordering.md` § "Finding stale overrides".
+A plan making a version-gated change (a new version, a fold into a parked version, or an in-place edit to a not-yet-live V1) to any `IStateConfig` implementer covers both points below, or it is incomplete: HARD STOP.
 
-## State-config changes — fold-vs-stack and version doc-comments (MANDATORY, every product line)
+1. **Prefer folding over stacking**, only when the ticket is silent. When the ticket or epic dictates fold or stack, follow it without justifying it or calling it a deviation. Detail: `Swyfft.Services/Common/Homeowner/CLAUDE.md`.
+2. **Tag every touched config with its ticket**, new or not (a re-pointed lookup or an in-place V1 edit counts), with the one-line `///` breadcrumb per `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket", and fix any stale "Based on Vn" pointer the change invalidates.
+   - Editing a config: add your line; don't replace.
+   - Creating a config: put your line in its comment.
+   - A config's ticket lines name the stories that go live with its quote def. A shipped story's line stays even when a later story on the same quote def changes or reverts it; the later story adds its own line, and the "delete a false claim" rule in `comments-docs-and-external-writing.md` doesn't apply. A story that moved to another config before this quote def went live has its line moved to that config.
 
-**Every plan that makes a version-gated change to ANY state config — `HomeownerStateConfig`, `CommercialStateConfig`, `FloodStateConfig`, or `DbbStateConfig` (every `IStateConfig` implementer) — MUST address both principles below. No exceptions.** A version-gated change is any change confined to specific config versions — a new version, a fold into a parked version, or in-place on a not-yet-live V1. This is a required, reviewed checkpoint: if a plan touches a gated config and doesn't explicitly cover both points, it is incomplete — HARD STOP and fix it before execution.
-
-1. **Prefer folding over stacking — *only* as a default when the ticket is silent on version structure.** When the ticket or epic explicitly dictates fold vs stack, follow the ticket — it takes precedence, and you do NOT justify the choice or label it a "deviation" in code, doc comments, or the plan. You're implementing the requirement, not departing from a rule. (Fold-vs-stack detail lives in `Swyfft.Services/Common/Homeowner/CLAUDE.md`.)
-2. **Tag every touched config with its ticket** (always required, independent of fold vs stack, and independent of product line). Add the one-line `///` ticket breadcrumb per the canonical convention — `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket". This covers **every config the change touches, not just new ones** — a re-pointed lookup or an in-place edit to a not-yet-live V1 is a gated change too, so annotate those and fix any stale "Based on Vn" pointer the change invalidates.
-   - **Editing an existing config:** add (don't replace) your ticket line to its comment.
-   - **A config's ticket lines name the user stories that ship with its quote def.** For each
-     story, ask one question: does its behavior go live when this quote def does?
-     - **Yes, even if a later story on the same quote def changes or reverts it:** the line stays.
-       The later story adds its own line below. Never delete, rewrite or call false the line of a
-       story that shipped. The "delete a false claim" rule in
-       `comments-docs-and-external-writing.md` does not apply to it.
-     - **No, because the story moved to another config before this quote def went live:** delete
-       the line here and put it on the config that will ship the story.
-     - **What happened:** SW-55350's revert of SW-51684 on live Vave configs got the SW-51684
-       lines proposed for deletion. SW-56877's split of `FLHiscoxEAndSV3` left three moved stories
-       on V3 as "history".
-   - **Creating a new config:** put your ticket line in the new config's comment.
-
-**MANDATORY, NON-NEGOTIABLE — the ticket-note convention is a physical plan artifact.** Any plan that adds, edits, re-points, or otherwise touches ANY `IStateConfig` implementer MUST (a) list every config it touches with the exact `///` ticket note each will carry, and (b) reproduce the "Tag Each Config Version With Its Ticket" convention (canonical in `Swyfft.Services/Common/CLAUDE.md`) VERBATIM at the top of the plan file. This has been missed before; it must never be missed again. A plan touching a config without this block physically inserted is incomplete — HARD STOP.
-
-The convention text and examples are canonical in `Swyfft.Services/Common/CLAUDE.md` § "Tag Each Config Version With Its Ticket" — read it every time; don't work from memory. Treat a missing ticket note the same as a missing seeder override or a missing test — the plan is not done without it.
+The plan (a) lists every touched config with its exact `///` note and (b) reproduces the "Tag Each Config Version With Its Ticket" convention verbatim at the top of the plan file, read fresh each time. Without both, HARD STOP.
 
 ## Versioned or unversioned: every plan says which
 
-A change is unversioned when it lands on a live quote def with no new config version gating it: an
-element added or removed, a choice added or dropped, a range moved, a type changed. The ticket
-usually says whether the change is versioned, and gives the go-live dates when it is. When the
-ticket says, the plan records that answer and does not relitigate it. When the ticket is silent, the
-plan states whether the change is versioned or unversioned, and why.
+A change is unversioned when it lands on a live quote def with no new config version gating it (an element added or removed, a choice added or dropped, a range moved, a type changed). When the ticket says whether it's versioned, and gives go-live dates if so, the plan records that without relitigating. When the ticket is silent, the plan states which and why.
 
 ## Unversioned changes: the plan must test quotes created before the change (MANDATORY)
 
-Every test helper builds its quote from the current config, so a quote created before the change is
-exercised by no test in the codebase. This rule closes that gap and nothing else.
+Every test helper builds from the current config, so no existing test exercises a pre-change quote. When the change can put an existing quote, or its policy, out of step with its config, the plan names the test and how it builds the pre-change quote; otherwise HARD STOP. Examples: the config no longer generates an element the quote holds, generates one it lacks, replaced the default element the quote's element is bound to, no longer offers the quote's value, or runs a risk rule that would decline it.
 
-**When it applies:** the change can leave an existing quote, or the policy bound from it, out of
-step with what its config now does. Examples, not an exhaustive list:
+Only two skips:
 
-- the config no longer generates an element the quote holds
-- the config generates an element the quote lacks
-- the quote's element is bound to a default element the config has since replaced
-- the quote's element holds a value its default element no longer offers
-- a risk rule the config now runs would decline the quote
+- **An existing quote could be created identically today.** Decide from the config: could a quote built under the old config be built, unchanged, under the new one?
+- **The carrier/state has never launched in prod.** A line with any live config never qualifies, even when the change lands only on a parked version.
 
-When it applies, the plan names the test and how it builds the pre-change quote. A plan without
-that test is incomplete, HARD STOP.
+Whether a change may be unversioned is a separate question; an unversioned change still must not break pre-change quotes and policies. Every plan says which holds: the test, a skip, or a trigger that never fired.
 
-**Two skips, and no others:**
+## Mandatory sections that live in repo docs: copied VERBATIM into the plan
 
-- **An existing quote could be created identically today.** Nothing about it is out of step, so
-  nothing can strand it or its policy.
-- **The carrier/state has never launched in prod.** No config on the line has ever been live, so
-  there are no prod quotes or policies to protect, and beta breaking is accepted. A line with any
-  live config never qualifies, even when the change lands only on a parked version: once that
-  version goes live, the line's in-force policies renew onto it.
-
-Decide the first skip from the config, not from the shape of the change: could a quote built under
-the old config be built, unchanged, under the new one?
-
-Whether a change may be made unversioned is a separate question. A change that needs no new config
-still must not break quotes and policies created before it. Both failures below were correctly
-unversioned, and both still stranded every pre-change quote.
-
-Every plan says which holds: the test, one of the two skips, or a trigger that never fired.
-
-- **What happened:** SW-51772 flipped an element to `NoAccess` and SW-55072 withdrew one from its generator, both unversioned on a live config. Both passed on new quotes, both blocked existing quotes at the purchase gate, both shipped to prod and needed hotfixes (#21334, #22626).
-
-## Mandatory sections that live in repo docs — copied VERBATIM into the plan
-
-When a mandatory convention lives in a repo doc (a `CLAUDE.md`, etc.), do NOT duplicate its text into this rules file — the repo doc is the single source of truth. Instead, every plan that triggers the convention MUST copy the convention's text VERBATIM into the plan file itself, physically inserted at the top (the same way the Excel-rater HARD RULE is inserted). This rule names the trigger and points to the source; the plan carries the actual text. Applies to every mandatory section that lives in a repo doc.
+When a triggered mandatory convention lives in a repo doc, the plan copies its text verbatim at the top of the plan file, as with the Excel-rater HARD RULE. This file names only the trigger and the source.
 
 ## Keep a Progress record in the plan (MANDATORY)
 
-Every plan carries a **Progress** section recording, as execution proceeds, which steps are complete and what actually happened — outcomes and any deviation from the plan (a reused version, a scope change, a discovered constraint). Update it at each step boundary, not at the end. A plan with executed steps but a stale Progress record is out of date — fix it before continuing. This is what lets a post-compact or fresh reader know the real state without re-deriving it.
+The plan's **Progress** section records, at each step boundary, what completed, the outcome, and any deviation (a reused version, a scope change, a discovered constraint). Bring a stale one current before continuing. Every entry is timestamped in local 12-hour time (e.g. `2026-08-12 2:47 PM`) and goes through the `eli--generate-progress-entry` skill, which reads the clock or the artifact's timestamp and appends the row. Never hand-write a row or type a timestamp. The plan supplies only the `## Progress` heading.
 
-Every Progress entry carries a **timestamp in the user's local time, 12-hour format** (e.g.
-`2026-08-12 2:47 PM`). A bare date is not enough — most tickets complete within a single day, so
-the date alone cannot order the entries or show where time went.
-
-**Every entry goes through the `eli--generate-progress-entry` skill. Never hand-write a row, and
-never type a timestamp.** Your context carries the date but never the clock, so a time that merely
-looks right is invented. The skill's script reads the clock, or reads the timestamp off the artifact
-the entry describes, and appends the row itself — it exposes no time parameter, so there is nothing
-to fill in. The plan supplies only the `## Progress` heading; the script owns the table under it.
-
-A timestamp is the easiest field in a plan to fabricate: it reads as metadata rather than as a claim,
-it fails no build and no test, and nobody re-reads it. The specific failure is continuing the
-sequence — once one row is real, the next feels like arithmetic instead of a fact.
-
-<!-- Added 2026-10-06 during SW-56943..SW-56967 -->
 ## A PR whose base isn't `development` gets its reviewers requested by hand (MANDATORY)
 
-`.github/workflows/auto_request_review.yml` runs only on pull requests whose base is `development`
-(`pr-creation.md` § the `dev` team bullet). A PR with any other base never gets the reviewers
-`.github/auto_request_review.yml` assigns. Every PR above the bottom of a stack is one.
-
-Every plan that creates such a PR carries a step right after `gh pr create` (and `gh stack link`,
-for a stack): `gh pr edit <PR> --add-reviewer <logins>`. The plan derives the logins from
-`.github/auto_request_review.yml` while planning, and the step names them:
+`.github/workflows/auto_request_review.yml` runs only on PRs based on `development`, so every PR above the bottom of a stack gets none of its reviewers. A plan creating such a PR adds a step right after `gh pr create` (and `gh stack link`, for a stack): `gh pr edit <PR> --add-reviewer <logins>`, naming logins derived while planning from `.github/auto_request_review.yml`:
 
 - the `per_author` entry for `eli-swyfft`, each group expanded to its members, minus the author
 - every group or login assigned by a `files` glob the PR's diff matches
 
-The step is its own gated write, asked as one bare-yes question. It ends by confirming the requests
-with the `reviewRequests` GraphQL query.
-
-- **What happened:** #23265, the second PR in a stack, got only the `dev` team and two other
-  reviewers. The plan noted that the workflow wouldn't run, and requested no one in its place.
+The step is its own gated write, asked as one bare-yes question, and ends by confirming the requests with the `reviewRequests` GraphQL query.
 
 ## Verification Section Structure
 
-Verification steps must be derived from the change, not a generic checklist. The Verification section is one cohesive block at the end of the plan — don't split it into "Test plan" + "Verification" (creates duplication and dangling sections). Order so the implementer-facing flow comes first, with the rest as labeled reference material.
+Verification is derived from the change: one block at the end of the plan, never split into "Test plan" plus "Verification", implementer-facing flow first and reference material after.
 
-**The planner proposes the whole verification in one message.** Read every AC, then write one
-proposal that covers all of them: the test, command or check that proves each AC, plus each item
-from the canonical generic-verification checklist (in `/eli--create-plan-from-ticket`) that
-applies, with the reason it applies. Every item comes from the change and says what it proves.
-Nothing goes in by default. End the message with `Verify as proposed? (y/n)`. On any objection,
-re-present the whole proposal, revised.
-
-Never walk the ACs or the checklist one item per message.
-
-- **What happened:** a seven-AC plan walked verification one AC per message, each message ending
-  `Verify AC #N this way? (y/n)`.
+The planner proposes the whole verification in one message: for every AC, the test, command or check that proves it, plus each applicable item from the generic checklist in `/eli--create-plan-from-ticket`, each saying what it proves. Nothing goes in by default. End with `Verify as proposed? (y/n)`. On any objection, re-present the whole revised proposal. Never walk the ACs or the checklist one item per message.
 
 ### Execution sequence (before pushing)
-Numbered steps in order, derived from the AC walk-through and canonical-checklist answers. Each `Run-DotnetTest.ps1` line should cross-reference the test artifact it's exercising (defined in the sections below).
+
+Numbered steps in order, from the AC walk-through and checklist answers. Each `Run-DotnetTest.ps1` line names the test artifact it exercises.
 
 ### Tests to add or modify
-List each new/extended test file with: filename, base class, and a case table (input → expected). One row per scenario. See `~/.claude/rules/testing.md` for TDD workflow and test-writing patterns.
 
-Every test in the plan conforms to FIRST. See `testing.md` § "FIRST principles govern every test". Where a test depends on dates, the plan names the pinned clock date and writes its case-table dates as literals.
+Each new or extended test file: filename, base class, and a case table (input → expected, one row per scenario). Tests follow `~/.claude/rules/testing.md`, conform to FIRST (`testing.md` § "FIRST principles govern every test"; a date-dependent test names its pinned clock date and uses literal dates), and aggregate failures across iterated inputs (`testing.md` § "Failure Aggregation").
 
-Tests that iterate over multiple inputs (configs, indices, sheets, theory rows) must aggregate failures into a list and throw `AggregateException` at the end — never stop at the first failure. See `testing.md` § "Failure Aggregation".
-
-**Distribute tests per the pyramid — unit tests carry the load.** When planning a feature's tests,
-exhaustive assertion of business logic (every element value, age, config version, quote purpose,
-and their combinations) belongs in unit tests. Integration and acceptance tests are smoke tests:
-one happy path each, proving the wired-up end-to-end behavior, never re-asserting the combos the
-unit tests already cover. Pick the lowest test class that proves each behavior — the class table
-and the pyramid rule live in the repo's `.claude/rules/dotnet-testing.md` § "Cover new features
-across the testing pyramid". Occasionally the lowest class that proves a behavior is an
-integration test (the behavior only exists wired up — real DB, real pipeline); that's legitimate,
-just uncommon — default to unit tests. A verification section that proposes combo coverage in an
-integration or acceptance test is mis-planned — push the combos down to units.
+Unit tests carry the load. Exhaustive business-logic combinations (element values, ages, config versions, quote purposes) go in unit tests. Integration and acceptance tests are one happy path each, never re-asserting those combinations. Pick the lowest test class that proves each behavior (the repo's `.claude/rules/dotnet-testing.md` § "Cover new features across the testing pyramid"); an integration test is right only when the behavior exists only wired up.
 
 ### Captured asserts to regenerate
-List the expected diffs by file, including which files should have **zero** diff (these are the negative-confirmation guards). The actual `/eli--prebind-validation` invocation lives in the execution sequence — this section just describes what the diffs should look like. See `~/.claude/rules/captured-asserts.md`.
 
-Locally, running the captured asserts auto-updates the expected files — the workflow is run → review the diff. CI runners don't set the flag, so unupdated baselines fail there (the guard). This is fixed — don't research the mechanism; see `~/.claude/rules/captured-asserts.md`.
-
-When a plan changes quote-def go-live dates, adds/recomputes seeder overrides, or inserts new `QuoteDefinitions.txt` rows, see `~/.claude/rules/quote-def-dates-and-ordering.md` — which dates live where (prod file vs seeded override; seeded vs in-memory asserts), the file's global `NewQuotesOn` ordering, and every test that enforces each. Don't re-derive these per ticket.
+List the expected diffs by file, including the files that must show zero diff. The `/eli--prebind-validation` run lives in the execution sequence (`~/.claude/rules/captured-asserts.md`). For go-live dates, seeder overrides or new `QuoteDefinitions.txt` rows, use `~/.claude/rules/quote-def-dates-and-ordering.md`; don't re-derive.
 
 ### Existing tests as regression checks
-Tests that should still pass without edits — list with a one-line "why this is relevant to this change". Never list a test suite without a reason.
 
-### Code-complete audit — REQUIRED in EVERY plan
-A written step in the execution sequence, before the code-complete HARD STOP, to run
-`/eli--code-complete-audit <ticket-folder>`. The audit is already mandatory at execution time
-(Part C § "Code-complete audit") — it MUST ALSO appear as an explicit written step here so it is
-never invisible in the plan. Non-optional: a plan missing this step is incomplete, exactly like a
-missing test or seeder override.
+Tests that should pass unedited, each with a one-line reason it's relevant to this change.
 
-### PR-description audit — REQUIRED in EVERY plan
-A written step, in the plan's own post-verification sequence, to run `/eli--audit-pr-desc` on the drafted body file **before the description is presented**. Mandatory at execution time (Part C § "Post-Test-Approval Sequence" step 6) — it MUST ALSO appear as an explicit written step here so it is never invisible in the plan. Non-optional, exactly like the code-complete audit above.
+### Code-complete audit (REQUIRED in EVERY plan)
+
+A written step before the code-complete HARD STOP runs `/eli--code-complete-audit <ticket-folder>` (Part C § "Code-complete audit"). A plan without it is incomplete.
+
+### PR-description audit (REQUIRED in EVERY plan)
+
+A written step in the post-verification sequence runs `/eli--audit-pr-desc` on the drafted body file before the description is presented (Part C § "Post-Test-Approval Sequence" step 6). A plan without it is incomplete.
 
 ### AC coverage map
-Table mapping every AC in § Acceptance criteria → which subsection covers it. Surfaces gaps and proves AC #N didn't get forgotten.
+
+A table mapping every AC to the subsection that covers it.
 
 ### UI acceptance criteria need a screenshot
 
-A captured assert proves the seeded data, not the screen. When the criterion is about what an agent
-sees, the plan opens the running site, confirms it, and screenshots it for the PR description.
+When an AC is about what an agent sees (a new or moved element, changed wording, a layout change), the plan opens the running site, confirms it, and screenshots it for the PR description; a captured assert doesn't prove the screen. A change to which rules fire, shown through the quote page's existing decline and premium display, gets no screenshot.
 
-A screenshot is for a change to what the screen itself renders: a new or moved element, changed
-wording, a layout change. A change to which rules fire, shown through the quote page's existing
-decline and premium display, gets no screenshot.
+Create the subject with a throwaway integration test, not the site's create flow, that calls the product's quote generator with the config pinned and prints the quote id. Commercial: `CommercialQuoteGenerator.CreateCommercialQuote(addressKey, stateConfig)` via the `QuoteGenerator` property on `CommercialIntegrationTestBase`. Homeowner: `HomeownerQuoteTestBuilder` via `HoBuilder`. Both are in `Swyfft.TestUtilities/AGENTS.md`. Use the target carrier's own good address from `Swyfft.TestUtilities/ConstantsAndExpects/` (Vave FL: `CommercialGoodAddressKeyVaveFL000`); another carrier's address soft-declines. Confirm zero premium errors before opening. The throwaway test stays until Eli says to remove it.
 
-Get a subject through the test helpers, not the site's create flow: a throwaway integration test
-calling the product's quote generator with the config pinned, printing the quote id to open. For
-Commercial, `CommercialQuoteGenerator.CreateCommercialQuote(addressKey, stateConfig)` via the
-`QuoteGenerator` property on `CommercialIntegrationTestBase`. For Homeowner, `HomeownerQuoteTestBuilder`
-via `HoBuilder`. Both are tabulated in `Swyfft.TestUtilities/AGENTS.md`.
-
-**Use an address from the target carrier's own good-address list**
-(`Swyfft.TestUtilities/ConstantsAndExpects/`), so a Vave FL quote uses
-`CommercialGoodAddressKeyVaveFL000`. Another carrier's address soft-declines on an unrelated rule,
-and a declined page shows nothing. Confirm zero premium errors before opening.
-
-The throwaway test stays until Eli says to remove it.
-
-**Starting the local site:** run `pwsh ./RunSwyfftWeb.ps1` from the repo root, in the background. It
-runs `dotnet run --project Swyfft.Web.csproj -c Debug --no-build`, so build first with
-`~/.claude/scripts/Build-Solution.ps1`. The site is up when `https://localhost:5001` answers. A
-Commercial quote opens at `/commercial/<quoteId>/customize`. Stop the site before the next build,
-because a running `Swyfft.Web` locks `Swyfft.Web\bin` (root `AGENTS.md` § "Common Command Execution
-Pitfalls").
-
-### Transition out of verification
-
-Verification ends when (a) all agreed-upon tests pass and (b) the user explicitly agrees we're "done". The post-test-approval sequence (commit + push → adversarial review → PR draft → PR creation) is **not part of verification** and is governed by Part C § "Post-Test-Approval Sequence".
+Build with `~/.claude/scripts/Build-Solution.ps1`, then start the site with `pwsh ./RunSwyfftWeb.ps1` from the repo root, in the background (it runs `--no-build`). It's up when `https://localhost:5001` answers. A Commercial quote opens at `/commercial/<quoteId>/customize`. Stop the site before the next build; a running `Swyfft.Web` locks `Swyfft.Web\bin`.
 
 ## `/eli--prebind-validation` is the default for most plans
 
-The skill began as captured-assert-only but its scope has grown to be "the standard suite of tests Eli wants run on most PRs." Treat it as default verification for the majority of tickets, not just ones touching pre-bind / element generators. Any plan that affects elements, state configs, generators, or rating-adjacent code should include `/eli--prebind-validation` in the execution sequence.
-
-**This default is aimed at Homeowner/residential.** `/eli--prebind-validation` runs
-`PreBindResidentialValidationTests`, a curated list of tests to run for most non-Commercial
-changes. That the set is relevant for Homeowner and Flood does not mean its tests exclusively cover
-those products, and many of them also cover Commercial. For Commercial rating work, use the
-commercial validation. See `testing-execution.md` § "Validation surface is per product line —
-don't default to the HO suite".
+Include it in the execution sequence of any plan that affects elements, state configs, generators or rating-adjacent code. For Commercial rating work, the validation surface is in `testing-execution.md` § "Validation surface is per product line".
 
 ### Never list a test a verification skill already runs
 
-Before naming any individual test (or adding a standalone `Run-DotnetTest.ps1` line) in the verification, confirm it isn't already covered by a test-running skill already in the plan. **List the skill's tests — don't guess from memory.** `/eli--prebind-validation` runs everything tagged `TestGroup=PreBindResidentialValidationTests` across `Swyfft.Services.UnitTests`, `Swyfft.Services.IntegrationTests`, and `Swyfft.Seeding.IntegrationTests` — which already includes `EnsureConfigOrderWithDatabase` and `QuoteDefinitionsUnitTests`, among others. Listing those separately is duplication and overstates the verification.
-
-Check coverage with the list mode (no execution, no regeneration):
-- `pwsh ~/.claude/skills/eli--prebind-validation/Run-PreBindValidation.ps1 -TicketFolder <SW-XXXXX-title> -ListTests` — the full PreBind set.
-- `pwsh ~/.claude/scripts/Run-DotnetTest.ps1 -TicketFolder <SW-XXXXX-title> -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait <t>]` — any project/trait.
-
-A test belongs in the plan as a *separate* line only when it's outside every skill the plan already runs (e.g. the ByPeril Excel validation tests in `Swyfft.Services.Excel.IntegrationTests`, which `/eli--prebind-validation` does not cover).
+Before naming a test or adding a standalone `Run-DotnetTest.ps1` line, list the plan's skills' tests with `-ListTests` (`testing-execution.md` § "Listing tests") and confirm none already runs it. `/eli--prebind-validation` runs everything tagged `TestGroup=PreBindResidentialValidationTests` across `Swyfft.Services.UnitTests`, `Swyfft.Services.IntegrationTests` and `Swyfft.Seeding.IntegrationTests`, including `EnsureConfigOrderWithDatabase` and `QuoteDefinitionsUnitTests`. A separate line is only for a test outside every skill in the plan, e.g. the ByPeril Excel validation tests in `Swyfft.Services.Excel.IntegrationTests`.
 
 ---
 
-# Part C — How to EXECUTE the plan
+# Part C: How to EXECUTE the plan
 
 ## ALWAYS FOLLOW THE PLAN
 
-Execute steps in order. Never skip ahead, reorder, or deviate. If a step depends on a previous step, that's a hard stop — don't proceed until the dependency is satisfied. If you encounter anything that prevents you from adhering to the plan, **HARD STOP** — explain the blocker and wait for instructions. Deviation and disobedience are not allowed.
-
-## Reacting to Surprises
-
-**HARD STOP** — If a build fails, a test fails unexpectedly, or anything doesn't match the plan — stop and explain before pivoting. (This is Gate 1.5, applied to plan execution.)
+Execute steps in order. Never skip ahead, reorder or deviate. A step waits on its dependencies. Anything that prevents adherence is a HARD STOP: explain the blocker and wait.
 
 ## Build Once, Run Tests in Parallel
 
-When a verification step runs multiple test suites, **build the solution ONCE** with `pwsh ~/.claude/scripts/Build-Solution.ps1` — **backgrounded** (`run_in_background: true`, no `| tail`) — then invoke each test runner in parallel with its `-NoBuild` flag (single message, multiple Bash tool calls). The build is a long-running step just like the suites: a foreground build blocks the whole turn and forces the user to background it manually, so background it, wait for the completion notification, and only then launch the suites.
-
-**Parallel verification test runs MUST be backgrounded — no exceptions.** Every test invocation in the parallel block MUST be launched with `run_in_background: true` and with **no** `| tail` pipe (tail buffers all output until the process exits, hiding progress — see `windows-tooling.md`). Running them in the foreground during verification is forbidden: a foreground run blocks the whole turn, so the user cannot communicate with you or interrupt while a long suite runs, and it forces the user to manually background each one. Launch each suite as its own background task and collect results from the completion notifications.
-
-**This applies to every test invocation in the parallel block** — `Run-DotnetTest.ps1`, test-running skills like `/eli--prebind-validation`, or any wrapper script. **Before adding any invocation to a parallel block, verify its build behavior** — `Read` its SKILL.md / script `param(...)` block. If it builds by default, pass `-NoBuild` (or equivalent skip-build flag).
-
-Don't:
-- Let any invocation build implicitly when others are also running — multiplies build time AND causes build contention (parallel builds fight over output files/locks).
-- Assume a skill/script doesn't build because its description doesn't mention building. Verify by reading the source.
-- Run independent test suites sequentially.
-
-See `~/.claude/rules/testing-execution.md` § "Test Output — Run-DotnetTest.ps1" for `-NoBuild` parameter details.
+When a verification step runs several suites, build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`, wait for it to finish, then launch every suite in one message with `-NoBuild`. The build and every suite run in the background with no `| tail` (`core-behavior.md` § "Other", `windows-tooling.md`). Before adding a runner (`Run-DotnetTest.ps1`, `/eli--prebind-validation`, any wrapper) to the parallel block, read its `param(...)` block or SKILL.md, and pass its skip-build flag if it builds by default. Never run independent suites sequentially.
 
 ## Post-Test-Approval Sequence
 
-Picks up where verification ends (tests pass + user agrees we're "done"). The sequence is fixed.
-**Do NOT use the project `/create-pr` command — it autonomously fixes Critical/Major review findings,
-which violates step 4's discuss-first rule. Create the PR by hand, following these steps.**
+Verification ends when the agreed tests pass and Eli explicitly says it's done. Then this fixed order runs. Never use the project `/create-pr` command; it auto-fixes review findings, against step 4.
 
-1. Ask once for approval to commit and push (single action — no separate ask for each).
-2. Commit (`SW-XXXXX: <summary>` per `git-safety.md` / project CLAUDE.md) and push (verify tracking via `git branch -vv` first).
+1. Ask once for approval to commit and push.
+2. Commit (`SW-XXXXX: <summary>`, per `git-safety.md`) and push, checking tracking with `git branch -vv` first.
 3. Run `/review-pr` against the pushed state.
-4. **Discuss `/review-pr` findings with the user.** Don't autonomously start fixing. `/review-pr` is the first reviewer of completed work, not a safety net — plan for it to find nothing.
-5. If findings warrant action: push ONE additional commit. **Do not run a second `/review-pr` after that commit.** One adversarial review per branch, full stop.
-6. **Draft the PR description, then audit it before Eli sees it.**
-   1. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md`.** No exceptions. No "I just read it." No "I remember the rules." If the harness reports the file is already in context, that is a dedupe notice about the *read*, never permission to skip the *rules* — use the content that is there.
+4. Discuss its findings with Eli. Never start fixing on your own.
+5. If findings warrant action, push one more commit. Never run a second `/review-pr`.
+6. Draft and audit the PR description:
+   1. **MANDATORY: `Read` `~/.claude/rules/pr-creation.md`.** A dedupe notice that it's already in context is not permission to skip the rules; use the content that is there.
    2. Write the draft to a body file under the ticket's `artifacts/pr/`.
-   3. **Run `/eli--audit-pr-desc <body-file>`.** Mandatory, every time. It walks the draft against `pr-creation.md` and `comments-docs-and-external-writing.md` rule by rule, counts the narrative against the word budget rather than estimating it, fact-checks every claim against the diff, and fixes what it finds.
-   4. Only then present the description. **Presenting a description the audit has not passed is the violation** — the gate is on presenting, not on drafting. Eli never sees the pre-audit draft.
-   5. Iterate until Eli explicitly approves the text. **HARD STOP — do not proceed until the description is signed off.**
-
-   Having the rules in context does not produce a description that follows them. The word budget has been blown by more than double on a one-line diff with `pr-creation.md` sitting in context the whole time, so the audit is a separate step precisely because it cannot then be skipped by feeling done.
-7. **HARD STOP** — wait for approval, then create the PR by hand (`gh pr create --body-file` per `pr-creation.md`). Never route through `/create-pr`.
-8. **After the PR is created, move the YouTrack ticket Stage to Review** (if currently Backlog, Ready for Dev, or Develop; leave it if already Review or later). The work isn't done until the ticket reflects the PR.
+   3. Run `/eli--audit-pr-desc <body-file>`, every time.
+   4. Present only the audited description. Eli never sees the pre-audit draft.
+   5. Iterate until Eli explicitly approves the text. **HARD STOP** until he does.
+7. **HARD STOP**, then create the PR by hand (`gh pr create --body-file` per `pr-creation.md`).
+8. Move the YouTrack ticket to Review if its Stage is Backlog, Ready for Dev or Develop.
 
 ## Captured Asserts: Read Every Changed File
 
-When a captured-assert regen produces diffs, you MUST individually open and assess every changed file before committing or moving on. No sampling. No "I checked 3 of 28 and the rest looked similar." The captured-assert system exists precisely because each file encodes information your mental model can't reliably predict — sampling defeats its purpose and reintroduces exactly the bugs the system was built to surface.
-
-If a regen touches 30+ files, that's 30+ individual reads. There is no shortcut. Skipping this step is a Gate 3 violation by another name (extrapolating from partial data).
-
-This is the inverse of `pr-creation.md` § "Skip generated files by default." There the baselines are
-noise around the change; here the regenerated baselines are the change under review.
+When a captured-assert regen produces diffs, open and assess every changed file individually before committing or moving on, however many there are. No sampling. Here the regenerated baselines are the change under review, the inverse of `pr-creation.md` § "Skip generated files by default."
 
 ## Code-complete audit
 
-The last step before the code-complete HARD STOP is `/eli--code-complete-audit <ticket-folder>`,
-run once over the whole diff. It walks the diff against `coding-standards.md`,
-`comments-docs-and-external-writing.md`, `testing.md` and `refactoring.md`, one section per wave,
-and fixes what it finds. Unplanned work gets the same single pass at its own code-complete. The
-diff should already be clean before Eli opens it.
-
-Every plan points at `~/.claude/rules/coding-standards.md` § "Identifier names must be self-documenting",
-and every identifier in its code excerpts obeys it.
-
-A comment-only change never justifies a build or a test run. After the audit, check whether the
-diff since the last green run contains a single executable change. If it does not, the prior run
-still stands. If it does, run only the suites that executable change can affect.
+The last step before the code-complete HARD STOP is one `/eli--code-complete-audit <ticket-folder>` pass over the whole diff. It checks the diff against `coding-standards.md`, `comments-docs-and-external-writing.md`, `testing.md` and `refactoring.md` and fixes what it finds. Unplanned work gets the same pass at its own code-complete. Every plan points at `~/.claude/rules/coding-standards.md` § "Identifier names must be self-documenting", and every identifier in its code excerpts obeys it.

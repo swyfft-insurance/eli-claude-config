@@ -1,46 +1,12 @@
 # Slack
 
-> Gate 2 applies here. See `core-behavior.md`.
-
-- Look up ALL user IDs via `slack_search_users` BEFORE composing. Never guess.
-- **Tag, don't name.** Never mention someone by plain text name in a Slack message. Always use `<@USER_ID>` to tag them.
-- **Drafts show names, not IDs.** In a draft shown for approval, write each tag as the person's name (`@Alex Good`), and list the `<@USER_ID>` each name posts as underneath the draft. A raw ID doesn't tell Eli who is being tagged.
-- Messages CANNOT be deleted. If wrong, ASK the user what to do. Don't send a duplicate.
-  - **What happened:** Duplicate message in group DM with CTO. Embarrassing.
-- Slack uses `mrkdwn`: code blocks need blank line after ```, no markdown tables, test in DM first.
-- **Hyperlink all YouTrack ticket references** using Slack mrkdwn `<https://swyfft.myjetbrains.com/youtrack/issue/SW-XXXXX|SW-XXXXX>`. Plain `SW-XXXXX` text doesn't auto-link in Slack.
-- **Version ambiguity**: when a "V1"/"V2" reference could mean either a state config or a lookup, qualify with the class-prefixed shorthand. See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".
-
-## Reply where the conversation is happening
-
-Before replying, read the recent history of the channel or DM, not just the linked message. The
-reply goes where the discussion is live:
-
-- Discussion running at top level → reply top level, even when the linked message could take a
-  thread.
-- Discussion already happening in a thread with replies → reply in that thread.
-
-A linked message tells you what is being discussed. It doesn't tell you where to reply. In a DM,
-the answer is almost always top level.
-
-Every Slack draft states where it will go: top level, or in the thread under a named message. Eli
-approves the destination along with the text.
-
-- **What happened:** Patti posted a retest result top level in a DM, and the conversation was
-  running top level. The reply went into a new thread under her message, and Eli had to repost it
-  top level after it was sent.
-
-## Messages with a screenshot
-
-The Slack MCP has no file upload, so a message carrying an image goes out as a Slack draft that Eli
-finishes and sends himself.
-
-1. Present the text for approval as usual, stating the destination, with `*[screenshot]*` marking
-   where the image goes.
-2. On approval, create it with `slack_send_message_draft` in that channel, passing `thread_ts` for a
-   thread reply. Leave the placeholder out.
-3. Open the returned `channel_link` with `Start-Process` through the PowerShell tool.
-4. Eli drags the screenshot in and sends it.
-
-Slack allows one attached draft per channel. On `draft_already_exists`, tell Eli and wait. The
-existing draft is his.
+- Look up every user ID with `slack_search_users` before composing. Never guess.
+- Tag people with `<@USER_ID>`, never by plain-text name.
+- In a draft shown for approval, write each tag as the person's name (`@Alex Good`) and list the `<@USER_ID>` each name posts as below the draft.
+- Messages can't be deleted. If one is wrong, ask Eli what to do. Never send a duplicate.
+- Slack uses `mrkdwn`: code blocks need a blank line after the opening ```, and there are no markdown tables. Test in a DM first.
+- Link every ticket as `<https://swyfft.myjetbrains.com/youtrack/issue/SW-XXXXX|SW-XXXXX>`. Plain `SW-XXXXX` doesn't link.
+- Before replying, read the channel's or DM's recent history, not just the linked message, and reply where the discussion is live: top level when it runs at top level, in the thread when it's in a thread. In a DM that is almost always top level.
+- Every draft states its destination: top level, or the thread under a named message. Eli approves the destination with the text.
+- The Slack MCP has no file upload, so a message with an image goes out as a Slack draft Eli finishes. Present the text with `*[screenshot]*` marking the image. On approval, create it with `slack_send_message_draft` (with `thread_ts` for a thread reply) and leave the placeholder out. Open the returned `channel_link` with `Start-Process` through the PowerShell tool. Eli drags the image in and sends it.
+- Slack allows one draft per channel. On `draft_already_exists`, tell Eli and wait. The existing draft is his.

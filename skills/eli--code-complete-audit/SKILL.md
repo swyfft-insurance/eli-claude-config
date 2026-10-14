@@ -59,7 +59,7 @@ reader and this skill does not follow it.
 For each wave, in order:
 
 1. `Read` that section of its file, with an actual Read call, immediately before walking. Not from
-   memory, not from the SessionStart injection, not from having read it for an earlier wave.
+   memory, not from the rules loaded at session start, not from having read it for an earlier wave.
 2. Decide whether the section states a property the diff can satisfy or violate. A section that
    describes a workflow rather than the code (a HARD STOP sequence, a TDD ordering) gets the verdict
    **N/A** with the reason and the wave ends.

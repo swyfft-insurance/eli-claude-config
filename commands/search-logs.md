@@ -8,8 +8,8 @@ The user must provide:
 
 ## Rules
 
-1. **No guessing search terms.** Terms must come from: the ticket, the C# code that writes the log, or the user. If you don't have terms, ask.
-2. **Draft the query before executing.** Show the user the exact `Filter`, `StartDate`, `EndDate` and wait for approval.
+1. **No guessing search terms.** Terms must come from: the ticket, the C# code that writes the log, or the user. If you don't have terms, ask. Never try variations.
+2. **Draft the query before executing.** Show the user the exact `Filter`, `StartDate`, `EndDate` (and `PageSize` when not the default) and wait for approval.
 3. **Do not use the MCP tool or curl directly.** Always use the PowerShell script.
 
 ## Execution

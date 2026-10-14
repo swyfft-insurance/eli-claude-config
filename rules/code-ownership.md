@@ -1,17 +1,12 @@
 # Code Ownership
 
-Pre-bind and post-bind are the backend teams, so asking which one code belongs to is asking who
-owns it. Three signals answer it, all worth using:
+Pre-bind and post-bind are the backend teams. Three signals say which owns code:
 
-1. **What the code acts on.** A quote is pre-bind, a policy is post-bind, the bind is the boundary,
-   all defined with code evidence in `swyfft-domain.md` § "Swyfft/Insurance Terminology". IMS is
-   the policy management system and is post-bind.
-2. **Who owns the path.** `.github/CODEOWNERS`.
-3. **Who has worked on the file.** `git log` and `git blame`.
+1. What the code acts on. A quote is pre-bind, a policy is post-bind, and the bind is the boundary (`swyfft-domain.md` § "Swyfft/Insurance Terminology"). IMS is post-bind.
+2. Who owns the path: `.github/CODEOWNERS`. Its `*` line routes every path with no specific entry.
+3. Who has worked on the file: `git log` and `git blame`.
 
-Signals 2 and 3 name individuals. Map each to their group and manager.
-
-## Managers (not in the repo)
+Map each person from signals 2 and 3 to their group and manager. A manager's name means the manager's team: "Wayne's team" is the `postbind` group, satisfied by any member.
 
 | Person | Role |
 |---|---|
@@ -19,23 +14,10 @@ Signals 2 and 3 name individuals. Map each to their group and manager.
 | Ehren Weerheim (`ehrenw`) | Pre-bind manager. Eli's manager |
 | Wayne Allen (`wayneswyfft`) | Post-bind manager |
 
-`frontend` (`chrisharrington`, `dariuscarrick`) sits outside the pre-bind/post-bind split. It has
-no manager of its own.
-
-**A manager's name means the manager's team.** "Wayne's team owns this" names the `postbind`
-group, satisfied by any member.
-
-## Rosters (in the repo, read them)
+`frontend` (`chrisharrington`, `dariuscarrick`) is outside the pre-bind/post-bind split and has no manager.
 
 | Question | Source |
 |---|---|
 | Who's in `prebind-backend`, `postbind`, `frontend`, `claims`, `automation`? | `.github/auto_request_review.yml` § `groups:` |
 | Who reviews a path? | `.github/CODEOWNERS` |
 | Who's requested on Eli's PRs? | `auto_request_review.yml` § `per_author:` → `eli-swyfft` |
-
-CODEOWNERS' `*` line covers every path with no specific entry, so an absent folder is routed by
-`*`.
-
-- **What happened:** a ticket said another manager's team owned the path. The file's authors were
-  checked, the group roster was not, and the note was called wrong. CODEOWNERS named a member of
-  that manager's team.

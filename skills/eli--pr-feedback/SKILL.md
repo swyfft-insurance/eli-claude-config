@@ -49,7 +49,7 @@ Review: @<author> (<state>)
 
 Only address **actionable** points — things that require a code change, an explanation, or a decision. Skip positive observations, summaries, and "looks good" comments. Present the actionable items to the user.
 
-When nothing is actionable, say so in one line and stop. Never present a non-actionable item for a ruling.
+When nothing is actionable, say so in one line. Never present a non-actionable item for a ruling. Every thread still gets a reply and is resolved.
 
 **Read `~/.claude/rules/pr-mine-address-feedback.md` § "A review comment is not automatically a request" before triaging.** An inline comment is not a request just because it exists, is long, or is anchored to a line — the AI-authored reviews Ehren posts are mostly confirmatory, and a soft aside buried in one ("worth a line in the PR body") is not a change request. Presenting a confirmation as a decision buries the decisions that are real.
 
@@ -248,4 +248,4 @@ Move to the next actionable item. Repeat until all are addressed.
 - If a comment identifies a legitimate issue, **fix the code** before replying. Then mention the fix in your reply.
 - **Disagreement must rest on verified facts, not overstated ones.** Citing code is not a free pass — you can cite real evidence and still draw a conclusion it doesn't support. Do not lean on a structural absolute ("can't happen", "impossible", "only ever", "by construction", "by design", "guaranteed") unless you cite the mechanism that *enforces* it: a compile error, a type constraint, an exhaustive switch, a guard clause, a DB/schema constraint. **"The only values that exist today are X" is a current-state fact, NOT a structural guarantee** — a future addition breaks it. If a current-state fact is all you have, you may not claim the case can't occur.
 - **Future-proofing comments are valid by default.** A comment of the form "if X is added later, this silently breaks" can be declined only by (a) citing a mechanism that structurally prevents X, or (b) showing the guard's cost outweighs the risk — **never** by asserting X doesn't exist today. "A defensive guard for a case that can't currently arise" is a reason to *add* the guard, not to dismiss the comment.
-- **Only address actionable points.** Positive observations, summaries, and acknowledgements don't need replies.
+- **Only actionable points go to Eli for a ruling.** Every thread, actionable or not, still gets a reply and is resolved.

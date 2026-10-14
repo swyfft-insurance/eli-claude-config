@@ -1,59 +1,44 @@
 # Meta: Rules Architecture
 
-This file describes how Eli's personal Claude rules are structured. Read this before modifying any rules file, CLAUDE.md, or memory.
+Read this before modifying any rules file, CLAUDE.md, or memory.
 
 ## Architecture
 
-- **`~/.claude/CLAUDE.md`** is a POINTER FILE. It contains the captain/crew authority preamble and a reference table pointing to rules files. Do NOT add detailed rules directly to CLAUDE.md.
-- **`~/.claude/rules/*.md`** contain the actual detailed rules, one topic per file.
-- **`~/.claude/hooks/pretooluse.py`** injects the relevant rules file at the moment a matching command is detected. Rules are read from disk at runtime — never hardcoded in the hook.
+- `~/.claude/CLAUDE.md` is a pointer file: the captain/crew preamble and a table pointing to rules files. Anything over two lines belongs in a rules file.
+- `~/.claude/rules/*.md` hold the rules, one topic per file. Every rules file has a pointer row in CLAUDE.md.
+- `~/.claude/hooks/pretooluse.py` only blocks tool calls. A block message that carries rule text reads it from the rules file on disk. Never hardcode rule text in it.
+- Each rule lives in exactly one place.
 
 ## Loading Priority Order
 
-CLAUDE.md files load in this order — **later = higher priority** (transformer recency bias):
+CLAUDE.md files load in this order, later meaning higher priority:
 
-1. Managed (`/etc/claude-code/CLAUDE.md`) — lowest priority
+1. Managed (`/etc/claude-code/CLAUDE.md`)
 2. User (`~/.claude/CLAUDE.md` + `~/.claude/rules/*.md`)
-3. Project (`.claude/CLAUDE.md`, `.claude/rules/*.md` — walks from root to CWD)
-4. Local (`CLAUDE.local.md` in each directory) — **highest priority**
+3. Project (`.claude/CLAUDE.md`, `.claude/rules/*.md`, from root to CWD)
+4. Local (`CLAUDE.local.md` in each directory)
 
-Personal behavioral rules live at the user level. Project coding standards live at the project
-level. Load order does not settle a conflict between them. Eli does:
-
-- Raise every conflict with Eli when it surfaces. Quote both rules and recommend the personal one.
-- Until he rules, follow the personal rule.
-- His ruling changes one side, personal or repo, so the two stop conflicting. A repo-side change
-  goes through its own PR. A conflict is never left standing.
+Personal behavioral rules live at the user level, project coding standards at the project level. Load order does not settle a conflict between a personal rule and a project rule. Raise every conflict with Eli, quoting both rules and recommending the personal one, and follow the personal rule until he rules. His ruling changes one side, and a repo-side change goes through its own PR. No conflict is left standing.
 
 ## Where to put a new rule
 
-1. **Behavioral correction for an existing category** → Edit the matching `~/.claude/rules/*.md` file.
-2. **New category of rules** → Create a new `~/.claude/rules/<topic>.md` file, add a pointer row to the table in CLAUDE.md, and add trigger patterns to `pretooluse.py` if the rule maps to detectable tool calls.
-3. **Change to the Gates** → Edit `~/.claude/rules/core-behavior.md`.
+1. A correction in an existing category: edit the matching `~/.claude/rules/*.md` file.
+2. A new category: create `~/.claude/rules/<topic>.md` and add its pointer row to CLAUDE.md.
+3. A change to the Gates: edit `~/.claude/rules/core-behavior.md`.
 
-## What NOT to do
+## No "What happened" notes
 
-- Do NOT write behavioral rules to memory (`~/.claude/projects/*/memory/`). Memory is for project-specific facts that can't be derived from code. Rules belong in `~/.claude/rules/`.
-- Do NOT add detailed content to CLAUDE.md. It's a pointer file. If you're adding more than 2 lines, it belongs in a rules file.
-- Do NOT create a rules file without adding a corresponding pointer row in CLAUDE.md.
-- Do NOT hardcode rule text in `pretooluse.py`. The hook reads from the .md files.
-- Do NOT duplicate rules across files. Each rule lives in exactly one place.
+Never write a "What happened" note, an account of the incident that prompted a rule, in a rules file, CLAUDE.md, a skill or memory. State the rule.
 
 ## Memory vs Rules
 
-Memory (`~/.claude/projects/*/memory/`) is for **project-specific facts** that can't be derived from code. Behavioral rules belong in `~/.claude/rules/`.
+Memory (`~/.claude/projects/*/memory/`) holds only project-specific facts that can't be derived from code. Behavioral rules never go there. Memory constraints:
 
-Memory system constraints:
-- Relevance scanner only sees **filename + frontmatter description + type** — not file content. Vague descriptions like "project notes" will never get recalled. Be keyword-rich and specific.
-- 4,096 byte cap per memory file when surfaced per turn
-- Max 5 memory files injected per turn, 60KB session budget
-- `autoDream` consolidates automatically after 24h / 5 sessions
+- The relevance scanner sees only filename, frontmatter description and type. Descriptions must be keyword-rich and specific, or the file is never recalled.
+- 4,096-byte cap per memory file when surfaced per turn.
+- At most 5 memory files injected per turn, 60KB per session.
+- `autoDream` consolidates automatically after 24h or 5 sessions.
 
 ## Process for incorporating feedback
 
-When the user corrects your behavior:
-1. Read this file (meta.md) first.
-2. Identify which existing rules file the correction belongs in.
-3. If no existing file fits, propose a new rules file name and pointer.
-4. Draft the change and show the user (Gate 2 — draft before posting).
-5. After approval, make the edit to the rules file.
+When Eli corrects your behavior: read this file, find the rules file the correction belongs in (or propose a new file and its pointer), draft the change and show him, and edit only after approval.

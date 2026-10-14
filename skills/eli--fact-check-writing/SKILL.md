@@ -31,10 +31,6 @@ framing or emphasis the author chose is the author's, and "incomplete" is not "w
 Every change in the output must trace to one named false claim. A change that cannot be traced that
 way is a rewrite, and a rewrite is the failure this skill exists to prevent.
 
-- **What happened:** three architectural characterizations ("answers what the house is",
-  "initialization from property data", "a carrier branch inside `ElementService`") were cut as
-  overclaims. None was false. The text lost its point.
-
 Per § "Fixing a failed claim means deleting it — rewrites create new unverified claims":
 **DELETE IT. Deletion is the default fix and needs no justification.** Replacement is the
 exception, allowed only when the replacement is already-verified material already in hand: the
@@ -90,12 +86,6 @@ Run in order. Within a wave, walk every sentence — no sampling.
    does not rescue it: a question premised on a false proposal costs the reader exactly as much
    time. State the problem and leave the fix to whoever owns the code. That is always available
    and never wrong.
-
-   - **What happened:** a PR review inline ended "Worth one line mirroring the 'genuine API
-     surface' scoping and the OpenAPI exception at line 273." Both nouns were real and both were
-     read, so two full audits passed it. The OpenAPI exception requires those docs to be present;
-     the rule being edited already flags them when missing, so mirroring it in would have changed
-     nothing.
 
 ## Termination
 

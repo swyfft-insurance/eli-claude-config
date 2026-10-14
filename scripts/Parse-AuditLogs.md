@@ -86,5 +86,5 @@ Captured fields:
 ## Related
 
 - `~/.claude/scripts/Search-SolarWinds.ps1` — produces the input log
-- `~/.claude/rules/solarwinds.md` — SolarWinds search rules and the `/search-logs` skill
+- `~/.claude/commands/search-logs.md`: the `/search-logs` command and its SolarWinds search rules
 - `Swyfft.Services.Excel.IntegrationTests/Homeowner/HomeownerExcelQuoteAuditDiagnosticTests.cs` — the diagnostic test that consumes `EXCEL_AUDIT_DIAGNOSTIC_TEST_QUOTE_IDS`

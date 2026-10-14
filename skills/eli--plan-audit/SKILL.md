@@ -58,7 +58,7 @@ Eli, because it asks him for something. Say which of the three it is, and nothin
 
 ## 1. Read the rules, with actual Read calls, in this turn
 
-Not from memory, not from the SessionStart injection.
+Not from memory, not from the rules loaded at session start.
 
 - `~/.claude/rules/plan-mode.md`, in full.
 - `~/.claude/rules/comments-docs-and-external-writing.md`, in full. A plan is written prose, so that
@@ -88,11 +88,6 @@ that lets the rest through unchecked.
 
 Planned tests are the case that has bitten. Every test the plan adds or modifies, and every column
 and assert in its case table, gets its own row against each `testing.md` section.
-
-- **What happened:** the plan for the SW-56943 stack recorded `testing.md` § "Never write a test
-  that restates the code" as Satisfied because no test restated the v2.6 boundary list. No row
-  looked at the case tables, which asserted decline text in four of seven layers. #23265 shipped
-  one of them.
 
 ### 2a. `plan-mode.md`, Parts A, B and C — every plan, every type
 

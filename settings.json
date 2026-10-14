@@ -130,16 +130,6 @@
   },
   "model": "opus",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 C:/Users/eli.koslofsky/.claude/hooks/sessionstart.py"
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [

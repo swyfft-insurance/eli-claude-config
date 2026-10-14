@@ -67,7 +67,7 @@ missing, and nothing else.
 
 ## 1. Read the rules, with actual Read calls, in this turn
 
-Not from memory, not from the SessionStart injection, and **not skipped because the harness says a
+Not from memory, not from the rules loaded at session start, and **not skipped because the harness says a
 file is already in context.** A dedupe notice means the content is available, not that the check
 happened. If a `Read` is deflected, use the content that is there and audit against it anyway.
 

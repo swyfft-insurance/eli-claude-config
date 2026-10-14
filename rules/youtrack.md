@@ -1,137 +1,62 @@
 # YouTrack
 
-> Gate 2 applies here — see `core-behavior.md`.
-
 ## Batching YouTrack actions under one approval
 
-For multi-action closeouts (comment + link + Stage + Release Stage), use the batch flow instead of
-asking for per-action approvals:
+Multi-action closeouts (comment, link, Stage, Release Stage) go through one batch approval. A lone action keeps the per-action flow.
 
-1. Write a batch JSON: `{"actions": [...]}`. Action types, their shapes and their allowed values
-   are defined in `~/.claude/hooks/youtrack_batch.py` (module docstring and `ACTION_TYPES`), the
-   single source of truth for validation and rendering. Each action names its own issue, so one
-   batch can act on several issues.
-2. Stage it: `& "$HOME/.claude/scripts/YouTrack-Batch.ps1" -Stage -File <batch.json>` (read-only,
-   never gated). It prints a canonical block and a content hash.
-3. Paste the canonical block in the response **verbatim, unedited** and ask for approval.
+1. Write a batch JSON, `{"actions": [...]}`. Action types, shapes and allowed values are defined in `~/.claude/hooks/youtrack_batch.py` (`ACTION_TYPES`). One batch can act on several issues.
+2. Stage it: `& "$HOME/.claude/scripts/YouTrack-Batch.ps1" -Stage -File <batch.json>`. Staging is read-only and needs no approval. It prints a canonical block and a hash.
+3. Paste the canonical block verbatim and ask for approval.
 4. On a bare approval, run `& "$HOME/.claude/scripts/YouTrack-Batch.ps1" -Execute -Hash <hash>`.
 
-The `pretooluse.py` gate allows the execute only when the staged file matches its hash, its
-rendering appears verbatim in the message the user replied to, and the reply is a fresh bare
-approval. A stage is single-use: execution moves it to `executed/` with per-action results, even on
-partial failure, so a retry can't re-post actions that already succeeded — restage the remainder
-and get a fresh approval. Gate 2 still applies in full: the pasted block IS the draft.
-
-Single actions keep the existing per-action flow (MCP tools / command API) — don't batch a lone
-comment.
+A stage is single-use and records per-action results even on partial failure. To retry, restage only what failed and get a fresh approval.
 
 ## A ticket is its description, comments, and attachments, together
 
-**The acceptance criteria are frequently not in the description.** A later comment routinely
-extends, narrows, or overrides it, and the deciding detail often sits in an attachment or in a
-screenshot of a conversation held somewhere else. When a comment and the description disagree, the
-later comment wins.
-
-Never treat the description as the scope and the comments as commentary. That is how work starts on
-half a ticket.
-
-Order carries meaning. Read the comments oldest to newest, since each is written against the state
-of the ticket at that moment, and read every image at the point in the text where its marker sits
-rather than in a batch at the end.
-
-Before acting on scope, state which requirements came from a comment or an attachment rather than
-the description, so a scope extension buried in a screenshot cannot go missing.
+Comments and attachments routinely extend, narrow or override the description, and the later comment wins a disagreement. Read comments oldest to newest, and read each image where its marker sits in the text. Before acting on scope, state which requirements came from a comment or an attachment.
 
 ## The AC is whatever the ticket requires, wherever it says it
 
-Most tickets have no section headed "Acceptance Criteria." The AC is still there: it is the
-requirement, stated however the author stated it, whether as a quoted email, a current-vs-wanted
-table, a bulleted list, a Current Result / Expected Result pair, or a sentence in a comment.
-Extract it and present it as the AC.
+Most tickets have no "Acceptance Criteria" section. Extract the requirement however it is stated (a quoted email, a current-vs-wanted table, a Current/Expected Result pair, a comment) and present it as the AC. Never remark that the ticket lacks an AC section or that the AC is implied.
 
-Never report that a ticket "has no AC section," that the AC is "not labeled," or that the
-requirement is "implied." Those are observations about formatting, and the reader already knows
-the ticket's shape. Saying it is pedantry, and it reads as stalling.
-
-- **What happened:** asked for a ticket's AC, the reply opened with "There is no section titled
-  Acceptance Criteria" before quoting the requirement. Second occurrence.
-
-<!-- Added 2026-09-22 during SW-56226 — Eli: technical notes in tickets are written by other
-     developers' agents and are never the AC for business-logic work -->
 ## Technical notes in a ticket are not the AC
 
-A ticket's "Mechanism" / "Technical notes" / code-pointer section is a lead to verify, not a
-requirement.
+A ticket's mechanism, technical-notes or code-pointer section is a lead to verify. For business-logic work it never adds or replaces a criterion, and a note that fails verification is a finding to raise. The exception is a ticket whose subject is the technical change itself (refactor, rename, migration).
 
-For business-logic work the AC is the business behavior. A technical note cannot add a criterion
-or stand in for one. A note that fails verification is a finding to raise, not a constraint to
-plan around.
+## Reading tickets
 
-Exception: a ticket whose subject is the technical change itself (refactor, rename, migration).
-There the technical statement is the requirement.
+- Read the ticket before exploring code, always through `/eli--read-ticket`, the only ticket-read path (`get_issue`, `get_issue_comments` and raw REST reads are blocked). It returns the description, comments, custom fields, attachments, `watchers`, each comment's `mentionedUsers`, and `fieldHistory` (Stage transitions, reassignments, priority changes).
+- `search_issues` returns internal IDs (`2-XXXXX`). Pass them straight to `/eli--read-ticket`.
+- Read every custom field (Carrier, USState, ProductLine, RatingType). They scope the work.
+- A mention does not add a watcher. Check `watchers`.
+- Convert API URLs (`.youtrack.cloud:443`) to `swyfft.myjetbrains.com/youtrack/` for user-facing links.
 
-- **What happened:** SW-56226 prescribed `SetDefault`, stating it "can never overwrite an agent's
-  choice or an already-created quote's stored value." 7,339 of 7,376 prod rows had the guard flag
-  off.
+## Writing tickets
 
-- Match implementation detail to ticket type:
-  - **User stories / behavioral features**: WHAT and WHY only — requirement, business reason / constraint, acceptance criteria. No code samples, file paths, class names, internal mechanisms, or named refactors. Implementation details belong in the plan file or PR description; they rot the moment the code changes. Tickets are read by Biz, UW, QA, and devs across teams — none need the implementation surface.
-  - **Bugs**: code pointers help the dev start the investigation — file paths, methods, line numbers, SolarWinds log queries.
-  - **Technical refactors / specific implementation tickets**: code references are warranted — the ticket itself is about the technical change.
-  - **What happened:** Behavioral-feature draft included code samples and implementation mechanics. Flagged as overstepping Agile discipline.
-- **After creating a PR, move its ticket(s) to Review immediately. Never ask.** Creating the PR IS
-  the decision; once the PR is up the ticket is by definition in Review. This is workflow
-  bookkeeping, not a publishing decision, so Gate 2 does not apply and there is nothing to approve.
-  Asking burns a turn after the user reasonably believes the work is finished. Do it as part of the
-  same turn that creates the PR, then report both together. (Same class as the Step 0a move to
-  Develop in `plan-mode.md`.) Leave the Stage alone if it is already Review or later.
-- Use `create_issue`, never `create_draft_issue`. Drafts cause duplicates.
-- Read ALL custom fields (Carrier, USState, ProductLine, RatingType) — they scope the work.
-- Read tickets FIRST before exploring code, always via the /eli--read-ticket skill — it returns the full ticket (description, all comments, custom fields, attachments). get_issue/get_issue_comments are blocked by the pretooluse hook; /eli--read-ticket is the only ticket-read path. Bug tickets contain error messages with the root cause.
-  - **What happened:** Wasted 20+ min exploring code when ticket description had the exact error.
-- `IssueType` field (not `Type`). Valid values: Feature, Bug, Support, Epic, Inquiry. No "Task".
-- API returns `.youtrack.cloud:443` URLs — always convert to `swyfft.myjetbrains.com/youtrack/` for user-facing links.
-- **Version ambiguity**: when a "V1"/"V2" reference could mean either a state config or a lookup, qualify with the class-prefixed shorthand. See `swyfft-domain.md` § "Generator and Lookup vs Config Versions".
-<!-- Added 2026-09-04 after SW-55583 -->
-- **Never put an `@mention` in a heading.** Mentions on a `##` line don't render as links. Put them on their own plain line under the heading.
-- **A mention does not add a watcher.** `/eli--read-ticket` returns both `watchers` and each comment's `mentionedUsers`; read them rather than assuming a tag subscribed anyone.
-- search_issues returns INTERNAL IDs (2-XXXXX). To read one, pass that ID straight to /eli--read-ticket — it resolves the internal ID and returns idReadable along with the full ticket. (get_issue is blocked; /eli--read-ticket is the only ticket-read path.)
-- **NEVER modify a ticket's SolarWinds query — run it VERBATIM. No exceptions.** When a ticket contains a SolarWinds log search URL, URL-decode it and run those exact terms, character for character — every term AND every scope (the full `program:(...)` list, the severity, all of it). Do not paraphrase, do not narrow, do not "improve", do not substitute your own tokens. The query IS the ticket: a LogMonitor ticket exists because that exact search matches the errors — that is the entire premise of LogMonitor tickets — so any modification severs the one link between the ticket and its errors. Zero results from a modified query prove NOTHING about the errors, but they look exactly like "the bug is fixed", which is how false all-clears get declared. If a narrower or different query seems useful, run the verbatim query FIRST and propose the variant separately, explicitly labeled as not the ticket's query.
-  - **What happened:** Paraphrased "did not match" as "mismatch", got zero results, and confidently claimed the bug was fixed when it wasn't.
-  - **What happened (again):** Narrowed the ticket's `program:(web.prod console.prod web.beta console.beta)` to `program:(console.prod)` → 37 consecutive days of 0 results directly contradicting the LogMonitor's own daily "still occurring" comments → built a wrong environment theory on top of the zeros.
-- Closing as not applicable / won't fix: set Stage to "Done", then set Release Stage to "NA". Moving to Done auto-sets Release Stage to "Production", so you must explicitly override it to "NA" afterward.
-- **Release Stage "NA"**: The MCP tool's schema doesn't include "NA" as a valid Release Stage value, so `update_issue` will reject it. Use the YouTrack command API instead:
+- User stories and behavioral features say what and why only: requirement, business reason, AC. No code, file paths, class names, mechanisms or named refactors.
+- Bugs carry code pointers: file paths, methods, line numbers, SolarWinds queries.
+- Technical refactor and implementation tickets carry code references.
+- Use `create_issue`, never `create_draft_issue`.
+- Attach every dump, log, output and screenshot a ticket relies on when filing it. Never point at a file on a dev machine. If something can't be attached yet, the ticket isn't ready to file.
+- Never put an `@mention` in a heading. Put it on its own line below.
+
+## Tag Eli's tech debt tickets `technical debt`
+
+A ticket Eli files for his own refactor, test-infrastructure or tooling work gets the `technical debt` tag at creation, listed in the create draft with the custom fields. His work views split on it (`tag: {technical debt}` and `tag: -{technical debt}`). A ticket filed for the business, such as one with a Business Owner, never gets it.
+
+## Fields and stages
+
+- The type field is `IssueType`. Values: Feature, Bug, Support, Epic, Inquiry. There is no "Task".
+- After creating a PR, move its tickets to Review in the same turn without asking, unless they are already at Review or later.
+- To close a ticket as not applicable or won't fix, set Stage to Done, then Release Stage to NA. Moving to Done auto-sets Release Stage to Production. The MCP `update_issue` rejects NA, so use the command API:
   ```
   YOUTRACK_TOKEN=$(powershell -NoProfile -Command "[System.Environment]::GetEnvironmentVariable('YOUTRACK_API_TOKEN', 'User')")
   curl -s -X POST -H "Authorization: Bearer $YOUTRACK_TOKEN" -H "Content-Type: application/json" \
     -d '{"query":"Release Stage NA","issues":[{"idReadable":"SW-XXXXX"}]}' \
     "https://swyfft.myjetbrains.com/youtrack/api/commands"
   ```
-  HTTP 200 with empty `{}` body = success. Querying the ticket afterwards returns
-  `Release Stage: None` — `NA` and "no value" are the same thing, so that IS the value you just set,
-  not a failed command. Don't re-fire it or report failure. Had it actually failed, Release Stage
-  would read `Production`, from the auto-set that moving to Done applies.
-- **Activity history (field changes)**: Included in the /eli--read-ticket output as `fieldHistory` (Stage transitions, reassignments, priority changes — each with `on`, `author`, `field`, `from`, `to`). No separate call; the raw `/api/issues/{id}/activities` REST read is blocked like every other ticket read, and /eli--read-ticket is the source.
-  - **What happened:** Set Stage to Done without overriding Release Stage on SW-48843, making it look like we released code to prod.
-- **Tickets must be self-contained — attach the evidence, never point at a machine.** Everything a
-  ticket relies on (dumps, logs, outputs, screenshots) gets attached to the ticket itself at filing
-  time. A reference to a file on a particular dev machine — a local path, "staged locally", "will
-  attach later" — is not evidence; it's invisible to every other reader and to the filer themselves
-  on any other machine or any later date. If something can't be attached yet (needs an elevated
-  copy, too big, still being produced), the ticket isn't ready to file. Capture first, file second —
-  volatile artifacts (crash dumps, rotating logs) may not survive the wait.
-  - **What happened:** SW-53981 filed with "minidumps to be attached as soon as they're copied out;
-    staged locally meanwhile" — at filing time Windows had already deleted 3 of the 4 dumps, and the
-    last one survived only because an elevated copy ran the same hour.
+  HTTP 200 with an empty `{}` is success. The ticket then reads `Release Stage: None`, which is NA. A failure would read `Production`.
 
-## Tag Eli's tech debt tickets `technical debt`
+## SolarWinds queries in tickets
 
-A ticket Eli files for his own refactor, test-infrastructure or tooling work gets the
-`technical debt` tag when it's created. His work views split on that tag: `tag: {technical debt}`
-shows that work, and `tag: -{technical debt}` shows the work the business asked for. A ticket
-without the tag shows up in the wrong view.
-
-The tag is part of the create draft, listed with the custom fields.
-
-A ticket Eli files for the business, such as a bug or feature with a Business Owner, never gets
-the tag.
+Run a ticket's SolarWinds query verbatim: URL-decode it and run every term and scope exactly, including the full `program:(...)` list and the severity. Never paraphrase, narrow or substitute terms. Zero results from a modified query prove nothing. Propose a different query only after running the verbatim one, labeled as not the ticket's query.

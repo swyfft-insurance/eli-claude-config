@@ -29,14 +29,15 @@ param(
 
     [switch]$StatOnly,
 
-    [string]$Base
+    [string]$Base,
+
+    [string]$RepoRoot = 'C:\Users\eli.koslofsky\Documents\GitHub\swyfft_web'
 )
 
 $ErrorActionPreference = 'Stop'
 
 # git ls-files lists only the current directory, while git diff always covers the repo. Running from
 # the repo root keeps both halves, and -Path, relative to the same place.
-$RepoRoot = 'C:\Users\eli.koslofsky\Documents\GitHub\swyfft_web'
 Set-Location $RepoRoot
 
 . (Join-Path $PSScriptRoot '_Diff-Helpers.ps1')

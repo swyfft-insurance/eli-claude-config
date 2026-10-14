@@ -11,26 +11,14 @@ paths:
 ---
 # Excel Rater (ByPeril) — Shared Conventions
 
-Applies to both rater playbooks: HO (`ho-excel-rater-plans.md`) and Commercial (`co-excel-rater-plans.md`). Each inherits everything here and holds only its own product's differences.
-
-Both products run one Excel test infrastructure: a shared validation base, the same config sampling, the same captured-assert baselines, the same element sweep, and the same sentinel checks. Anything about that infrastructure belongs here, never in a product playbook.
+Shared by the Homeowner (`ho-excel-rater-plans.md`) and Commercial (`co-excel-rater-plans.md`) playbooks. Both products run one Excel test infrastructure, so anything about it belongs here.
 
 ## Rater edits — when warranted, and the SharePoint flow (MANDATORY)
 
-<!-- Rewritten 2026-09-11 during SW-54689 — the old "only for actual rater bugs" test forbade a
-     reconciliation Eli has actually chosen, and never asked whether the config was live. The
-     decision itself now lives in the repo doc; only the agent-behavior guard stays here -->
-**When a rater edit is warranted, and how a C#-vs-rater discrepancy is reconciled, live in
-`Swyfft.Services/Premium/AGENTS.md` § "The rater is the acceptance criteria". Read it before proposing
-either.**
+When a rater edit is warranted, and how a C#-vs-rater discrepancy is reconciled, live in `Swyfft.Services/Premium/AGENTS.md` § "The rater is the acceptance criteria". Read it before proposing either. The call is never the agent's: present the discrepancy, the config's live status and both options, and Eli decides. Never reach for a rater edit as the easy way out.
 
-**This is never the agent's call to make, and never a shortcut.** Leaning on a rater edit as the
-easy way out of a C#-vs-rater discrepancy is a known agent failure mode. Present the discrepancy,
-the config's live status, and both options. Eli decides.
+The actuaries' SharePoint copy is the source of truth, not the repo `Data\` copy. An edit made only in the repo is lost at their next delivery.
 
-**The repo `Data\` copy is NOT the source of truth — the actuaries' SharePoint copy is.** The actuaries don't work out of the Swyfft solution's `Data` folder; an edit made only in the repo gets blown away the next time they deliver a rater. `#dev-analytics-rater-handoff` exists to coordinate rater changes from both ends.
-
-<!-- Added 2026-09-09 during SW-55584 — Eli had to supply the SharePoint address himself -->
 **Where the raters live.** Site `swyfft-developmentsite`, library `Shared Documents`:
 
 | Product line | Folder |
@@ -38,101 +26,36 @@ the config's live status, and both options. Eli decides.
 | Homeowner | `https://swyfft2.sharepoint.com/sites/swyfft-developmentsite/Shared%20Documents/By-Peril/<STATE>` |
 | Commercial EandS | `https://swyfft2.sharepoint.com/sites/swyfft-developmentsite/Shared%20Documents/E%26S/<STATE>` |
 
-The actuaries post every delivery as a link in `#dev-analytics-rater-handoff` (`C06V258BWHJ`), which
-is where to find a file whose folder these two rows don't cover.
+Every delivery is posted as a link in `#dev-analytics-rater-handoff` (`C06V258BWHJ`). Look there for a file these folders don't cover.
 
-**Find the file yourself.** The Microsoft 365 connector reaches this library. Its drive id is
-`b!tBNV3k6K8kCdPLPGZkBK1vEWJmsPHglMlxi9NMlA4v4eCrl5UDM3TZFSpD58-3xY`, and `read_resource` lists a
-folder by its path from the library root, without `Shared Documents`:
+**Find the file yourself.** The Microsoft 365 connector reaches the library, drive id `b!tBNV3k6K8kCdPLPGZkBK1vEWJmsPHglMlxi9NMlA4v4eCrl5UDM3TZFSpD58-3xY`. `read_resource` lists a folder by its path from the library root, without `Shared Documents`:
 
 - Homeowner: `file:///<driveId>/By-Peril/<STATE>`
 - Commercial EandS: `file:///<driveId>/E&S/<STATE>`
 
-The listing gives each file's name, size and `file:///` URI. `sharepoint_search` gives a file's
-`webUrl`, but not who modified it, so the delivering actuary still comes from the channel post.
-Never ask Eli where a rater is.
+The listing gives each file's name, size and `file:///` URI. `sharepoint_search` gives a `webUrl` but not who modified the file; the delivering actuary comes from the channel post. Never ask Eli where a rater is.
 
-**Eli moves files; the agent opens the pages.** No route the agent has reaches a rater's bytes. The
-connector won't open `.xlsm`, Graph file access needs tenant admin approval, and Playwright can't
-reach SharePoint (`Scripts/AgentHooks/validate-browser-url.ps1`).
+**Eli moves files; the agent opens the pages.** No agent route reaches a rater's bytes: the connector won't open `.xlsm`, Graph file access needs tenant admin approval, and Playwright can't reach SharePoint (`Scripts/AgentHooks/validate-browser-url.ps1`).
 
-**Who to tag.** The channel is `#dev-analytics-rater-handoff` (`C06V258BWHJ`). Two on the actuarial
-side:
+**Who to tag** in the channel:
 
-- **Blake Smith** (`U019J5G7UTF`), the actuaries' leader, on every rater change.
-- **The actuary who delivered the rater in hand.** It varies per rater and per delivery. Find them
-  by reading the channel for the delivery post carrying that rater's SharePoint link. Alex
-  Terragnoli (`U03JA79NY8L`) posts many of them. The rater's own `version_history` tab has an
-  `Analyst` column naming who made each change, which cross-checks the channel.
-- **Ehren** (`U1F5C7Q3W`), the pre-bind manager, on every message, tagged or cc'd.
+- Blake Smith (`U019J5G7UTF`), the actuaries' leader, on every rater change.
+- The actuary who delivered the rater in hand, found from the delivery post carrying its SharePoint link. Alex Terragnoli (`U03JA79NY8L`) posts many. The rater's `version_history` `Analyst` column cross-checks.
+- Ehren (`U1F5C7Q3W`), the pre-bind manager, tagged or cc'd on every message.
 
-**Name the product line in the first sentence, every time.** The channel carries both Homeowner and
-Commercial raters, and the same state and carrier exist in both: NY QBE has
-`HO_ES_QBE_NY_Rater.xlsm` and `CO_ES_QBE_NY_Rater.xlsm`. "The QBE NY rater" therefore names nothing,
-and the actuaries have to guess which product they are being asked about. Say Homeowner or
-Commercial up front, name the rater file, and repeat the product line wherever the message names a
-state, a carrier or a config. This applies to every message and every reply in that channel.
+**Name the product line in the first sentence of every message and reply in that channel.** The same state and carrier exist in both products (`HO_ES_QBE_NY_Rater.xlsm`, `CO_ES_QBE_NY_Rater.xlsm`). Say Homeowner or Commercial, name the rater file, and repeat the product line wherever a state, carrier or config is named.
 
-<!-- Rewritten 2026-10-08: the agent applies the edit through desktop Excel; Eli downloads the
-     rater and drags the edited file back into SharePoint -->
-**Who makes the edit.** When what the rater should say is known, we make the edit ourselves through
-the flow below: a clear mistake whose intent is obvious, or rounding moved to match the live C#
-(§ "Rounding changes"). When what's missing is an actuarial decision, the actuaries make it, and the
-agent hands it to them in `#dev-analytics-rater-handoff` (§ "What a message to the channel is for").
+**Who makes the edit.** When what the rater should say is known (a clear mistake with obvious intent, or rounding moved to match the live C#, § "Rounding changes"), we make it through the flow below. When it needs an actuarial decision, hand it to the actuaries in the channel (§ "What a message to the channel is for").
 
-The flow when a rater edit is warranted:
+The flow:
 
-1. **Open the rater for Eli.** Find it (§ "Find the file yourself") and open its `webUrl` in Chrome
-   with `Start-Process`. He downloads it.
-2. **Take it from `~/Downloads`.** Chrome saves a repeat download as `name (1).xlsm`. The edited
-   file is always saved under the exact SharePoint filename, so Eli's drag replaces the right file.
-3. **The agent makes the edit, in desktop Excel through COM** (`New-Object -ComObject
-   Excel.Application`). Excel writes the file exactly as a hand edit would, macros, formatting and
-   named ranges included. No other library writes a rater.
-   - The plan lists every edit: each cell and its new content, and every structural change (named
-     range, sheet, tab name). Eli approves that list before Excel opens.
-   - The `version_history` row is drafted in that list word for word: its date, its analyst and its
-     exact text. Eli approves the text with the list. The edit writes the approved text and nothing
-     else.
-   - Every changed cell gets an orange fill (`#FFC000`), and every touched sheet gets an orange tab.
-   - Add the `version_history` row, highlighted the same way.
-
-   **Adding a row to a lookup table: insert inside the range, then paste the rows the insert got
-   wrong.** Excel expands a formula's range reference only when the inserted row lands strictly
-   inside that range. With a table at `$6:$9`, inserting at 7, 8 or 9 rewrites every referencing
-   formula to `$6:$10`. Inserting at either edge does not: at row 6 the range slides to `$7:$10`,
-   and at row 10 it stays `$6:$9`. Either way the new row sits outside the lookup, the sheet looks
-   correct, and the new key silently never matches.
-
-   When the new row's own position is interior, insert there. The blank lands where it belongs, so
-   paste that one row.
-
-   Insert **cells, shifted down, scoped to the table's own columns**, not a whole row. Rater sheets
-   routinely park a second table a few columns to the right of the first, sharing its rows, and a
-   whole-row insert drags that table down with it. Check the columns beside the table in the
-   baseline before choosing the insert, and name the exact range in the step (`A7:L7`, Insert Cells,
-   Shift cells down).
-
-   When the new row belongs first or last, insert one row in from that edge and paste two rows: the
-   new value, and the value it displaced. Every other row keeps its content untouched.
-
-   The baseline diff is the proof. Referencing formulas still carrying the old range mean the insert
-   was at an edge and the paste hid it.
-4. **Verify before anything else runs.** Place the edited file in the repo `Data` folder (the
-   standard rater-placement step).
-
-   **The delivered filename never matches the repo path, and its carrier token does not scope the
-   delivery.** SharePoint carries the actuaries' delivery name: product, rating type, sometimes a
-   carrier, the state, and a date whose format varies (`HO_ES_NY_Rater_2026_08_20.xlsm`,
-   `HO_AD_BIC_AL_Rater_20260810.xlsm`, `CO_ES_TOPA_FL_Rater_20260914.xlsm`). Every Homeowner ByPeril
-   path in `Data/` instead carries a carrier and no date
-   (`Data/NY/Homeowner/ByPeril/EAndS/HO_ES_QBE_NY_Rater.xlsm`). A carrier in the delivered name
-   settles nothing about which repo files it covers: TX's rater was delivered as
-   `HO_ES_TOPA_TX_Rater_2026_08_03.xlsm`, and `HO_ES_TOPA_TX_Rater.xlsm`, `HO_ES_BSIC_TX_Rater.xlsm`,
-   `HO_ES_HSIC_TX_Rater.xlsm` and `HO_ES_QBE_TX_Rater.xlsm` are one byte-identical file.
-
-   **The hashes under `Data/` are the authority on which carrier files are one rater**, and so on
-   which files a delivery is in scope for:
+1. **Open the rater for Eli.** Find it (§ "Find the file yourself") and open its `webUrl` in Chrome with `Start-Process`. He downloads it.
+2. **Take it from `~/Downloads`.** A repeat download is saved as `name (1).xlsm`. Save the edited file under the exact SharePoint filename.
+3. **Edit in desktop Excel through COM** (`New-Object -ComObject Excel.Application`). No other library writes a rater.
+   - Eli approves the edit list before Excel opens: every cell and its new content, every structural change (named range, sheet, tab name), and the `version_history` row word for word (date, analyst, text). Write only what was approved.
+   - Fill every changed cell orange (`#FFC000`) and turn every touched sheet's tab orange. Add the `version_history` row, highlighted the same way.
+   - **Adding a row to a lookup table.** Excel expands a referencing formula's range only when the insert lands strictly inside it: with `$6:$9`, inserting at 7, 8 or 9 gives `$6:$10`, while inserting at 6 or 10 leaves the new row outside the lookup, where it silently never matches. Insert cells shifted down, scoped to the table's own columns (name the range, e.g. `A7:L7`), never a whole row: rater sheets park second tables beside the first, so check the baseline for one. For an interior position, insert there and paste the one row. For a first or last position, insert one row in from that edge and paste two rows, the new value and the one it displaced. In the baseline diff, a referencing formula still carrying the old range means the insert was at an edge.
+4. **Verify before anything else runs.** Place the edited file in the repo `Data` folder. The delivered filename never matches the repo path (`Data/` paths carry a carrier and no date), and a carrier in the delivered name doesn't scope the delivery. The hashes under `Data/` decide which carrier files are one rater, and so which files the delivery covers:
 
    ```powershell
    Get-ChildItem Data -Recurse -Filter *.xlsm |
@@ -140,94 +63,40 @@ The flow when a rater edit is warranted:
      Group-Object Hash | Where-Object Count -gt 1
    ```
 
-   Never remark on the mismatch between the delivered name and the repo path.
+   Never remark on the name mismatch. Run `RaterFileContents_ShouldMatchCaptured` alone, by method, on one leaf per distinct rater file. The baseline diff must be the planned edits and the `version_history` row, nothing else. The diff doesn't see formatting, so read the highlights back through Excel. Any mismatch: HARD STOP.
+5. **Upload after the PR is up.** Once the PR carrying the edited rater exists, open the SharePoint folder page. Eli drags the file in, and SharePoint saves it as a new version.
+6. **Tell the actuaries, last.** The channel message goes out only after that PR exists, links it, and covers every rater edit in one message. Nothing follows it.
 
-   Then run `RaterFileContents_ShouldMatchCaptured` alone, by method, on one leaf per distinct rater
-   file (the hash check above groups them). The baseline diff must be the planned edits and the
-   `version_history` row, and nothing else. The diff doesn't see formatting, so read the highlights
-   back through Excel too. Any mismatch: HARD STOP.
-
-   - **What happened:** SW-54842 placed four edited raters and queued the 42-minute parity suite
-     without checking them.
-5. **Upload after the PR is up.** Once the PR carrying the edited rater is created, open the
-   SharePoint folder page for Eli. He drags the file in, and SharePoint saves a same-named file as
-   a new version of it. Review and testing can still change the rater, so the SharePoint copy waits
-   for the PR the same way the message in step 6 does.
-
-   - **What happened:** SW-57646's plan put the SharePoint uploads before the commit and the PR.
-6. **Tell the actuaries, last.** The message to `#dev-analytics-rater-handoff` goes out only after
-   the PR carrying the edited rater is created, and it links that PR. It is the final step of the
-   flow, and nothing follows it. Review and testing can still surface more rater edits, so waiting
-   until the PR exists lets one message cover all of them, with no follow-ups.
-
-   - **What happened:** the channel message for SW-55486's `Screened_Enclosures!D11` edit was
-     drafted for sending before the PR existed.
-
-<!-- Added 2026-09-23 -->
 ## What a message to the channel is for
 
-The actuaries' SharePoint copy is what their next delivery is built from. A rater change they don't
-know about gets undone by that delivery. A change they would object to on actuarial grounds never
-reaches them to object to. Every message here keeps their picture of their own rater accurate, and
-gives Blake and Ehren what they need to judge rate impact and versioning.
+The actuaries build their next delivery from their SharePoint copy. A message keeps their picture of their rater accurate and gives Blake and Ehren what they need to judge rate impact and versioning.
 
-**The reader owns the rating algorithm.** The actuaries are the product owners of how Swyfft rates a
-risk: the tiers, the factors, what is filed, and what a change does to premium. The rater is where
-they write that algorithm down, in Excel because they don't code. The C# is our implementation of
-it. So a message to them tells a product owner what changed in how their algorithm behaves, and
-why, in rating terms. Sheet and cell addresses are locators so they can find the change, not the
-substance.
+- The actuaries own the rating algorithm. Tell them what changed in how it behaves, and why, in rating terms. Sheet and cell addresses are locators, not the substance.
+- Write "the rater" or "our raters", never "your rater" or "your formulas".
 
-**The rater is ours.** Write "the rater" or "our raters", never "your rater" or "your formulas".
-Second person pins every defect on the actuaries.
+Every message, for an edit made on SharePoint or one handed to them, carries:
 
-Two kinds come out of rater work: an edit made on SharePoint, and an edit or defect handed to the
-actuaries to make. Either way the message carries:
+- the product line and the rater file, linked to its SharePoint copy
+- what the rater did and why that was wrong or had to change, in rating terms, with the sheet and cell. When the rater moved to match live C#, say so: it is not a defect in their formula.
+- what changed, or what is being asked, precisely enough to find
+- the premium impact either way, with the reason. An edit that only moves the rater to match live C# moves no premium: the C# charges, and it did not change. The config's live status matters only when what the C# charges changes.
+- the `version_history` entry and the ticket link
 
-- The product line and the rater file, linked to its SharePoint copy.
-- What the rating algorithm did, and why that was wrong or had to change, in rating terms: what a
-  quote got, and where in the rater (the sheet and cell). When the rater moved to match live C#
-  rather than being wrong on its own terms, say so. It is not a defect in their formula, and knowing that is what keeps them from
-  reverting it.
-- What changed, or what is being asked, precisely enough to find.
-- The premium impact, stated either way, with the reason. When the edit only moves the rater to
-  match the live C#, no premium can move: the C# is what charges, and it did not change. Say that.
-  Whether the config is live matters only when what the C# charges changes.
-- The `version_history` entry and the ticket link.
-
-None of that is a template. The message is as long as the reasoning needs.
+It is not a template. The message is as long as the reasoning needs.
 
 ### Rounding changes
 
-Everything in § "What a message to the channel is for" applies. This section adds what is
-particular to rounding.
+Rounding consistency is between a rater and its own live C#, never between raters, which have always rounded differently. The fix only ever moves the rater. Moving the C# would re-rate in-force quotes and policies, which needs versioning. Every rounding message states, on its own:
 
-**What rounding consistency means.** Consistency is between a rater and the live C# that prices
-against it. It is never between one rater and another. The C# mirrors the rater it was built from,
-rounding included, and the raters have always rounded differently from one another. The validation
-tests and the audit compare each rater only with its own C#, so a gap of a few cents between the
-two fails them and gets filed as a bug. The C# is what's in force, so the fix only ever moves the
-rater. Moving the C# instead would re-rate in-force quotes and policies, which needs versioning.
+- where the rater rounds this value and where the C# rounds it, with the step and precision on each side
+- that the rater now rounds it the way its own C# does, which is the whole reason for the edit
+- that other raters rounding it differently is expected and stays
 
-**What the message tells the actuaries.** They may not remember any earlier message, so every
-rounding message says all of this itself:
-
-- Where the rater rounds and where the C# rounds, for this value: the step and the precision on
-  each side.
-- That the rater now rounds that value the way its own C# does. That is the whole reason for the
-  edit.
-- That other raters rounding the same value differently is expected and stays as it is.
-
-**What it never says.** Never call the old rounding an error in the actuaries' formula, and never
-suggest making rounding uniform across raters.
-
+Never call the old rounding an error in their formula, and never suggest uniform rounding across raters.
 
 ## MANDATORY plan header — the rater-parsing HARD RULE (physically insert into EVERY rater plan)
 
-Every Excel rater plan MUST reproduce the block below **verbatim, at the very top of the plan file**
-(immediately after the title/type line, above the preamble) — not a link, not a paraphrase, the
-actual text. A rater plan without this block physically inserted is incomplete, exactly like a
-missing HARD STOP. Copy it in as the first thing you write, and re-insert it if a revision drops it.
+Every Excel rater plan reproduces the block below verbatim at the very top of the plan file, right after the title/type line and above the preamble. A plan without it is incomplete. Re-insert it if a revision drops it.
 
 > ### HARD RULE — never parse a rater `.xlsm` yourself
 > To read anything out of a rater workbook — Versions-sheet values, named ranges, input options,
@@ -249,277 +118,112 @@ missing HARD STOP. Copy it in as the first thing you write, and re-insert it if 
 
 ## Running the Excel dump tasks — pointer
 
-The three Excel tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI; each carries
-its exact `-t:...` invocation in a `/// Usage:` header — read the file, don't re-derive it:
-`DumpRaterTask.cs` (dump sheets → JSON; dumps every sheet by default, `-sheet` narrows to one;
-formula cells emit only formula text unless `-IncludeFormulaValues:true` is passed),
-`ReadExcelTask.cs`, and `ReadNamedRangesTask.cs`. Build the console once
-(`pwsh ~/.claude/scripts/Build-Solution.ps1` — the wrapper lives in `~/.claude/scripts/`, NOT the repo
-root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
+The tasks live in `Swyfft.Console/Tasks/Excel/` and use NPOI: `DumpRaterTask.cs` (sheets to JSON, every sheet by default, `-sheet` narrows to one, formula cells emit only formula text unless `-IncludeFormulaValues:true`), `ReadExcelTask.cs` and `ReadNamedRangesTask.cs`. Each file's `/// Usage:` header carries its exact `-t:...` invocation; read it. Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1` (in `~/.claude/scripts/`, not the repo root) and run `Swyfft.Console/bin/<Debug|Release>/net10.0/Swyfft.Console.exe`.
 
-<!-- Added 2026-09-24 while planning SW-56613 -->
 ## A rater plan's AC
 
-The rater is the acceptance criteria (`Swyfft.Services/Premium/AGENTS.md` § "The rater is the
-acceptance criteria"), so every rater plan's AC includes these, whatever the ticket says:
+The rater is the acceptance criteria (`Swyfft.Services/Premium/AGENTS.md` § "The rater is the acceptance criteria"). Every rater plan's AC includes these, whatever the ticket says, followed by the ticket's own AC (extracted per `youtrack.md`, go-live dates included):
 
 - The C# rates every new or changed config exactly as the rater does.
-- Every existing config rates exactly as before (§ "No re-rating live business").
+- Every existing config rates exactly as before (`Swyfft.Services/Premium/AGENTS.md` § "No re-rating live business").
 - The rater seeds correctly.
 - Every Excel rater validation test passes on every affected leaf.
 
-The ticket's own AC follows, extracted per `youtrack.md`, go-live dates included.
-
-- **What happened:** SW-56613's first AC list was built from the ticket alone.
-
 ## The diff is the requirement
 
-`plan-mode.md` § Plan Types § "Excel Rater (ByPeril)" governs, and is read before authoring: the
-entire plan is provisional until the diff has been run, so the plan is written in two parts around
-the scoping checkpoint and nothing about the C# is decided before it.
-
-Three things are routinely mistaken for the diff, and none of them is:
-
-- **The old, on-disk rater.** It is the baseline. Reading it says what the rater did before the
-  delivery, never what the delivery changed.
-- **The `version_history` sheet.** Intent, not a change list. See § "The `version_history` sheet".
-- **The ticket's technical notes.** A statement of what the filer expects the change to require.
-
-The diff itself is the `ExpectedResults/` baseline diff, regenerated as soon as the raters are
-placed. It needs no seeder change and no reseed, which is why it comes before both. See § "Plan
-shape" for the run and § "Why the baseline diff, not `DumpRater`" for why this dump and no other.
-
-## The `version_history` sheet — intent, not the change list
-
-`version_history` is the actuary's changelog inside the rater workbook. Read it: it tells you what
-the actuaries **intended**, which is useful context. But it is not the list of what actually
-changed — the diff is. Actuaries write it to convey intent, not to enumerate every moved cell, and
-rows sometimes backfill notes about already-live factors. Use it to understand intent; rely on the
-diff for the actual changes. Never treat a missing row as "nothing changed," or a row as proof a
-change is functional.
+`plan-mode.md` § "Plan Types" § "Excel Rater (ByPeril)" governs. The diff is the `ExpectedResults/` baseline diff, regenerated as soon as the raters are placed, with no seeder change or reseed. The `version_history` sheet is the actuaries' intent: a missing row doesn't mean nothing changed, and a row doesn't prove a change is functional.
 
 ## Implement the seeder first
 
-This orders the implementation, which starts at the scoping checkpoint. It never puts the seeder
-before the diff: the diff is what says whether the seeder changes at all, and the delivered sheets
-are often exactly what it has to be changed to read.
+Implementation starts at the scoping checkpoint, never before the diff. Within it the order is seeder, then a green full reseed, then premium, rater service, elements and validation. The seeder is the first layer that reads the actual sheets, so layout and opt-in breakage surface there.
 
-Within the implementation, the seeder goes first. It is the first layer that reads the actual rater
-sheets and their layout, so sheet-name mismatches, shifted columns, and non-opt-in-carrier breakage
-surface there concretely rather than as a guess. Every downstream layer (premium, rater service,
-elements, validation) depends on seeded factor data and can't run until a full reseed is green.
-Order: seeder → green full reseed → premium / rater service / elements / validation. Implement the
-seeder late and layout or opt-in breakage only shows up when the work looks finished.
-
-## Rating changes have an outsized blast radius
-
-Premium is extremely sensitive: a change that leaks onto a state or carrier you didn't intend silently mis-prices quotes and policies — a leak here is a mispriced policy, not just a failed test. So before touching any shared base in the rating stack, read the actual inheritance chain of the class you're editing, and contain the change by construction (see `refactoring.md` § "Contain a shared-base change by construction").
-
-<!-- Added 2026-10-12 during SW-57182 -->
 ## New code goes where the codebase already keeps that kind of code (MANDATORY)
 
-Before creating a class, find the home that already exists:
+- Code only premium generation uses goes in the premium generator hierarchy (the shared base, or the state and carrier generators), never an adjacent class.
+- A small method or constant more than one subsystem uses goes in an existing static helper class.
 
-- **Code only premium generation uses** goes in the premium generator hierarchy: the shared base, or
-  the state and carrier generators below it. An adjacent class for it is wrong.
-- **A small method or constant that more than one subsystem uses** goes in one of the existing static
-  helper classes. That's the codebase's established pattern.
+A new static class is never the default. When a plan adds one, Part 2 says why no existing home fits.
 
-A new static class can be justified, but it's never the default. When a plan adds one, Part 2 says why
-no existing home fits.
-
-- **What happened:** SW-57182 created `DeductibleScaledMinimumPremium`, a static class beside the
-  premium generators, for code that was almost all premium generation. The SAR service imported its
-  relativity formula and config gate from it.
-
-<!-- Added 2026-10-09 during SW-57182 -->
 ## Deprecated and run-off carriers are out of scope (MANDATORY step)
 
-A carrier that no longer writes new business is out of scope for every rater ticket unless the
-ticket names it. In Homeowner that is ClearBlue and ClearBlue Specialty (CBS).
+A carrier that no longer writes new business is out of scope unless the ticket names it. In Homeowner that is ClearBlue and ClearBlue Specialty (CBS). Their tests (same scenarios, same assertions), premium (same factors, same result) and seeders (same rows read and written) stay exactly as before, and their configs are never a test subject. Structure around them may change: a shared class can be refactored, or gain members only in-scope classes call. When an in-scope change would alter what a deprecated carrier runs, refactor so it doesn't reach them, such as a new subclass for the in-scope carriers. That refactor is part of the ticket.
 
-Three things must behave for them exactly as before:
+Every rater plan:
 
-- **Tests:** the same tests run, exercising the same scenarios and asserting the same things.
-  Their configs are never a test subject.
-- **Premium calculation:** every quote rates to the same premium, through the same factors.
-- **Seeders:** they read the same rows from their raters and write the same factor rows.
-
-Structure around them may change. A class in their hierarchy can gain members that only in-scope
-classes call, and a class they share can be refactored. When the in-scope carriers need a change
-that would alter what a deprecated carrier runs, refactor so the change doesn't reach them, such as
-a new unified subclass for the in-scope carriers. That refactor is part of the ticket.
-
-Every rater plan names the deprecated and run-off carriers in its states before Part 2's C# change
-list. Its code-complete HARD STOP names each class in the diff that a deprecated carrier runs, and
-shows why its tests, premium and seeding stay the same. Its tests-complete HARD STOP confirms their
-validation tests pass and their baselines show zero diff.
-
-- **What happened:** SW-57182 added assertions to an FL ClearBlue test, changing what it checks.
-  The same ticket then raised members added to product-wide bases as a possible violation, though
-  CBS never calls them.
+- names the deprecated and run-off carriers in its states before Part 2's C# change list
+- at the code-complete HARD STOP, names each class in the diff a deprecated carrier runs and shows its tests, premium and seeding are unchanged
+- at the tests-complete HARD STOP, confirms their validation tests pass with zero baseline diff
 
 ## Plan shape — the same five steps for both products
 
-Steps 1 to 4 are the plan written up front. Step 5 is written at the checkpoint, from the diff.
+Steps 1 to 4 are written up front. Step 5 is written at the checkpoint, from the diff.
 
 1. Branch.
-2. **Place the rater(s).** Find each delivered rater on SharePoint (§ "Find the file yourself") and
-   open its `webUrl` for Eli, who downloads it. Take it from `~/Downloads` and overwrite the
-   canonical rater under `Data/`. A state's E&S rater is one file shared by its carriers, so
-   propagate it byte-identical to every in-scope carrier file and hash-verify.
-3. **Scoping checkpoint — HARD STOP.** Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`.
-   Then run the three tests below in parallel: three `Run-DotnetTest.ps1` calls in one message, each
-   through the PowerShell tool with `run_in_background`. `Run-DotnetTest.ps1` takes one
-   `-FilterMethod`, so each test needs its own call. None of the three rates a premium. The premium
-   comparisons in the same classes rate against seeded factor rows that are still the old ones.
+2. **Place the rater(s).** Find each on SharePoint (§ "Find the file yourself") and open its `webUrl` for Eli to download. Take it from `~/Downloads`, overwrite the canonical rater under `Data/`, propagate it byte-identical to every in-scope carrier file, and hash-verify.
+3. **Scoping checkpoint — HARD STOP.** Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`. Then run the three tests below in parallel, one background `Run-DotnetTest.ps1` call each through the PowerShell tool (it takes one `-FilterMethod`). None of them rates a premium.
 
-   - **`RaterFileContents_ShouldMatchCaptured`** regenerates the baselines, and the `ExpectedResults/`
-     diff shows what the delivery changed.
+   - **`RaterFileContents_ShouldMatchCaptured`** regenerates the baselines. The `ExpectedResults/` diff is what the delivery changed.
      ```
      $env:UPDATE_TEST_EXPECTED_RESULTS='true'; pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" -TicketFolder <folder> -Project Swyfft.Services.Excel.IntegrationTests -FilterTrait "<trait>" -FilterMethod "*RaterFileContents_ShouldMatchCaptured" -NoBuild
      ```
-   - **`VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp`** reports each rater `Versions` default
-     the newest config doesn't have yet, as a check 2 failure (`EXCEL: V3 | LOOKUP: V2`). The baselines
-     can't show these, because their mapped `Versions` cells hold the newest config's versions, not the
-     rater's.
+   - **`VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp`** reports each rater `Versions` default the newest config doesn't have yet (`EXCEL: V3 | LOOKUP: V2`). The baselines can't show these.
      ```
      pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" -TicketFolder <folder> -Project Swyfft.Services.Excel.IntegrationTests -FilterTrait "<trait>" -FilterMethod "*VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp" -NoBuild
      ```
-   - **`InputSheet_AllInputCellsShouldBeWrittenByCSharp`** reports each `Input` cell C# doesn't write,
-     such as a new input row.
+   - **`InputSheet_AllInputCellsShouldBeWrittenByCSharp`** reports each `Input` cell C# doesn't write.
      ```
      pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" -TicketFolder <folder> -Project Swyfft.Services.Excel.IntegrationTests -FilterTrait "<trait>" -FilterMethod "*InputSheet_AllInputCellsShouldBeWrittenByCSharp" -NoBuild
      ```
 
-   `<trait>` is `TestGroup=ByPerilTests` for Homeowner and `TestGroup=Commercial` for Commercial.
-   Every touched sheet in the diff, and every failure from the two sentinel checks, gets a verdict.
-   **This is where provisional becomes verified.**
-4. **Versioning check — HARD STOP.** Run § "The versioning check" on the scoping diff and record
-   every sheet's verdict in the plan. Part 2 is not written until every sheet is versioned or inert.
-5. **Implement** what the diff dictates, seeder first (§ "Implement the seeder first"), then a green
-   full reseed, then the rest of the C#. **Verify**: run the full validation suite, review the
-   regenerated diff, and confirm C# premium equals Excel premium across every index of every affected
-   leaf. Each playbook lists the extra suites its product requires.
-
-## Why the baseline diff, not `DumpRater`
-
-`RaterFileContents_ShouldMatchCaptured` writes canonical, code-controlled inputs through
-`SetExcelValues` before dumping, so the baseline reflects the rater's factors, formulas and structure
-and nothing else. A raw `DumpRater` of the on-disk file also captures whatever stray inputs someone
-left in the workbook from clicking around, which makes it ad-hoc debugging rather than a scoping
-tool. The baseline diff is the same drift-free mechanism at the scoping checkpoint and again at
-verification.
-
-The fact lives on `ExcelRaterValidationTestBase`, so both products inherit it and neither can override
-it away.
+   `<trait>` is `TestGroup=ByPerilTests` for Homeowner and `TestGroup=Commercial` for Commercial. Every touched sheet in the diff, and every failure from the two sentinel checks, gets a verdict.
+4. **Versioning check — HARD STOP.** Run § "The versioning check" on the scoping diff and record every sheet's verdict in the plan. Part 2 waits until every sheet is versioned or inert.
+5. **Implement** what the diff dictates (§ "Implement the seeder first"). **Verify**: run the full validation suite, review the regenerated diff, and confirm C# premium equals Excel premium across every index of every affected leaf, plus the extra suites each playbook lists.
 
 ## Researching rater structure — read the pre-dumped baselines
 
-Every rater's structure is already on disk under
-`Swyfft.Services.Excel.IntegrationTests/ExpectedResults/{TestClass}/`: `_NamedRanges.txt` holds every
-named cell and its target, and the per-sheet dumps hold the rest. To answer a question about a rater's
-current shape, whether a named range exists, what a fee cell's formula is, which fees are wired,
-**read these dumps rather than opening the `.xlsm`**. They need no Excel, and they carry no
-input drift. One grep across the `_NamedRanges.txt` files answers "which raters have this cell" for
-every leaf that has a baseline.
+Answer questions about a rater's current shape from `Swyfft.Services.Excel.IntegrationTests/ExpectedResults/{TestClass}/`, never from the `.xlsm`. `_NamedRanges.txt` holds every named cell and its target, and the per-sheet dumps hold the rest. One grep across the `_NamedRanges.txt` files answers which raters have a given cell.
 
-<!-- Added 2026-09-24 while planning SW-56613 — Eli: verify the actuaries versioned every delivery,
-     on every sheet, not just seeded ones -->
 ## The versioning check (MANDATORY on every delivered rater)
 
-With every `Versions` cell holding the version an existing config's `ByPerilVersionLookup` writes,
-the delivered rater must compute exactly what the old rater computed, for every input an existing
-quote can hold. The parity suite cannot prove this: an unversioned change that C# faithfully
-mirrors passes parity, and the in-force book silently re-rates.
+With every `Versions` cell holding the version an existing config's `ByPerilVersionLookup` writes, the delivered rater must compute exactly what the old rater computed, for every input an existing quote can hold. The parity suite can't prove this: an unversioned change that C# mirrors still passes parity.
 
 Record a verdict for every sheet the diff touches: versioned, inert, or break.
 
-- **A table's values.** Existing versions' rows hold exactly their prior values. New values sit
-  only on a new version's rows. This holds whether C# seeds the table, replicates its formula, or
-  never reads it.
-- **A table versioned for the first time.** The prior table survives unchanged as V1, and every
-  formula reading the table selects on the new version key.
-- **A formula.** A changed calculation branches on a version cell. A reference shifted around an
-  inserted row is inert. That shift happens only on formula sheets, never on data tabs.
-- **The `Versions` sheet and `_NamedRanges.txt`.** Every newly versioned table has its own row and
-  named range. Existing version cells keep their names, because C# writes each one by name through
-  `TableNameToExcelCellVersionName`.
+- **A table's values.** Existing versions' rows keep their prior values, and new values sit only on a new version's rows, whether C# seeds the table, replicates its formula, or never reads it.
+- **A table versioned for the first time.** The prior table survives unchanged as V1, and every formula reading the table selects on the new version key.
+- **A formula.** A changed calculation branches on a version cell. A reference shifted around an inserted row is inert, and that shift happens only on formula sheets, never on data tabs.
+- **The `Versions` sheet and `_NamedRanges.txt`.** Every newly versioned table has its own row and named range. Existing version cells keep their names, since C# writes each one by name through `TableNameToExcelCellVersionName`.
 - **A new input option** is inert only if no existing quote can hold it.
 
-A break is handled by the plan's "Rater defect found during execution" section.
-
-- **What happened:** SW-52867, the LA/TX `Ordinance_Law` values changed unversioned (1.15 on
-  Fire and Hurricane only, to 1.25/1.4/1.65 on all perils). The audit enumerated only the new factor
-  sheets, so the change sat unflagged in the diff artifacts until TX validation failures exposed it.
-  The in-force LA and TX books would have silently re-rated.
+A break goes to the plan's "Rater defect found during execution" section.
 
 ## Validation runs sample configs — they never sweep every version
 
-`ExcelRaterValidationTestBase.GetConfigsForGroup` runs at most five configs per state, carrier and
-rating-type group: the oldest, a midpoint, and the three newest, plus anything a leaf names in
-`AlwaysIncludedConfigs`. A version in the middle of a long chain is not exercised, so a change aimed
-at one of those needs the config named explicitly rather than assumed covered.
+`ExcelRaterValidationTestBase.GetConfigsForGroup` runs at most five configs per state, carrier and rating-type group (the oldest, a midpoint and the three newest), plus anything a leaf names in `AlwaysIncludedConfigs`. A change aimed at a mid-chain version names that config explicitly.
 
 ## The element sweep is sourced from the generators
 
-`EachElementOption_ShouldBeExpected` builds its values from the config's own default element
-generators, taking each choice-bearing element's `DefaultChoices`. It is a blacklist: everything the
-generator offers is swept unless the leaf excludes it. The knobs on the shared base:
+`EachElementOption_ShouldBeExpected` sweeps each choice-bearing element's `DefaultChoices` from the config's own generators, unless the leaf excludes the element. The knobs on the shared base:
 
-- **the exclusion list** — elements the generators offer that no rater rates
-- **`ElementTestValues`** — replaces an element's dynamic values with a fixed set
-- **`ElementCombinationTestValues`** — elements whose values only make sense together, walked as a
-  mixed-radix group
-- **`ElementTestValuesSkipVersions`** — values a given factor version cannot rate
+- **the exclusion list**: elements the generators offer that no rater rates
+- **`ElementTestValues`**: a fixed set replacing an element's dynamic values
+- **`ElementCombinationTestValues`**: elements whose values only make sense together, walked as a mixed-radix group
+- **`ElementTestValuesSkipVersions`**: values a given factor version cannot rate
 
-**`DefaultChoices` is the element's option list, not the rater's ratable set.** An element offering an
-option the rater has no factor row for is a production defect, and catching it is what the sweep is
-for. So the first response is never to narrow the sweep, which hides the finding. Fix the element, or
-get the rows into the rater. If neither fits the ticket, exclude it with a TODO naming the story that
-will. Treat an existing narrowing the same way: it may be suppressing exactly this.
+An option the rater has no factor row for is a production defect, and catching it is the sweep's job. Fix the element or get the rows into the rater; never narrow the sweep first. If neither fits the ticket, exclude it with a TODO naming the story that will. An existing narrowing may be suppressing exactly this.
 
-<!-- Added 2026-10-05 during SW-53906 -->
 ## Rater logic that singles out counties must be swept
 
-The element sweep compares C# with the rater only in the counties it rates. When a delivered rater's
-diff shows a small set of counties, or groups of counties, that the rater treats differently from the
-rest of the state (a formula naming counties, or a lookup that names some and defaults the others),
-the sweep must rate at least one county from each group. Part 2 of the plan, written at the scoping
-checkpoint, adds any county the sweep doesn't already rate.
-
-Data that varies by every county or zip, such as a table with a row for each, is out of scope. It
-singles no county out, and sweeping every location would take far too long.
+When the diff shows the rater treating a small set of counties, or groups of counties, differently from the rest of the state, the sweep rates at least one county from each group. Part 2 adds any county the sweep doesn't already rate. Data with a row for every county or zip singles none out and is out of scope.
 
 ## The sentinel checks prove every cell is written
 
-Two facts on the shared base guard the write side, which the premium comparison cannot see:
-`InputSheet_AllInputCellsShouldBeWrittenByCSharp` fails on any labeled Input cell C# never writes, and
-`VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp` fails on an unwritten non-V1 version cell and
-on an Excel default that disagrees with the config's lookup. An unwritten input silently rates against
-whatever sample value the actuary left in the cell.
-
-Neither proves a cell is ever **varied**. An input can hold its create-time value through every
-iteration and still pass both.
+`InputSheet_AllInputCellsShouldBeWrittenByCSharp` fails on any labeled Input cell C# never writes. `VersionsSheet_AllVersionCellsShouldBeWrittenByCSharp` fails on an unwritten non-V1 version cell and on an Excel default that disagrees with the config's lookup. Neither proves a cell is ever varied.
 
 ## Versioning is mandatory, even with no live policies
 
-A rater change that moves premium or fees must be gated so existing quotes and policies keep their
-original values (`Swyfft.Services/Premium/AGENTS.md` § "No re-rating live business"). This holds even where a carrier has no active book, because the ABQ re-rates
-historical policies. A delivered rater that adds an unversioned premium-affecting factor, or puts real
-values on V1, is a backwards-compatibility break to fix at the rater before any C# is wired.
-
-## Reading each playbook's surfaces list and signal map
-
-Both are thorough, and a rater rarely needs a surface absent from them, but neither is a closed set.
-A ticket touches only a subset of the rows, often one or two. The scoping diff decides which, not the
-ticket, and an off-list surface is not ruled out by its absence.
+A rater change that moves premium or fees is gated so existing quotes and policies keep their values (`Swyfft.Services/Premium/AGENTS.md` § "No re-rating live business"), even where a carrier has no active book, since the ABQ re-rates historical policies. A delivered rater with an unversioned premium-affecting factor, or real values on V1, is fixed at the rater before any C# is wired.
 
 ## A rater service's mappings describe its own rater
 
-When one carrier stays on a different rater from its siblings, give that carrier its own rater service
-carrying its own mappings. Do not guard a shared service so the odd carrier silently skips: a mapping
-that names a cell its rater does not have is the data model lying, and a silent skip hides it forever.
-`CommercialEAndSExcelRaterServiceFLCbs` is the shipped example, holding ClearBlue Specialty's own
-version-cell mappings after FL's other carriers moved to a new rater.
-
+A carrier that stays on a different rater from its siblings gets its own rater service with its own mappings, as `CommercialEAndSExcelRaterServiceFLCbs` does for ClearBlue Specialty. Never guard a shared service so the odd carrier silently skips a mapping its rater doesn't have.

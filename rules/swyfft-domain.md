@@ -2,105 +2,42 @@
 
 ## Swyfft/Insurance Terminology
 
+Every term below is reserved (`comments-docs-and-external-writing.md` § "Swyfft's lexicon is reserved").
+
 - **Quote**: pre-bind price proposal. Has a rating config (e.g., `FL.BSIC.ByPeril.EAndS.V6`).
-- **Policy**: post-bind contract. The result of binding a quote (separate EF entity from `EFQuote`).
-- **Bind** (verb): the act of converting a quote into a policy. Code-level: `*Service.Bind(EFQuote quote) → PolicyNumber` (see `NfipService.Bind`, `Hiscox*Service.Bind`, `VaveServiceBase.Bind`).
-- **Bind** (noun): the binding event. Valid in time-relative usage ("at bind", "pre-bind", "post-bind") and to describe the operation succeeding/failing ("the bind succeeded", "C# bind threw"). Don't use it as a name for the resulting policy or quote.
-- **New business**: a quote or policy written for a first term, as against a renewal of an existing
-  policy.
+- **Policy**: post-bind contract, the result of binding a quote (separate EF entity from `EFQuote`).
+- **Bind** (verb): converting a quote into a policy (`*Service.Bind(EFQuote quote) → PolicyNumber`, e.g. `NfipService.Bind`, `Hiscox*Service.Bind`, `VaveServiceBase.Bind`).
+- **Bind** (noun): the binding event. Use it time-relatively ("at bind", "pre-bind", "post-bind") or for the operation's outcome ("the bind succeeded", "C# bind threw"), never as a name for the resulting policy or quote.
+- **New business**: a quote or policy written for a first term, as against a renewal.
 - **Product line**: Homeowner (HO), Commercial (CO), Flood, DBB.
 - **Element**: an input on a quote that the agent answers. `EFQuoteElement` on the quote, `EFDefaultElement` for the config's set, named by `QuoteElementName`.
-- **Config**: an `IStateConfig` implementer, see § "What identifies a config/IStateConfig" below. In pre-bind writing a bare "config" means this. Any other kind (appsettings, a build configuration) gets named as such, never left as a bare "config".
+- **Config**: an `IStateConfig` implementer (§ "What identifies a config/IStateConfig"). A bare "config" means this. Any other kind (appsettings, a build configuration) is named as such.
 - **Rating type**: E&S or Admitted (`RatingType`).
-- **Calculation method**: ByPeril or Iso (`CalculationMethod`). A different axis from rating type.
-- **Carrier**: the insurer the risk is written with, named by `CarrierCode`.
-- **Hard decline**, **soft decline**, **time-sensitive soft decline**, **referral**: the four decline types, defined in `Swyfft.Services/RiskSelection/AGENTS.md` § "Decline Type Hierarchy". Collectively "declines".
-- **ClosedSet**: a strongly-typed enum-like value (`StateCode`, `CarrierCode`, `ConstraintCode`), one of the classes under `Swyfft.Common/SetDefinitions/`; usage rules in `Swyfft.Common/SetDefinitions/AGENTS.md`. Never the ordinary phrase "closed set" for an exhaustive list.
+- **Calculation method**: ByPeril or Iso (`CalculationMethod`), a different axis from rating type.
+- **Carrier**: the insurer the risk is written with (`CarrierCode`).
+- **Hard decline**, **soft decline**, **time-sensitive soft decline**, **referral**: the four decline types, collectively "declines", defined in `Swyfft.Services/RiskSelection/AGENTS.md` § "Decline Type Hierarchy".
+- **ClosedSet**: a strongly-typed enum-like class under `Swyfft.Common/SetDefinitions/` (`StateCode`, `CarrierCode`, `ConstraintCode`), with usage rules in `Swyfft.Common/SetDefinitions/AGENTS.md`. Never the ordinary phrase "closed set" for an exhaustive list.
 
-Every term above is reserved. See `comments-docs-and-external-writing.md` § "Swyfft's lexicon is reserved".
-
-Eli works pre-bind (quoting). The quote owns the rating config; the policy inherits it. `Swyfft.Services.PostBind` is a separate project covering post-bind automation.
-
-### Code evidence supporting the above
-
-| Claim | Code evidence |
-|---|---|
-| Quote has rating config | `EFHomeownerQuote.QuoteDefinition` (generated nav property) — `EFHomeownerQuoteDefinition` holds the config |
-| Policy is post-bind contract | `EFPolicy` and `EFQuote` are separate entities. `EFQuote.cs:146`: "InsuredEmail is valid until bind, afterwards `tblInsuredLocation.Email` should be used" — explicit lifecycle boundary |
-| Bind is a verb (act of conversion) | `Bind(EFQuote quote)` methods exist on `VaveServiceBase`, `NfipService`, `BritService`, `HiscoxHomeownerService`, `HiscoxFloodService`, `HiscoxDbbService`. `NfipService.Bind` returns `PolicyNumber` — produces a policy |
-| Pre-bind / post-bind are real concepts | Whole project `Swyfft.Services.PostBind`. `PostBindApiController`. `PostBindSettings.cs`: "The account used by post-bind automation processes". `GenerateImsDocument.cs` mentions `PreBindInvoice` doc type |
-| Agents bind quotes (user-facing framing) | UI has a "Bind page" (`EFCommercialQuote.cs:657-659`: "we do not carry over the value... to any input on the Bind page... Once a policy has been bound...") |
+Eli works pre-bind (quoting). The quote owns the rating config and the policy inherits it. `Swyfft.Services.PostBind` covers post-bind automation.
 
 ## HomeownerStateConfig
-- Declaration order has FUNCTIONAL SIGNIFICANCE — `GetAllValuesWithSortOrder()` uses reflection.
-- `EnsureConfigOrderWithDatabase` test verifies declaration order matches DB order (by RenewalOn).
-- When adding a new version: ALWAYS add at END of State/Carrier/RatingType group.
-- Seeder overrides: new version's RenewalOn must be AFTER all previous versions.
-  - **What happened:** NJ BSIC V8 override had RenewalOn before V7's → 426 test failures.
-
-## Seeder Overrides — Purpose
-
-**Why they exist**: Production go-live dates in `Data/QuoteDefinitions.txt` (HO/Commercial) and `Data/Flood/QuoteDefinitions.txt` (Flood) are the dates set by the carrier or regulator — often weeks or months in the future. Without overrides, dev/beta databases would seed those exact dates, meaning agents and QA could not test the new configs until the prod date arrives. Seeder overrides shift the local DB dates earlier so configs are testable in lower environments **immediately** after the code lands.
-
-**Default rule for every new override**: `NewQuotesOn` should be **today or earlier** so the new config is the active version for new quotes the moment the override seeds. `RenewalOn` is constrained by the ordering rule (strictly > predecessor's effective DB RenewalOn) but should also be as early as possible — set it equal to `NewQuotesOn` if the predecessor's RenewalOn is in the past, or one day after the predecessor's RenewalOn if the predecessor's is in the future.
-
-**Override comments: the ticket number and title, nothing else.** A quote-def override entry's comment is `// SW-XXXXX: <title>`, the user story the overrides belong to. Never explain the date math, the ordering rule, or why overrides exist: those are documented once on the override collection itself, and the mechanism is identical for every entry.
-
-**Two separate mechanisms** — different product lines override in different files:
-
-| Product line | Override location | Mechanism |
-|---|---|---|
-| Homeowner | `Swyfft.Seeding/Seeder.cs` → `CustomizeCoreLocalAndDevAndBeta()` | Mutates `core.HomeownerQuoteDefinitions` rows during seeding |
-| Flood | `Swyfft.Services/Helpers/EnvironmentFilters.cs` → `FloodOverrides` (within `#if NONPROD`) | Runtime `Updated()` extension applied during `InitializeQuoteDefinitionsFlood` |
-| Commercial | `Swyfft.Services/Helpers/EnvironmentFilters.cs` → `CommercialOverrides` (within `#if NONPROD`) | Same pattern as Flood |
-| DBB | `Swyfft.Services/Helpers/EnvironmentFilters.cs` → `DbbOverrides` (within `#if NONPROD`) | Same pattern as Flood |
-
-**Don't mix them up** — Homeowner overrides live ONLY in `Seeder.cs`; Flood/Commercial/DBB overrides live ONLY in `EnvironmentFilters.cs`. Don't try to add a Flood entry to `Seeder.cs:SetQuoteDefOverrides` (the param type is `HomeownerStateConfig`).
-
-**Default: always add an override for every new config**. If you're adding a new state config that isn't already live in prod, the dev/beta database has no way to test it without an override — even if the prod go-live is "soon", QA still needs it earlier. Skip the override only when prod go-live is in the past.
+Declaration order is functional: `GetAllValuesWithSortOrder()` reads it by reflection, and `EnsureConfigOrderWithDatabase` checks it against DB order by `RenewalOn`. Add a new version at the end of its State/Carrier/RatingType group.
 
 ## What identifies a config/IStateConfig
-
-A config/IStateConfig is identified by state, carrier, calculation method, and version. In practice
-state, carrier, and version pin it down on their own: no Commercial config/IStateConfig collides at
-all, and the only Homeowner carrier that does is ClearBlue under the deprecated Iso calculation
-method, whose colliding versions were never live at the same time. So when state, carrier, and
-version are given, the reference is exact and there is literally zero ambiguity about which
-config/IStateConfig it refers to.
+State, carrier, calculation method and version identify a config. State, carrier and version alone are exact in practice: no Commercial configs collide, and the only Homeowner collision is ClearBlue under the deprecated Iso method, whose colliding versions were never live together.
 
 ## Generator and Lookup vs Config Versions
+Config, element generator and `ByPerilVersionLookup` versions are independent numbering schemes in Homeowner and Commercial. A new element generator takes the next number after the newest generator for its state, carrier and rating type (in `HomeownerDefaultElementGeneratorFactory.cs` or `UnityHelper_CommercialDefaultElements.cs`), never the version of the config it serves. The config appears only in that factory mapping. A new `ByPerilVersionLookup` carrier class starts at V1 (`Swyfft.Services/Common/CLAUDE.md`).
 
-Config versions, element generator versions and `ByPerilVersionLookup` versions are independent
-numbering schemes, in Homeowner and Commercial. A number in one never implies a number in another.
-
-A new element generator takes the next number after the newest generator for its state, carrier and
-rating type, never the version of the config it serves. Find the newest in
-`HomeownerDefaultElementGeneratorFactory.cs` (Homeowner) or `UnityHelper_CommercialDefaultElements.cs`
-(Commercial). The config appears only in that mapping.
-
-- **What happened:** SW-56006 named new Hadron generators `...HsicV3` after `CommercialStateConfig`
-  V3, copying the ticket. The newest Hadron generator was `...HsicV1`.
-
-A new `ByPerilVersionLookup` carrier class starts at V1 (`Swyfft.Services/Common/CLAUDE.md`).
-
-In external writing, qualify every "V1"/"V2": `HomeownerStateConfig.FLByPerilEAndSHsicV2`,
-`ByPerilVersionLookup.Hadron.V2`, or the generator's full class name.
-
-## Comments and PR Descriptions
-- Describe WHY and WHAT — not the debugging journey.
-- Flag unexpected patterns: `SkipEachElementOptionTest = true`, disabled validation, skipped tests → STOP and ASK.
+## Unexpected patterns
+Flag an unexpected pattern (`SkipEachElementOptionTest = true`, disabled validation, skipped tests), then stop and ask.
 
 ## Carrier Name Mappings
-- Ark = Hadron (legacy name). Class named `Hsic` for FL/LA E&S.
+Ark = Hadron (legacy name). The class is named `Hsic` for FL/LA E&S.
 
 ## Branch-to-Environment Mapping
-
-`development` → dev, `beta` → beta, `master` → **production**.
-
-To determine when a PR deployed to prod, check when its commits arrived on `origin/master` (NOT the merge date of the feature PR into `development`):
+`development` → dev, `beta` → beta, `master` → production. A PR reached prod when its commits arrived on `origin/master`, not when it merged to `development`. The first merge commit after `<commit>` (typically a beta→master PR) is the approximate prod deploy time. Derive it; never call it uncertain.
 
 ```
 git log origin/master --format="%h %ai %s" --ancestry-path <commit>^..origin/master | head -5
 ```
-
-The first merge commit after `<commit>` on `origin/master` (typically a beta→master PR) is the approximate prod deploy timestamp. Don't say "deploy timing uncertain" — derive it.

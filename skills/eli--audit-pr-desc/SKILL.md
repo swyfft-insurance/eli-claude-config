@@ -63,7 +63,7 @@ missing, and nothing else.
 
 ## 1. Read the rules, with actual Read calls, in this turn
 
-Not from memory, not from the SessionStart injection, and **not skipped because the harness says a
+Not from memory, not from the rules loaded at session start, and **not skipped because the harness says a
 file is already in context.** A dedupe notice means the content is available, not that the check
 happened. If a `Read` is deflected, use the content that is there and audit against it anyway.
 The deliverable is the corrected description, never the act of reading.
@@ -92,10 +92,6 @@ Examples of survivors: a fix that lives in a binary the diff cannot show, a ruli
 Slack that explains code that looks wrong, a deviation from the ticket's stated scope.
 
 Fewer sentences than the budget allows is the expected result. The budget is a ceiling.
-
-- **What happened:** a description for four placed raters passed every rule row at 95 of ~100 words
-  and three tagged surprises. Three of the four bold blocks restated seeder, generator and baseline
-  changes the diff showed and a doc comment the diff added.
 
 ## 3. Verdict pass
 

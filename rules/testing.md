@@ -2,55 +2,37 @@
 
 ## FIRST principles govern every test
 
-Every test conforms to FIRST. A test that breaks one of these gets fixed before it lands.
+A test that breaks one of these gets fixed before it lands.
 
-- **Fast** — pick the lowest test class that proves the behavior, so the bulk of coverage lands in
-  unit tests. Integration tests use a real DB and acceptance tests use real externals, which is
-  expected at those levels. A unit test that reaches a DB, the network, or the filesystem is the
-  violation. The class table and the pyramid rule live in the repo's
-  `.claude/rules/dotnet-testing.md` § "Cover new features across the testing pyramid".
-- **Isolated** — no ordering dependency, and no reliance on state another test left behind. Each
-  test arranges the data it asserts on.
-- **Repeatable** — the same result on any machine, in any timezone, on any date. Pin the clock with
-  `Time.SetDateTime(...)`, then write dates as literals rather than as offsets from "now". Never
-  `DateTime.UtcNow`, never unseeded randomness, never a dependence on today's date.
-- **Self-validating** — the test asserts its own pass or fail. Nothing to read off the console,
-  nothing to eyeball.
-- **Timely** — written with the code or before it. § "TDD Hard Stop" below is how that is enforced.
+- **Fast**: use the lowest test class that proves the behavior, so most coverage is unit tests. A unit test that touches a DB, the network or the filesystem is a violation. The class table and pyramid rule are in the repo's `.claude/rules/dotnet-testing.md` § "Cover new features across the testing pyramid".
+- **Isolated**: no ordering dependency and no reliance on another test's state. Each test arranges the data it asserts on.
+- **Repeatable**: the same result on any machine, timezone or date. Pin the clock with `Time.SetDateTime(...)` and write dates as literals, not offsets from now. Never `DateTime.UtcNow`, unseeded randomness, or a dependence on today's date.
+- **Self-validating**: the test asserts its own pass or fail. Nothing to read off the console.
+- **Timely**: written with or before the code (§ "TDD Hard Stop").
 
 ## Never write a test that restates the code
 
-A test earns its place by failing when the behavior is wrong. Two shapes never can. Don't write
-them, and decline a reviewer's request for one.
+A test earns its place by failing when behavior is wrong. Never write these, and decline a reviewer's request for one:
+- **Change-detector tests**: they restate code or a declaration (a factory mapping, a config boundary list, a constant), so they fail on every intentional change and only detect that a change happened.
+- **Tautological tests**: the expected value comes from the code under test.
 
-- **Change-detector test.** It restates the code, usually config or a declaration, so it fails on
-  every intentional change and gets updated in the same commit. It detects that a change happened,
-  never that the change was wrong.
-- **Tautological test.** Its expected value comes from the code under test, so it can't fail on
-  its own.
-
-A declaration, such as a factory mapping, a config boundary list or a constant, has no logic to
-test. A test of one only says the business rule is the business rule.
-
-Captured asserts are the exception. They detect change on purpose, and the diff review is the check
-(`captured-asserts.md`).
+Captured asserts are the exception: they detect change on purpose, and the diff review is the check.
 
 ## TDD Hard Stop
 Bug fixes: write failing test → run → verify it FAILS → HARD STOP for approval → then fix.
 Refactoring: write safety-net test → run → verify it PASSES → HARD STOP for approval → then refactor.
 
 ## Investigation & TDD
-- Don't claim root cause is "confirmed" or "proven" until the TDD test reproduces it. Until then, it's a hypothesis — label it as such.
-- When the bug manifests inside a real service (not at the boundary), use an integration test to reproduce — unit tests with mocked dependencies can't hit the real code path.
-- Before planning a test, research the test infrastructure: which base class, what setup patterns exist, what test data/addresses are available. Don't guess. "Which base class" means listing the ones the target project declares (`grep "public abstract class .*Base"` over it), not defaulting to `UnitTestBase` / `IntegrationTestBase`.
-- Use real data from the failing environment (DB queries, logs) to set up the test scenario. Don't invent synthetic data when you have the actual values.
-- Prefer `[Theory]` with `[MemberData]` over `[Fact]` when testing multiple scenarios of the same behavior.
-- Use the real closed set types (e.g., `AnswerYesNo`, `LimitedWaterDamage`) as theory parameters — never hardcode string values that a closed set represents.
-- Use `GetAllValues().ToTheoryData()` to generate theory data from closed sets.
+- A root cause is a hypothesis, labeled as one, until a test reproduces it.
+- A bug inside a real service gets an integration test. Mocked unit tests can't reach the real code path.
+- Before planning a test, research the infrastructure: the base classes the target project declares (`grep "public abstract class .*Base"` over it, not a default to `UnitTestBase`/`IntegrationTestBase`), its setup patterns, and the available test data and addresses.
+- Build the scenario from the failing environment's real data (DB queries, logs), not synthetic values.
+- Prefer `[Theory]` with `[MemberData]` over `[Fact]` for several scenarios of one behavior.
+- Theory parameters use the real ClosedSet types (e.g. `AnswerYesNo`), never the strings they represent. Generate them with `GetAllValues().ToTheoryData()`.
 
 ## Failure Aggregation
 
-Tests that iterate over multiple inputs (configs, indices, sheets, theory rows) must NOT stop at the first failure. Collect every failure into a list, then throw `AggregateException` at the end so a single run surfaces ALL failures.
+A test that iterates inputs (configs, indices, sheets, theory rows) collects every failure and throws one `AggregateException` at the end. It never stops at the first failure.
 
 ```csharp
 var failures = new List<(string Label, Exception Error)>();
@@ -69,61 +51,14 @@ if (failures.Count > 0)
 }
 ```
 
-Existing examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (both in `Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilValidationTestBase.cs`).
+Examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (`Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilValidationTestBase.cs`).
 
 ## Test addresses
 
-**Unit tests** use `TestAddressHelper.GetTestAddressesFiltered(...)`. They have no database, so a
-shared address is harmless.
+- **Unit tests** use `TestAddressHelper.GetTestAddressesFiltered(productLine:, carrierCode:, ratingType:, state:).First()`. A helper-selected address in a unit test is never a determinism or FIRST Repeatable finding, and never gets reverted to a hardcoded constant. The exception is an address attribute that is the input under test (county, distance to coast, year built, territory): filter or pin for it and say why.
+- **Integration and acceptance tests** hardcode an address no other test class uses.
+- **The address lists in `Swyfft.TestUtilities/ConstantsAndExpects/` are Laurel Nichols'.** Never add, retag or edit one to make a test pass. When a carrier has no address, the test neutralizes the unrelated declines it hits, as `QbeUpgradeConfirmationTests.NeutralizeUnrelatedDeclines` does, and says so in a comment.
 
-```csharp
-var address = TestAddressHelper.GetTestAddressesFiltered(
-    productLine: ProductLine.Homeowner, carrierCode: CarrierCode.Qbe,
-    ratingType: RatingType.EAndS, state: StateCode.NY).First();
-```
+## Setup asserts: verify the arrange before testing behavior
 
-**Integration and acceptance tests** hardcode an address no other test class uses. They run on a
-real database, and the helper's `.First()` hands every class with the same filters the same
-address. Hardcoded addresses also make it easier for Laurel to keep the addresses separate.
-
-- **What happened:** two Commercial integration test classes got `GoodTestAddressFL000` from the
-  helper. Both called `ResetCommercialAddressKey`, and the second threw `Some tests have already
-  reset addressKey`.
-
-**The address lists are Laurel's.** `Swyfft.TestUtilities/ConstantsAndExpects/` is maintained by
-Laurel Nichols. Never add, retag or edit an address there to make a test pass. When no address exists
-for a carrier, the test neutralizes the unrelated declines it hits, the way
-`QbeUpgradeConfirmationTests.NeutralizeUnrelatedDeclines` does, and says so in a comment.
-
-**In a unit test, a helper-selected address is not a determinism finding.** When the test asserts on
-something the address doesn't feed — a decline, a score, a fee — every address the helper returns for
-that product line, carrier, rating type and state proves the same thing, so a different one next run
-changes nothing. Reverting such a lookup to a hardcoded constant makes the test worse, because constants rot
-as address viability changes.
-
-When an address attribute *is* the input under test — county, distance to coast, year built,
-territory — filter or pin for that attribute and say why.
-
-Otherwise helper selection in a unit test is never a defect, and never a FIRST Repeatable violation.
-Repeatable means the same result, not the same scaffolding.
-
-- **What happened:** a helper-sourced address was flagged as non-deterministic, and the recommended
-  fix was to revert to a hardcoded constant.
-
-## Setup asserts — verify the arrange before testing behavior
-
-After arranging a test — especially when a helper/builder/factory creates the subject (a quote,
-policy, etc.) — assert that the subject came out in the state the later assertions depend on,
-before exercising any behavior: the subject was actually created, and the config/property/elements
-those assertions read are populated the way this test needs.
-
-Without these, a test fails confusingly deep in the act/assert phase — or passes vacuously — when
-the real problem is that the helper never produced the required preconditions. A setup assert fails
-loudly at "my arrange is wrong," which is far easier to diagnose. We repeatedly see tests break
-because they never checked that the creation helper built the subject the way the later asserts
-required.
-
-Tie each setup assert to a later assertion — only assert preconditions the behavior asserts
-actually rely on, not arbitrary setup details. If the test later reads an element value off the
-created quote, the setup assert confirms the helper actually populated that element — not merely
-that it returned a quote.
+After arranging a test, especially when a helper or factory creates the subject (a quote, a policy), assert the subject exists and holds the state the later assertions depend on: the config, properties and elements they read. Assert only preconditions a later assertion relies on. If the test reads an element off the created quote, the setup assert confirms the helper populated that element, not merely that it returned a quote.

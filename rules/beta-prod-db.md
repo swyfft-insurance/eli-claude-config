@@ -1,17 +1,10 @@
 # Beta / Dev / Prod-Copy Database Access
 
 ## Data Availability
-
-**Investigating prod records (quotes, policies, prod failures): point at prod-copy by default.** The prod-copy exists exactly for this — real prod data, read-only. Use beta only when the subject is the beta *environment itself* (beta-only bugs, pre-release verification), not as a stand-in for prod data.
-
-Beta refresh timing: prod data is copied to beta **every Monday**. Any prod record (quote IDs, policy numbers, element states) that existed before the most recent Monday copy is in beta; records created after the most recent Monday copy are not.
+Investigate prod records (quotes, policies, prod failures) against prod-copy, which holds real prod data read-only. Use beta only when the subject is the beta environment itself (beta-only bugs, pre-release verification). Beta can also miss records. Prod is copied to beta every Monday, so beta has only records that existed before the most recent Monday. Never query beta as a shortcut because you can reach it and Eli has to run prod-copy: when the question needs prod data, hand Eli the prod-copy query.
 
 ## Scenario 1: Ad-hoc Queries Against Remote Databases
-
-1. Follow the query construction rules in `db-querying.md` (validate on localhost, use JOINs, no hardcoded IDs)
-2. Present the validated query to the user
-3. The user runs it against dev/beta/prod-copy on your behalf
-- Never connect directly to remote databases via sqlcmd
+Follow `db-querying.md` § "Remote Database Queries". Never ask the user to run a query against prod itself; prod-copy is the target.
 
 ### Prod-Copy Database
 
@@ -23,13 +16,8 @@ Beta refresh timing: prod data is copied to beta **every Monday**. Any prod reco
 | Encrypt | Mandatory (Trust Server Certificate) |
 | Access | **read-only** |
 
-Prod-copy is the default target for any query about prod records (see "Data Availability" above). Beta is not a stand-in for prod data — beyond being a stale weekly snapshot, it can also miss records (beta-copy anomalies).
-
-Never ask the user to run a query against prod directly — Eli has no write access, and the prod-db hook blocks it anyway. Prod-copy is the right target.
-
 ### IMS Prod-Copy Database (on-prem)
-
-IMS is on-prem SQL Server, not Azure. The weekly Monday refresh from prod populates `SwyfftImsStaging`, which serves as the prod-copy. Use it for any query mirroring prod IMS-reading code (storm exclusions, IMS claim lookups, `tblQuotes` / `tblClaims_Claim` / `tblClaimInformation` / `lstClaims_CatastropheCodes`). The Azure Core/Rating prod-copy doesn't have IMS tables.
+IMS is on-prem SQL Server, and the Azure prod-copy has no IMS tables. Use `SwyfftImsStaging` (refreshed from prod every Monday) for any query mirroring prod IMS-reading code (storm exclusions, IMS claim lookups, `tblQuotes` / `tblClaims_Claim` / `tblClaimInformation` / `lstClaims_CatastropheCodes`). Prefer it over `SwyfftImsTest` on the same server, which has been out of sync.
 
 | Property | Value |
 |---|---|
@@ -39,19 +27,15 @@ IMS is on-prem SQL Server, not Azure. The weekly Monday refresh from prod popula
 | Trust Server Certificate | Yes |
 | Access | **read-only** in practice (refresh target, not the prod write source) |
 
-`SwyfftImsTest` exists on the same server but has been flagged out-of-sync historically — prefer `SwyfftImsStaging`.
-
 **SSMS**: Server `swyfftimstestdb.swyfft.com`, Windows Authentication, Options → Connection Properties → Connect to database → `SwyfftImsStaging`, check Trust Server Certificate.
 
-**sqlcmd (Linux/WSL — needs Kerberos ticket first)**:
+**sqlcmd** (Windows Authentication; VPN required; on Linux/WSL run `kinit eli.koslofsky@CORP.SWYFFT.COM` first):
 ```bash
-kinit eli.koslofsky@CORP.SWYFFT.COM   # VPN required
-sqlcmd -S swyfftimstestdb.swyfft.com -d SwyfftImsStaging -E -C
+sqlcmd -S swyfftimstestdb.swyfft.com -d SwyfftImsStaging -E -C -Q "SELECT ..."
 ```
 
 ## Scenario 2: Pointing Local Tests at Dev / Beta / Prod-Copy
-
-All three environments are **read-only** — any code path that writes to the DB will fail. That's a safety net, not a bug. Use it.
+All three environments are read-only, so any code path that writes to the DB fails.
 
 ### Environment reference
 
@@ -62,15 +46,10 @@ All three environments are **read-only** — any code path that writes to the DB
 | Prod-copy | `master` | `swyfftsqleastus2.database.windows.net` | `SwyfftCoreProd` | `SwyfftRatingProd` |
 
 ### Branch vs environment schema
-
-Each environment's schema is migrated by its deployment branch (table above; prod-copy carries prod's schema, so `master`'s). Code from a different branch runs fine against the environment until the branch's migrations are out of sync with the environment's schema. Migration drift can surface as a whole assortment of schema-mismatch failures anywhere an entity is queried or mapped — `IndexOutOfRangeException: <ColumnName>` (the generated `EF*_Generated.cs` mappers read result-set columns by name), `SqlException: Invalid column name` / `Invalid object name` (a column or table named in the SQL doesn't exist in the environment), type-conversion errors on a changed column, among others. When a run against a remote environment fails with any schema-shaped error, the fix is to check out the environment's deployment branch, rebuild, and re-run.
-  - **What happened:** `development` code against `SwyfftCoreBeta` threw `IndexOutOfRangeException: OfacMatchStatus` — a `development` migration beta didn't have yet.
-
-Prod-copy is the default for investigating prod records; beta only when the subject is the beta environment (see Scenario 1 § "Data Availability").
+Each environment's schema comes from its deployment branch (prod-copy carries `master`'s). Code from another branch fails once its migrations drift from the environment's schema: `IndexOutOfRangeException: <ColumnName>` from the generated `EF*_Generated.cs` mappers, `SqlException: Invalid column name` / `Invalid object name`, type-conversion errors, and others. On any schema-shaped error, check out the environment's deployment branch, rebuild, and re-run.
 
 ### Appsettings template
-
-Edit `Swyfft.Common/appsettings.json`. Replace `SwyfftCore`, `SwyfftCoreSecondary`, `SwyfftRating`, `SwyfftRatingSecondary`:
+Edit `Swyfft.Common/appsettings.json`, replacing `SwyfftCore`, `SwyfftCoreSecondary`, `SwyfftRating` and `SwyfftRatingSecondary`:
 
 ```jsonc
 "SwyfftCore":           "Data Source=<SERVER>;Initial Catalog=<CORE_DB>;Encrypt=True;App=Swyfft.Web;Max Pool Size=20000;Connection Timeout=60;Authentication=Active Directory Default;User ID=placeholder;",
@@ -79,40 +58,24 @@ Edit `Swyfft.Common/appsettings.json`. Replace `SwyfftCore`, `SwyfftCoreSecondar
 "SwyfftRatingSecondary":"Data Source=<SERVER>;Initial Catalog=<RATING_DB>;Encrypt=True;App=Swyfft.Console;Connection Timeout=60;Authentication=Active Directory Default;User ID=placeholder;",
 ```
 
-- `User ID=placeholder` is a dummy value — satisfies the connection string parser. Bypasses `CachedAzureAdAuthTokenRequirements` (otherwise: `Login failed for user ''`)
-- `Authentication=Active Directory Default` picks up the cached Azure AD token from Visual Studio / Azure CLI — no MFA prompt if you're already signed in.
+`User ID=placeholder` is a dummy that bypasses `CachedAzureAdAuthTokenRequirements` (otherwise: `Login failed for user ''`). `Authentication=Active Directory Default` uses the cached Azure AD token from Visual Studio or Azure CLI.
 
 ### Prerequisites
+VPN connected, and Visual Studio signed in with Azure AD (or `az login`). When switching to the environment's branch (e.g., `git checkout beta`), do that first.
 
-- VPN connected
-- Visual Studio signed in with Azure AD (or `az login`)
-- If switching branches to match env (e.g., `git checkout beta`), do that too
-
-### Required env vars to run integration tests against beta/prod-copy (don't waste time on this again)
-
-Set BOTH in the test-run shell, and `az login` must be current:
+### Required env vars to run integration tests against beta/prod-copy
+Set both in the test-run shell, with `az login` current:
 
 ```
 $env:AZURE_TOKEN_CREDENTIALS = 'dev'   # so DefaultAzureCredential uses your az/VS token
 $env:GITHUB_ACTIONS          = 'true'  # bypass the read-only TestGlobalIds write (see next section)
 ```
 
-- **`AZURE_TOKEN_CREDENTIALS=dev` is mandatory.** The connections use `Authentication=Active Directory Default` → `DefaultAzureCredential`. Without this var the in-process chain skips the dev credentials (Azure CLI / Visual Studio) and falls through to `ManagedIdentityCredential` (Azure-VM-only), failing with `ManagedIdentityCredential authentication failed … IMDS … 169.254.169.254 … unreachable`. Setting it to `dev` restricts the chain to dev creds, so it uses your `az login` token.
-- **A passing `az account get-access-token` is necessary but NOT sufficient** — the token can be valid yet unused without `AZURE_TOKEN_CREDENTIALS=dev`. Verify the token exists with `az account get-access-token --resource https://database.windows.net/ --query expiresOn -o tsv` (future timestamp = good; error → `! az login`), then still set the var.
-- **`GITHUB_ACTIONS=true`** — bypasses the read-only counter write; see the next section.
+- Without `AZURE_TOKEN_CREDENTIALS=dev`, `DefaultAzureCredential` skips the Azure CLI / Visual Studio credentials and fails with `ManagedIdentityCredential authentication failed … IMDS … 169.254.169.254 … unreachable`. A valid `az account get-access-token` doesn't help without it. Check the token with `az account get-access-token --resource https://database.windows.net/ --query expiresOn -o tsv` (an error means `! az login`).
+- `GITHUB_ACTIONS=true` skips the read-only counter write; see the next section.
 
 ### Read-only DB workaround (GITHUB_ACTIONS flag)
-
-`Swyfft.Test.Base.GlobalPersistentCounter` writes to `dbo.TestGlobalIds` on every test-ID reservation. Against a read-only DB (like prod-copy), this fails with `UPDATE permission was denied on the object 'TestGlobalIds'` before the actual test runs.
-
-Bypass: set `GITHUB_ACTIONS=true` in the test-run shell. `GlobalPersistentCounter` switches to the Linux code path (`TestId.NewLinuxId()`) — pure in-memory `Interlocked.Increment`, no SQL.
-
-**Caveats** — other code paths also check `IsGithubActions()`:
-- `KeyVaultSecretsProvider` — alters the secrets-loading code path (skips local secrets).
-- `Log4NetConfigurator` — uses a different logging config.
-
-For audit-mismatch reproduction tests these haven't caused issues, but if a test fails in a weird way while this flag is set, suspect the flag first.
+`Swyfft.Test.Base.GlobalPersistentCounter` writes to `dbo.TestGlobalIds` on every test-ID reservation, which fails on a read-only DB with `UPDATE permission was denied on the object 'TestGlobalIds'`. With `GITHUB_ACTIONS=true` it uses the in-memory `TestId.NewLinuxId()` path instead. The flag also changes `KeyVaultSecretsProvider` (skips local secrets) and `Log4NetConfigurator` (different logging config). If a test fails oddly with the flag set, suspect the flag first.
 
 ### When done
-
-REVERT `appsettings.json` to local defaults. Don't commit connection string changes.
+Revert `appsettings.json` to local defaults. Never commit connection string changes.

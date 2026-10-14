@@ -1,32 +1,30 @@
 # Quote-def Dates: real vs override, and what gets seeded
 
 Every quote def has two independent date pairs (`NewQuotesOn`, `RenewalOn`):
+- **Real / prod**: in `QuoteDefinitions.txt`. Governs prod.
+- **Override**: local/dev/beta only, for testing a config before its prod go-live. Each product line keeps its overrides only in its row's file below. `Seeder.cs`'s `SetQuoteDefOverrides` takes only a `HomeownerStateConfig`.
 
-- **Real / prod**: in `QuoteDefinitions.txt`. The production go-live; governs prod.
-- **Override**: in `Seeder.cs` → `CustomizeCoreLocalAndDevAndBeta`. Local/dev/beta only; lets you
-  test a config before its prod go-live.
+| Product line | Override location | Mechanism |
+|---|---|---|
+| Homeowner | `Swyfft.Seeding/Seeder.cs` → `CustomizeCoreLocalAndDevAndBeta()` | Mutates `core.HomeownerQuoteDefinitions` rows during seeding |
+| Flood | `Swyfft.Services/Helpers/EnvironmentFilters.cs` → `FloodOverrides` (within `#if NONPROD`) | Runtime `Updated()` extension applied during `InitializeQuoteDefinitionsFlood` |
+| Commercial | `Swyfft.Services/Helpers/EnvironmentFilters.cs` → `CommercialOverrides` (within `#if NONPROD`) | Same pattern as Flood |
+| DBB | `Swyfft.Services/Helpers/EnvironmentFilters.cs` → `DbbOverrides` (within `#if NONPROD`) | Same pattern as Flood |
 
-New configs often sit at a parked far-future placeholder date until go-live is known; **activating**
-= swapping that placeholder for the real date.
+- A seeded DB (local/dev/beta) gets the override when one exists, else the `QuoteDefinitions.txt` date. Prod has no overrides.
+- Activating a config (swapping its parked far-future placeholder for the real date) changes only `QuoteDefinitions.txt`. The override stays and still governs the seeded date, so a config's effective date is its override.
+- A test that reads the seeded DB sees the override. One that reads `QuoteDefinitions.txt` or in-memory configs sees the real date.
+- Ordering tests: `Swyfft.Services/Common/Homeowner/CLAUDE.md` §§ "QuoteDefinitions.txt Ordering" and "Seeder Override RenewalOn Must Be Monotonically Increasing".
 
-**Seeded DB (local/dev/beta)** = the override if the config has one, else its `QuoteDefinitions.txt`
-date. The override replaces the real date at seed time. Prod has no overrides, so prod = real dates.
+## Computing a new override's dates
 
-**Activating does not remove the override.** It only changes the `QuoteDefinitions.txt` date. The
-override stays and keeps governing the seeded date, so read `Seeder.cs` for a config's effective
-date; don't assume the real one.
+Every new config whose prod go-live is in the future gets an override. Skip it only when go-live is past.
+- **`NewQuotesOn`**: today or earlier, unique in the family.
+- **`RenewalOn`**: strictly after the predecessor's effective `RenewalOn`, unique in the family. Equal to `NewQuotesOn` when the predecessor's `RenewalOn` is past, otherwise one day after the predecessor's.
+- **Predecessor**: the config declared immediately before the new one in its State/Carrier/RatingType group. Its effective `RenewalOn` is its override if it has one, else its `QuoteDefinitions.txt` date.
+- `EnsureConfigOrderWithDatabase` and `HoQuoteDefs_WithNonProdOverrides_ShouldNotViolateUniqueIndexes` enforce these. `/eli--prebind-validation` runs both; don't hand-verify.
 
-**A test sees** the override (effective) date if it reads the seeded DB, or the real date if it reads
-`QuoteDefinitions.txt` / configs in-memory.
+An override entry's comment is `// SW-XXXXX: <title>` and nothing else.
 
-Ordering tests that consume these dates: `Swyfft.Services/Common/Homeowner/CLAUDE.md` §§
-"QuoteDefinitions.txt Ordering" and "Seeder Override RenewalOn Must Be Monotonically Increasing".
-
-## Finding stale overrides: the `/eli--quote-def-override-audit` skill
-
-Once a config's real prod `NewQuotesOn` is in the past, its override has done its job (early
-dev/beta testing before go-live) and is a removal candidate. Don't hand-compare the override array
-against `QuoteDefinitions.txt` to find these. Run `/eli--quote-def-override-audit`. It deterministically
-lists every HO/Flood/DBB override whose config is already live in prod (the removal candidates),
-leaving alone the ones not yet live or with no prod row. Report-only; deciding to remove is a
-separate step.
+## Finding stale overrides
+An override whose config's prod `NewQuotesOn` is past is a removal candidate. Find them with `/eli--quote-def-override-audit` (HO/Flood/DBB, report-only), never by hand-comparing against `QuoteDefinitions.txt`.

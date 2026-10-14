@@ -21,6 +21,7 @@ Optional flags after the mode:
 - `-StatOnly` — show `--stat` summary only
 - `-Path "path/to/file"` — scope to a specific file
 - `-Base "origin/<branch below>"`: compare `branch` or `all` against that ref instead of `origin/development`. Use it for a branch in a gh stack.
+- `-RepoRoot "<path>"`: diff a different repo, such as `$HOME/.claude`. Defaults to swyfft_web.
 
 ## Run
 

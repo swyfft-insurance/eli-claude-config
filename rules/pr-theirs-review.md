@@ -2,36 +2,24 @@
 
 ## Before reading the diff
 
-1. **Deeply understand the ticket**: Invoke `/eli--read-ticket` to read the YouTrack ticket linked in the PR. If it's an epic or parent ticket, read the child/linked tickets to find the one this PR actually implements. You MUST be able to explain the ticket's purpose in your own words before touching the diff. If the PR doesn't obviously match the ticket's scope, investigate why — don't hand-wave it.
-2. **Understand the existing code**: Use `git show development:path/to/file` to read the base branch version of files the PR touches — NEVER checkout another branch. Read callers and usages too. Understand the behavior and constraints as if you were going to implement the ticket yourself. Form your own mental model of the problem.
-3. **Read existing comments/reviews**: Fetch all review comments and bot reviews on the PR. Note which points are valid, which are already addressed, and which you want to verify yourself.
+1. Read the PR's ticket with `/eli--read-ticket`. For an epic or parent, find the child this PR implements. Be able to state the ticket's purpose before touching the diff, and investigate any mismatch between the PR and the ticket's scope.
+2. Read the base version of every touched file with `git show development:path/to/file` (never check out another branch), plus callers and usages, until you understand the problem well enough to implement it yourself.
+3. Read every existing review comment and bot review, noting which points are valid, already addressed, or worth verifying.
 
 ## Reviewing the diff
 
-- Only comment on fundamental bugs or red flags. No nits, no style comments.
-- **Keep findings short.** See `comments-docs-and-external-writing.md` § "PR review prose: the shortest thing that lands the point".
-- **Inline comments only**: When a comment is about a specific file/line, post it as an inline review comment (via `pr-review.py comment --inline`, which attaches each finding to its `path`/`line`). Top-level review comments are for general feedback that doesn't target a specific location.
-- **Subagent caps**: If you delegate any part of the review to a subagent, the hard caps in `pre-pr-review.md` apply (time, file-read, trace depth, output, stop-early).
+- Comment only on fundamental bugs or red flags. No nits, no style.
+- A finding about a specific file/line is an inline comment (`pr-review.py comment --inline`). Top-level comments are for feedback with no location.
+- A subagent doing any part of the review gets the hard caps in `pre-pr-review.md`.
 
 ## Presenting PRs to Eli
 
-**ALWAYS name the author when presenting a PR. Every single time. No exceptions.**
-
-Eli needs the human context — who wrote it — every time a PR is mentioned. This applies to:
-
-- Summary tables (Author column is mandatory)
-- Recommendation groupings ("#20760 (justinswyfft)", not just "#20760")
-- Single-PR mentions in prose
-- Follow-up restatements ("the 5 remaining" → list them with authors again)
-- Standup, status updates, anywhere
-
-If you find yourself writing a list of PR numbers with no authors attached, stop and rewrite the list. The author is not optional metadata — it's primary context for Eli's decisions.
+Name the author every time a PR is mentioned: tables (an Author column), groupings ("#20760 (justinswyfft)"), prose, follow-up restatements, standups.
 
 ## Posting the review
 
-- **All posting goes through `~/.claude/scripts/pr-review.py`** (`approve [--inline <json>]` / `comment --inline <json>` / `request-changes --body-file <f>`). Raw `gh pr review`, `gh pr comment`, and `gh api ... POST .../reviews|/comments` are blocked by the pretooluse hook. The script sends bodies verbatim via `gh api --input` and reads each one back to confirm it landed — exit non-zero means nothing reliable posted, so don't claim success. Reads (`gh pr view`, `gh api ... GET`) are not blocked.
-- **Gate 2 applies.** NEVER approve, request changes, or post comments without drafting your review and getting explicit approval first. Present your findings and recommendation, then wait.
-- **Approvals don't need body text.** Once findings are presented and the user says to approve, just run `pr-review.py approve <PR#>`. Don't draft "approval text" — the findings themselves are the review.
+- All posting goes through `~/.claude/scripts/pr-review.py` (`approve [--inline <json>]` / `comment --inline <json>` / `request-changes --body-file <f>`). Raw `gh pr review`, `gh pr comment` and `gh api ... POST .../reviews|/comments` are blocked; reads are not. A non-zero exit means nothing reliable posted.
+- Approvals carry no body text. Once Eli says approve, run `pr-review.py approve <PR#>`.
 
 ## Review actions (least to most severe)
 
@@ -39,13 +27,13 @@ If you find yourself writing a list of PR numbers with no authors attached, stop
 |---|---|---|
 | **Approve** (no body) | Clean, nothing to say | Counts toward required approvals |
 | **Approve** + top-level comment | Approved, with an optional observation | Approved; comment is FYI only |
-| **Approve** + inline comment | Approved overall, but this specific thing needs to be addressed | Approved, BUT inline thread blocks merge until resolved |
-| **Comment only** | Not ready to approve — has concerns that need discussion | No approval counted, no hard block |
-| **Request Changes** | Same spirit as Comment, but stronger — this PR is dangerous to merge as-is | Hard block — author must address and re-request review |
+| **Approve** + inline comment | Approved overall, but this specific thing needs to be addressed | Approved, but the inline thread blocks merge until resolved |
+| **Comment only** | Not ready to approve; has concerns that need discussion | No approval counted, no hard block |
+| **Request Changes** | Like Comment, but this PR is dangerous to merge as-is | Hard block: author must address and re-request review |
 
 ## Comment types
 
 | Type | Blocking? | Use for |
 |---|---|---|
 | **Top-level** (body text) | No | Optional suggestions, general observations, FYI |
-| **Inline** (on specific lines) | Yes — thread must be resolved before merge | Questions, issues, or suggestions that the author must address (not necessarily fix — they may resolve by explaining why no change is needed) |
+| **Inline** (on specific lines) | Yes, the thread must be resolved before merge | Questions, issues or suggestions the author must address, by fixing or by explaining why no change is needed |

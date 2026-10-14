@@ -99,10 +99,6 @@ Step 5 opens in this order, one message each:
 1. The AC list, ending `Plan against these? (y/n)`.
 2. The questions, one per message.
 
-- **What happened:** SW-53906's first Step 5 message carried the AC list, the plan type call and
-  the first architecture question. Once they were split apart, the plan type call went out alone
-  with no question, and Eli had nothing to answer.
-
 **Every question must carry its evidence inline**, because the user has no source material in front of them otherwise:
 1. **Verbatim ticket text:** quote the ticket text the decision turns on, word for word. Never paraphrase it, and never quote text the decision doesn't turn on. If the decision is not ticket-derived, say so explicitly: "(not in the ticket, discovered in code)".
 2. **The relevant code excerpt** with `file:line`, showing exactly what changes.
@@ -308,7 +304,7 @@ After writing the plan file, prompt:
 
 ## Quick reference — rules this skill enforces
 
-- `plan-mode.md` Part A (How to PLAN): Discuss Before Drafting; No Deferred Decisions; Q&A Options Must Be Genuine
+- `plan-mode.md` Part A (How to PLAN): Discuss Before Drafting; No Deferred Decisions
 - `plan-mode.md` Part B (Required Content): Plan File Preamble; Subsystem Pre-Reads; the plan-file Step sequence; Plan Types; Seeder Overrides; Verification Section Structure
 - `talking-to-eli.md`: Don't Offer Anti-Pattern Options; Question format (single-word/number answers)
 - `core-behavior.md`: Gates 1, 1.5, 2, 3 throughout

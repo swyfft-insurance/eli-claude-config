@@ -1,108 +1,39 @@
 # Test Execution
 
 ## Test Scope
-- Match test scope to change scope. Changed one test file? Run that test. Changed production code? Run the tests that cover it. Don't default to running the full suite.
-- The user will run CI themselves if needed.
+Match test scope to change scope: a changed test file runs that test, and changed production code runs the tests that cover it. Never default to the full suite.
 
 ## xUnit v3 MTP
-- Trait filter (when RUNNING via `dotnet test` / `Run-DotnetTest.ps1`): `-- --filter-trait "TestGroup=GroupName"` (NOT `--filter-class`)
-- ByPeril Excel tests: ALWAYS use `-- --filter-trait "TestGroup=ByPerilTests"`. Unfiltered = 900+ tests (45 min).
+- Run by trait with `-- --filter-trait "TestGroup=GroupName"` (not `--filter-class`).
+- ByPeril Excel tests always run with `-- --filter-trait "TestGroup=ByPerilTests"`. Unfiltered is 900+ tests (45 min).
 
 ### ByPeril Excel validation: never split the whole suite into per-state runs
 
-When a change touches a handful of states, run those states' suites concurrently, one
-`Run-DotnetTest.ps1` call per state.
+A change touching a few states runs those states' suites concurrently, one `Run-DotnetTest.ps1` call per state. When those states make up all or nearly all of the suite (compare with `-ListTests -ListLevel classes`), run the suite once with `-FilterTrait "TestGroup=ByPerilTests"` and no namespace filter.
 
-When those states add up to the whole suite, or close to it, run the suite once:
-`-FilterTrait "TestGroup=ByPerilTests"`, no namespace filter. To check, list the suite's classes
-(`-ListTests -ListLevel classes`) and compare them with the states you'd run.
+### Listing tests: read-only discovery (`-ListTests`)
 
-- **What happened:** SW-57182 launched 18 per-state runs at once. Together they were exactly the
-  full suite's 39 classes, and they crashed Eli's machine.
+`-ListTests` enumerates a project's tests without running any: no DB, no seeding, no captured results. Use it to see what a skill or trait covers, to check a filter before a real run, and to avoid listing in a plan a test a skill already runs (plan-mode § "Never list a test a verification skill already runs").
 
-### Listing tests — read-only discovery (`-ListTests`)
+- Any project or trait: `Run-DotnetTest.ps1 -TicketFolder <SW-XXXXX-title> -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
+- The PreBind (residential) set, grouped by project: `Run-PreBindValidation.ps1 -TicketFolder <SW-XXXXX-title> -ListTests`
+- `-ListLevel`: `full` (complete discovery data), `tests` (display names), `methods` (class and method, the default), `classes`, `traits`.
+- Pass `-NoBuild` when the project is built and unchanged; the list is then instant. Otherwise omit it so the project builds first, and run it in the background.
 
-**What it does:** enumerates the tests in a project — by class, method, trait, or full display
-name — **without executing any of them.** No DB, no seeding, no side effects, no captured results.
-It's how you see what a suite or skill actually covers before you run it or rely on it.
+`dotnet test` can't list (`--list-tests` silently lists nothing). Listing is xUnit's native CLI (`dotnet run --project <P> -- -list <level>`, single-dash filters), which the wrapper drives for you.
 
-**When to use it:**
-- Discover what a validation skill or trait actually covers (is my change's test in this set?).
-- Verify a `-FilterTrait`/`-FilterClass` matches what you expect before a real run.
-- Avoid listing in a plan a test a skill already runs (see plan-mode § "Never list a test a
-  verification skill already runs").
-
-**How to run it:**
-- Any project/trait: `Run-DotnetTest.ps1 -TicketFolder <SW-XXXXX-title> -Project <P> -ListTests [-ListLevel full|classes|methods|tests|traits] [-FilterTrait "TestGroup=X"] [-NoBuild]`
-- The PreBind (residential) set across its three projects, grouped by project:
-  `Run-PreBindValidation.ps1 -TicketFolder <SW-XXXXX-title> -ListTests`
-- `-ListLevel`: `full` = complete discovery data; `tests` = display names; `methods` = class+method
-  (default); also `classes`, `traits`.
-- `-NoBuild`: use it when the project is already built and unchanged since — the list is then
-  instant and read-only, no need to background. If the project isn't built or its sources changed,
-  omit `-NoBuild` so it builds first, and background it (that build contends with anything else in
-  flight).
-
-**Why the wrapper, not `dotnet test`:** listing is an xUnit v3 **native-CLI** feature reached via
-`dotnet run --project <P> -- -list <level>`; `dotnet test` has no list capability (`--list-tests`
-there silently lists nothing). Native-CLI filters are single-dash (`-trait`, `-class`, `-method`,
-`-namespace`) — the wrapper translates `-FilterTrait`/`-FilterClass`/etc. for you and locates the
-built assembly itself.
-
-## PreBind Validation Tests
-See `~/.claude/rules/captured-asserts.md` for commands and regeneration guidance.
-
-## Validation surface is per product line — don't default to the HO suite
-
-`/eli--prebind-validation` runs `TestGroup=PreBindResidentialValidationTests`, a curated list of
-tests to run for most non-Commercial changes, especially Homeowner. Match the surface to the
-product line before validating a change:
+## Validation surface is per product line: don't default to the HO suite
 
 | Product line | Validation surface |
 |---|---|
-| Homeowner / residential | `/eli--prebind-validation` — captured asserts, config-ordering, quote-def index guards |
+| Homeowner / residential | `/eli--prebind-validation`: captured asserts, config-ordering, quote-def index guards |
 | Commercial | premium-parity tests `CommercialEAndSValidationTests{Carrier}{State}` and `CommercialAdmittedValidationTests{Carrier}{State}` in `Swyfft.Services.Excel.IntegrationTests` (`TestGroup=Commercial`); commercial captured asserts via `SeedingCoreBruteForceTest`'s `EFCommercialQuoteDefinition` case (`Swyfft.Seeding.IntegrationTests`, `CapturedAssertTests`) and every `Export…_ShouldBeConsistent` test on `CommercialAllRisksTests` (`Swyfft.Console.IntegrationTests`, `CapturedAssertTests`) |
 
-Never assume a skill applies across product lines because it's the one you usually reach for.
+`/eli--prebind-validation` runs `TestGroup=PreBindResidentialValidationTests`, tests curated for most non-Commercial changes. Many of them also cover Commercial: `DefaultElementGeneratorTests.GetDefaultElementsForState` (`Swyfft.Services.UnitTests`) takes the newest config in every product line, carrier, state and rating type group across Flood, Homeowner, Commercial, HoDbb and CoDbb. List a suite and read what it covers before ruling it in or out for a product line.
 
-### The trait says these tests are relevant for residential, not that they exclusively cover it
+## Test Output: Run-DotnetTest.ps1
 
-`PreBindResidentialValidationTests` is a curated list of tests to run for most non-Commercial
-changes. Many of those tests also cover Commercial. A set being relevant for Homeowner and Flood
-does not mean its surfaces exclusively cover those products, so read what a test covers before
-ruling the suite out for another product line.
-
-`DefaultElementGeneratorTests.GetDefaultElementsForState` (`Swyfft.Services.UnitTests`) is one. It
-builds its config list from Flood, Homeowner, Commercial, HoDbb and CoDbb, taking the most recent
-config in each product line, carrier, state and rating type group.
-
-### Discover a suite's coverage before relying on it
-Unsure what a suite covers, or which surface applies to your product line? List it first (see
-§ "Listing tests — read-only discovery" above), read the result, then find the equivalent for your
-line. Never assume a skill covers your work because it's the one you usually reach for.
-
-## Test Output — Run-DotnetTest.ps1
-
-**All test execution must go through `~/.claude/scripts/Run-DotnetTest.ps1`.** The pretooluse hook blocks raw `dotnet test` commands.
-
-The script enforces: Tee-Object, `--output Detailed`, `--report-trx`, and deterministic filenames.
-
-### Filename format
-```
-{branch}_{project}_{filters}_{timestamp}.txt
-```
-
-Example:
-```
-feature-ek-20260421_SW-49862_consolidate_Swyfft.Services.Excel.IntegrationTests_filter-trait-TestGroup=ByPerilTests_20260421-1430.txt
-```
-
-On development:
-```
-development_Swyfft.Services.UnitTests_filter-class-QuoteServiceTests_20260421-1500.txt
-```
-
-### How to call
+All test runs go through `~/.claude/scripts/Run-DotnetTest.ps1`; the pretooluse hook blocks raw `dotnet test`.
 
 ```bash
 pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
@@ -111,20 +42,8 @@ pwsh -NoProfile -File "$HOME/.claude/scripts/Run-DotnetTest.ps1" \
   -FilterTrait "TestGroup=ByPerilTests"
 ```
 
-Parameters: `-TicketFolder` (REQUIRED — the ticket work-folder name under `~/.claude/tickets/`; output lands in its `artifacts/tests/`), `-Project` or `-Solution` (one required), `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`.
+Parameters: `-TicketFolder` (required; output lands in `~/.claude/tickets/<TicketFolder>/artifacts/tests/`), `-Project` (a `.csproj`) or `-Solution` (a `.slnx`), exactly one, `-FilterTrait`, `-FilterClass`, `-FilterMethod`, `-FilterNamespace`, `-NoBuild`, `-Suffix`. The full CI suite: `Run-DotnetTest.ps1 -TicketFolder SW-XXXXX-title -Solution "SwyfftCI.slnx" -NoBuild`.
 
-### Existing skills that use the script
-- `/eli--prebind-validation` — calls Run-DotnetTest.ps1 for each of 3 projects concurrently
-- `/eli--byperil-audit-diagnostic` — calls Run-DotnetTest.ps1 with `-FilterClass` and `-Suffix`
-
-### `-Project` vs `-Solution`
-- Use `-Project` for a `.csproj` path, `-Solution` for a `.slnx` file. They are mutually exclusive.
-- Example: `Run-DotnetTest.ps1 -TicketFolder SW-XXXXX-title -Solution "SwyfftCI.slnx" -NoBuild` runs the full CI suite.
-
-### Other rules
-- Never `| tail -N` that discards error details. If tests fail, you already have the output — don't re-run.
-- Single test suite: let it build. Multiple suites: build first, then `-NoBuild` in parallel.
-- Never paper over test failures with ElementTestValues overrides or `SkipEachElementOptionTest = true`.
-
-## Seeding Before Tests
-See `Swyfft.Seeding/CLAUDE.md` for which seed script to run and what each does step-by-step.
+- Never pipe test output through `| tail -N`. If tests fail, read the output you have; don't re-run.
+- One suite: let it build. Several suites: build once, then run them in parallel with `-NoBuild`.
+- Never paper over failures with `ElementTestValues` overrides or `SkipEachElementOptionTest = true`.

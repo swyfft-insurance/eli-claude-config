@@ -7,62 +7,31 @@ paths:
 ---
 # Excel Rater (ByPeril) — Homeowner Implementation Tickets
 
-This is the **Homeowner** playbook for the **Excel Rater (ByPeril)** plan type (defined in `plan-mode.md` § "Plan Types"). It inherits every general rule in `plan-mode.md`: the Gates, Parts A/B/C, the Seeder-Override and HomeownerStateConfig feature-doc requirements, and the full Verification structure.
-
-It also inherits everything in `excel-rater-plans-common.md`, which is where the bulk of the rater workflow now lives: the HARD RULE, the dump tasks, the five-step plan shape, the baseline diff, the per-sheet diff verdict, config sampling, the element sweep, the sentinel checks, versioning, seeder-first, and blast radius. Homeowner and Commercial run the same test infrastructure, so a rule about that infrastructure is in the shared file, not here.
-
-This file holds only what is Homeowner's own: pre-reads, the verification suites, renewal migrations, the surfaces list, and the component-to-Excel-signal map.
+The Homeowner playbook for the Excel Rater (ByPeril) plan type (`plan-mode.md` § "Plan Types"). It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Homeowner's own.
 
 ## Mandatory pre-reads — before authoring an Excel rater plan
 
-A rater plan must not be authored — and the plan file must list as required pre-reads — without reading:
+Read these before authoring, and list them as the plan's required pre-reads, whatever the ticket seems to touch:
 
-- **Excel rater docs (all four, every time):** `Swyfft.Services/Premium/AGENTS.md` (the hub); `Swyfft.Seeding/ExcelLoaders/AGENTS.md` (seeding); `Swyfft.Services.Excel/AGENTS.md` (rater service, audit service); `Swyfft.Services.Excel.IntegrationTests/AGENTS.md` (validation tests, reading a crash).
-- **Other component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup); `Swyfft.Services/Common/Homeowner/CLAUDE.md` (HomeownerStateConfig, QuoteDefinitions, seeder overrides, fold-vs-stack); `Swyfft.Services/Elements/CLAUDE.md` + `Elements/Homeowner/CLAUDE.md` (elements, constraint codes, generators, factory version fallback); `Swyfft.Services/QuoteFees/CLAUDE.md` (fees).
-- **Test regen:** `~/.claude/rules/captured-asserts.md` and the `/eli--prebind-validation` skill (the baseline regen flow).
-
-Always read the seeding/sheet-mapping, rater-service, and validation-test docs — not just the ones the ticket seems to touch — because the scoping diff can implicate any component.
+- **Excel rater docs:** `Swyfft.Services/Premium/AGENTS.md` (the hub), `Swyfft.Seeding/ExcelLoaders/AGENTS.md` (seeding), `Swyfft.Services.Excel/AGENTS.md` (rater service, audit service), `Swyfft.Services.Excel.IntegrationTests/AGENTS.md` (validation tests, reading a crash).
+- **Component docs:** `Swyfft.Services/Common/CLAUDE.md` (ByPerilVersionLookup), `Swyfft.Services/Common/Homeowner/CLAUDE.md` (HomeownerStateConfig, QuoteDefinitions, seeder overrides, fold-vs-stack), `Swyfft.Services/Elements/CLAUDE.md` and `Elements/Homeowner/CLAUDE.md` (elements, constraint codes, generators, factory version fallback), `Swyfft.Services/QuoteFees/CLAUDE.md` (fees).
+- **Test regen:** `~/.claude/rules/captured-asserts.md` and the `/eli--prebind-validation` skill.
 
 ## The Homeowner verification surface
 
-The shared plan shape is in `excel-rater-plans-common.md`. These are the suites its scoping
-checkpoint and its verification run for Homeowner:
-
-- **Premium parity and baselines** — the `ByPerilEAndSValidationTests*` and
-  `ByPerilAdmittedValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`.
-- **Config guards** — `/eli--prebind-validation`, which covers config ordering and the quote-def index
-  guards.
+- **Premium parity and baselines:** the `ByPerilEAndSValidationTests*` and `ByPerilAdmittedValidationTests*` classes in `Swyfft.Services.Excel.IntegrationTests`.
+- **Config guards:** `/eli--prebind-validation` (config ordering, quote-def index guards).
 - **Renewal migrations:** `MigrationCoverageTests`, on every rater ticket that changes production code.
-  See the next section.
 
-> Run the validation tests through `Run-DotnetTest.ps1` with `-FilterTrait "TestGroup=ByPerilTests"`.
-> Omit the trait and the run also pulls the Commercial validation tests, which the pre-tool hook
-> blocks. Scope to one state by adding `-FilterNamespace "*{ST}.EAndS"`, and remember that filter
-> drops the state's Admitted leaves.
+Run the validation tests through `Run-DotnetTest.ps1` with `-FilterTrait "TestGroup=ByPerilTests"`. Without the trait the run also pulls in the Commercial validation tests, which the pre-tool hook blocks. `-FilterNamespace "*{ST}.EAndS"` scopes to one state but drops its Admitted leaves.
 
 ## Renewal migrations — always run the tests; cover changed option sets
 
-When a rater ticket changes a rated input's option set between config versions, whether values are added, removed or renamed, in-force quotes hold old-set values and cross onto the new config at renewal. `Swyfft.Services/QuoteMigrations` translates element values across config boundaries. A plan that changes an option set MUST include the migration, or confirm an existing one covers the new boundary.
-
-`MigrationCoverageTests` runs on every rater ticket that changes production code, whether or not the plan believes an option set changed. The tests are the check on that belief. A ticket that changes only test code and rater files leaves every config, element and generator as it was, and doesn't run them.
-
-## Surfaces an HO rater implementation can touch (non-exhaustive)
-
-- **Rater file(s)** — `Data/{State}/Homeowner/ByPeril/.../{Rater}.xlsm`.
-- **Seeder** — `ByPerilSeederHomeowner{...}.cs`.
-- **State config** — a new `HomeownerStateConfig` version.
-- **Quote defs + activation** — `Data/QuoteDefinitions.txt` row; seeder override in `Seeder.cs` (`CustomizeCoreLocalAndDevAndBeta`).
-- **Version lookups** — `ByPerilVersionLookup/Homeowner/...`.
-- **Premium generators** — `HomeownerByPerilPremiumGenerator.cs` (+ carrier subclass) + the generator factory.
-- **Rated agent inputs (element model)** — element loader → constraint code → generator → `IByPerilQuoteElementModel`/`ByPerilQuoteElementModel` → `ByPerilElementService` → `ByPerilName` → rater service `WorkbookSetters`.
-- **Rater services** — `ByPerilHomeowner{RT}ExcelRaterService{ST}.cs` (+ `ByPerilCellNames`, version-cell mapping, `FeeNames`, factor/coverage names).
-- **Fees** — `QuoteFees/Homeowner/...` + `StateQuoteFeeFactoryHelper.cs`.
-- **Validation tests + baselines** — `ByPerilEAndSValidationTests*` + the `RaterFileContents` baselines.
-- **Captured asserts / config guards** — `/eli--prebind-validation` (config ordering, quote-def index guards).
+A plan that changes a rated input's option set between config versions (values added, removed or renamed) includes the `Swyfft.Services/QuoteMigrations` migration, or confirms an existing one covers the new boundary. `MigrationCoverageTests` runs on every rater ticket that changes production code, whatever the plan believes about option sets. A ticket that changes only test code and rater files skips it.
 
 ## Component → Excel-signal map
 
-The diff signal on the left tells you which component on the right must change:
+The diff signal on the left tells you which component on the right must change. The map isn't exhaustive: the scoping diff decides which rows apply, and a surface missing from it isn't ruled out.
 
 | Rater signal in the diff | C# component to change | Key file(s) |
 |---|---|---|
@@ -70,9 +39,8 @@ The diff signal on the left tells you which component on the right must change:
 | Any new factor version now in use | New `HomeownerStateConfig` version (`sourceConfig:` + new `lookupVersions:`) + `QuoteDefinitions.txt` row + seeder override | `…/Common/Homeowner/HomeownerStateConfig/ByPeril/…`; `Data/QuoteDefinitions.txt`; `Swyfft.Seeding/Seeder.cs` |
 | Factor sheet: new static rows / shifted header rows | Seeder reader params (`startRow`/`startCol`/`versionOffset`; `.SetLength(N)` if static rows now mix with formula rows) | `Swyfft.Seeding/ExcelLoaders/ByPeril/Homeowner/ByPerilSeederHomeowner…` |
 | Factor sheet: a new version is **formula-only** | Replicate the formula in the premium generator, version-branched | `Swyfft.Services/Premium/Homeowner/HomeownerByPerilPremiumGenerator.cs` (+ carrier subclass) |
-| `Input` sheet: new input/option | Element loader + constraint code → generator → `ByPerilQuoteElementModel`/`ByPerilElementService` → `ByPerilName`; then write it via the rater service `WorkbookSetters` | `ElementLoader_Homeowner_ByPeril.cs`, `ConstraintCode.cs`, generator + `HomeownerDefaultElementGeneratorFactory.cs`, `ByPerilQuoteElementModel.cs`, `ByPerilElementService`, `ByPerilName.cs` |
+| `Input` sheet: new input/option | Element loader + constraint code → generator → `IByPerilQuoteElementModel`/`ByPerilQuoteElementModel`/`ByPerilElementService` → `ByPerilName`; then write it via the rater service `WorkbookSetters` | `ElementLoader_Homeowner_ByPeril.cs`, `ConstraintCode.cs`, generator + `HomeownerDefaultElementGeneratorFactory.cs`, `ByPerilQuoteElementModel.cs`, `ByPerilElementService`, `ByPerilName.cs` |
 | A **newly versioned** factor appears on `Versions` | Add `(ByPerilName, cellName)` to the rater service `TableNameToExcelCellVersionName` (+ `ByPerilCellNames`) | `…/Rater/{ST}/ByPerilHomeowner{RT}ExcelRaterService{ST}.cs`, `ByPerilCellNames.cs` |
 | `Rating_Algorithm`: new fee/tax row | `FeeNames` on the rater service + the QuoteFees service/values | rater service; `…/QuoteFees/Homeowner/…`, `StateQuoteFeeFactoryHelper.cs` |
 | `Rating_Algorithm`: new factor / optional-coverage row | `GetFactorAndRateNames` / `CoverageNames` / `FactorsToSetNames` on the rater service | rater service |
 | New config version needs different premium logic | Generator + `HomeownerByPerilPremiumGeneratorFactory` mapping (falls back to lower version if unmapped) | `…/Premium/Homeowner/HomeownerByPerilPremiumGeneratorFactory.cs` |
-

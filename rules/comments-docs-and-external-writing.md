@@ -1,319 +1,115 @@
 # Comments, Docs, and External Writing
 
+Every rule here governs durable prose (code comments, docstrings, CLAUDE.md, rule files, in-repo notes) and everything posted (YouTrack comments and RCAs, Slack, PR descriptions). Chat replies, commit messages and plan files follow the prose-quality rules too. A section with a narrower scope says so.
+
 ## ⚠️ Word slop is the cardinal sin
 
-Eli despises word slop — cut it at all costs. Be concise: use the fewest words that keep the **full** meaning.
-
-That caveat is the hard part. Concise does NOT mean stripping until the point is lost, swapping in vaguer or weaker words, or shortcutting any other rule in this file. It means deleting filler — throat-clearing, hedging, restatement, padding — the words you reflexively add that carry no meaning. Keep every word that carries meaning; delete every word that doesn't.
-
-> I like comments — specifically ones that capture the **business reason / intent** behind code. Write them as a habit on any non-trivial logic (see § How to write one) — they're the record of what the code was *meant* to do, which is exactly what you need when it turns out to be wrong.
->
-> What to avoid is the comment that merely **restates what the code does**, or that only makes sense within the current work session — those rot (see § Banned).
->
-> Applies to all durable written prose: code comments, docstrings, CLAUDE.md sections, rule files, in-repo notes — and to external/published writing: YouTrack comments and RCAs, Slack messages, PR descriptions. Those are comments too; every rule here applies to them. Chat replies follow the prose-quality rules here as well (see `talking-to-eli.md`).
-
-## The failure mode
-
-I scope what I write to the current plan/work session — framing defaults in terms of what THIS PR is leaving alone, alluding to changes from earlier commits in the current branch (which get squashed or rebased and become invisible to a future reader of the merged file), or stating a durable rule as a corrective to the specific mistake that just motivated it ("don't edit both X and Y — wastes a reseed").
+Use the fewest words that keep the full meaning. Delete filler (throat-clearing, hedging, restatement, padding). Never delete meaning, never swap in a vaguer word to save length, and never let concision override another rule in this file.
 
 ## Banned
 
-- **Plan-scoped framing** — "Defaults to false so existing non-FL state tests are unaffected." The "non-FL" framing only makes sense because in this work session FL is the special opt-in. The moment a second state opts in, the comment rots. Generalize the rationale, or drop it.
-- **Intra-PR commit references** — "in the previous commit we added X" / "now that we've done Y". These commits are squashed/invisible to readers of the merged history.
-- **Recency bias/Session-narrative docs** — the agent has a chronic, constant habit of writing with recency bias: in ANY writing of any kind (code comments, rules files, CLAUDE.md, docs, PR descriptions, plan files), it anchors on whatever is most recent in context — the current plan, the current session, sometimes just the most recent message — and writes from inside that slice. Symptoms: docs written as a corrective to the specific mistake just made ("don't edit both", "this wastes a reseed", "we tried Y and it failed"); a section titled after the exact exception just seen; a passage rewritten around the single nuance of the latest correction. The result is over-specific to the one case just seen, only makes sense to someone reliving the session, and loses the plot — the durable, general, bigger-picture statement the writing was supposed to record never gets written. Step back and state the durable rule as fact, not as a reaction to the recent slice.
-- **Sibling-as-substitute explanation in code** (comments + docstrings) — "See FloodSeeder for the invariant" / "Same as XxxRow_Helper but for DBB" / "See sibling for why." If two code sites share an invariant or rationale, both deserve the full explanation. Code comments are read locally by humans; a bare pointer rots when the sibling moves, forces context-switching, and creates asymmetric documentation. Default for code: state the invariant in every place it applies. **Exception — agent-facing docs (CLAUDE.md, signposts, rule files): sibling pointers ARE the right call.** Agents read these to navigate; cross-references keep context budgets in check and let the agent follow only what it needs. DRY via pointer is correct for agent-readable docs.
+- **Plan-scoped framing**: a rationale that only holds for the current work ("so existing non-FL state tests are unaffected"). Generalize it or drop it.
+- **Intra-PR commit references**: "in the previous commit we added X". Those commits are invisible once squashed.
+- **Recency bias / session-narrative docs**: writing from inside whatever is most recent in context, such as a rule phrased as a corrective to the mistake just made ("don't edit both", "this wastes a reseed") or a section titled after the exception just seen. State the durable, general rule as fact.
+- **Sibling-as-substitute explanation in code**: "see FloodSeeder for the invariant". Every code site that shares an invariant states it in full. Agent-facing docs (CLAUDE.md, rule files) are the exception: there a pointer is right.
+
+The test: if the text only means something to someone who knows this work session, rewrite it.
 
 ## Fine in context
-- Ticket numbers (`SW-XXXXX`) — durable forwarding address; persists in YouTrack indefinitely.
+- Ticket numbers (`SW-XXXXX`).
 - TODOs with anchors.
-- Cross-references to sibling patterns / classes — useful **"see also" pointers** ("similar pattern in FooHandler", "counterpart logic in BarService") for discoverability. NOT a substitute for the local explanation — see Banned § "Sibling-as-substitute".
-- "As of this change" / "now does X" — describes current code state.
-- File:line cross-references — useful starting points.
+- "See also" pointers to sibling patterns or classes, alongside the local explanation, never instead of it.
+- "As of this change" / "now does X".
+- File:line cross-references.
 - Domain rules, regulatory cites, hidden constraints, invariants.
-
-## Be concise and human
-
-A comment is a quick aside to a colleague, not an essay. Default to one or two plain sentences. More is occasionally fine when the meaning genuinely needs it — but that's the exception. The real failure mode is the giant blob of word-slop: it's exhausting to read and usually says little. When in doubt, cut.
-
-- **Short.** Say the point once. If it runs past ~2 sentences or wraps several lines, cut it down.
-- **Plain.** Write like you'd say it out loud. No jargon, no notation, no member names jammed into prose.
-- **No throat-clearing.** Cut "note that", "in order to", "deliberately", and anything that restates the code.
-
-Bad: *"Capping the roof age changes the price, so the cap only takes effect on versions at or above the point each line introduced it; every version at or below the ones listed here stays uncapped."*
-Good: *"These are the versions from before the cap — they keep the old uncapped roof age so live policies don't change."*
 
 ## Write for a reader who doesn't have your context loaded
 
-The reader — even a developer, even Eli — does not have the ticket, its ACs, the methods, or the line numbers in front of them or memorized. Write so they can follow without opening the code.
+The reader, Eli included, doesn't have the ticket, the ACs or the line numbers in front of them.
+- Name the exact method, class or member, never a vaguer word ("calculation" for "method").
+- Pair every name with what it does and the business rule or AC it serves. A bare "line 238 does X" is unusable.
+- Lead with why the code exists.
 
-- **Name the exact thing** — the method, the class or member. Don't dumb it down to a vaguer word ("calculation" for "method"); that vagueness is the word slop this file forbids.
-- **Pair every name with what it does and the business rule or AC it serves.** A bare reference — "the `GetAnnualFloodTax` method on line 238 does X" — is unusable to someone who can't see line 238.
-- **Lead with why** the code exists and which rule it addresses; the precise name rides alongside the intent, never alone.
-
-Register still varies by reader: business-facing writing (YouTrack user stories) uses plain UW/Biz language; developer-facing writing uses the exact technical term. Neither assumes the reader has your context in front of them.
-
-## The test
-Read what you wrote as if you've never seen the PR or plan. Does it still mean something concrete? If the meaning requires knowing what this specific work session was about, rewrite. If it would still make sense to a reader who's never met the codebase, leave it.
+Business-facing writing (YouTrack user stories) uses plain UW/Biz language. Developer-facing writing uses the exact technical term.
 
 ## Fixing a failed claim means deleting it — rewrites create new unverified claims
 
-When a claim in written prose fails fact-checking — wrong, overstated, unverifiable — the fix is to **delete it**, or to replace it with something already verified: the verbatim quote, the literal name, the exact thing read or run. Never fix by rephrasing. A rewrite is a brand-new claim smuggled in under the banner of a fix, and it arrives unverified — so each editing pass plants the errors the next pass harvests. Deleting cannot create a falsehood; rewriting can. Not writing the sentence at all is always an option, and always better than an unverified replacement.
-
-| Bad (rewrite creates a new claim) | Good (delete or quote) |
-|---|---|
-| "all five variants" fails verification → rewrite to "every variant that matters" | → "five variants" (the verified count), or cut the clause |
-| paraphrase of a code comment is off → re-paraphrase it | → quote the comment verbatim |
+When a claim fails fact-checking, delete it or replace it with something already verified: the verbatim quote, the literal name, the exact thing read or run. Never rephrase it. A rephrasing is a new, unverified claim.
 
 ## No em-dashes. Write real sentences.
 
-Don't bolt a clause onto a sentence with an em-dash or a spaced hyphen. End the sentence and start a
-new one, or use a comma, a colon, or a separate bullet.
-
-The dash lets you append a thought without deciding how it relates to what it's attached to. Cause?
-Example? Qualification? A separate fact entirely? The reader has to work that out. Sentences that
-keep growing dashed-on clauses get long, read as stream of thought rather than a considered
-statement, and bury the point the sentence was supposed to make.
-
-Verbatim quotes are the exception. They keep whatever punctuation the source used.
-
-| Bad | Good |
-|---|---|
-| "That flag is set in exactly one place — `GetCommercialClaimHistoryFactors` — during premium calculation." | "That flag is set in exactly one place, `GetCommercialClaimHistoryFactors`, during premium calculation." |
-| "Admitted keeps it — every config is `[Obsolete]` — so it was left alone." | "`CommercialSoftDeclineAdmittedRisks` still lists it. Admitted is retired, so it was left alone." |
-
-Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
-PR descriptions, Slack, YouTrack, RCAs.
+Never attach a clause with an em-dash or a spaced hyphen. End the sentence, or use a comma, a colon, or a separate bullet. Verbatim quotes keep their own punctuation.
 
 ## Causal connectors are claims — verify them or delete them
 
-"because", "so", "therefore", "since", "which is why", "hence", "that's why": each one asserts that
-one fact causes another. The connector is a claim in its own right, separate from the two facts it
-joins, and it is the easiest kind to fabricate — two verified facts read as a single considered
-thought the moment a "because" sits between them, and nothing in either source says the link exists.
-
-Never write a connector to make prose flow. Write one only when the causation itself is verified.
-Otherwise the facts stand as separate sentences, which is always available and never wrong.
-
-| Bad (fabricated link) | Good (facts, no invented causation) |
-|---|---|
-| "The form audit had no environment-aware handling because `QuoteNotFoundException` derives from `SwyfftException`, not `BusinessException`." | "The form audit had no environment-aware handling. #20624 added the handling to the premium audit's class only." |
-
-Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
-PR descriptions, Slack, YouTrack, RCAs.
+"Because", "so", "therefore", "since", "which is why", "hence" and "that's why" each assert causation. Write one only when the causation itself is verified. Otherwise the facts stand as separate sentences.
 
 ## One sentence, one subject, one moment
 
-Never join clauses with "and", "while", or "as" when the clauses have different subjects or happen at
-different times. A sequence of events gets one sentence per event, in the order the events occur.
-Coordinating connectors are for genuine peers: same actor, same moment, same role in what is being
-described.
-
-"and" is the laziest connector for the same reason it is the most common — it asserts only addition,
-which is never wrong enough to notice, and it lets the writer skip deciding how the two facts relate.
-The reader is the one who then has to work out that the subject changed and that the second event
-happens later.
-
-| Bad (different subjects and times joined by "and") | Good (one event per sentence, in order) |
-|---|---|
-| "When that record goes away, both audits throw `QuoteNotFoundException` reading the renewal term, and the IMS sync soft-deletes the orphaned Core quote, which ends the errors." | "When that record goes away, both audits throw `QuoteNotFoundException` reading the renewal term. The IMS sync soft-deletes the orphaned Core quote 10–32 hours later, which ends the errors." |
-
-Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages,
-PR descriptions, Slack, YouTrack, RCAs.
+Never join clauses with "and", "while" or "as" when they have different subjects or happen at different times. A sequence of events gets one sentence per event, in order.
 
 ## How to write one (when warranted)
 
-**Why these rules exist:** developers can already read code — a comment explaining what `Math.Clamp` does is noise. What code *can't* tell you is the **business reason** it was written and **what the developer was trying to achieve**. That intent is the entire value: it lets a future reader confirm the code actually does what was intended — and it matters most precisely when the code turns out to be *wrong*, because the comment is the only record of what it was *supposed* to do while you're debugging it.
-
-Default audience is therefore the **non-technical stakeholder who wrote the requirement** (the UW/Biz person), not a fellow engineer. If they couldn't follow it, it's not done. This is the default for **business-intent** writing only — developer-facing writing uses exact technical terms; see § "Write for a reader who doesn't have your context loaded".
-
-- **Explain what each block ACHIEVES (the business goal), not how it mechanically works.** "If the quote is created during wind season, it's good for 7 days" — not "the `IsBetween` guard returns the in-season floor."
-- **Lead with the goal/behavior; mechanism second, and only the non-obvious part.** State the business outcome first. Add a mechanism note only for the one genuinely subtle step — never a play-by-play of every line.
-- **No jargon or notation.** "Jargon" means obscuring notation and shorthand — "clamp", "ternary", "predicate", interval notation like `[7, 30]`, pseudo-code equations crammed into a sentence — that hides meaning. It does NOT mean the correct technical noun: for a developer reader, "method" or a class/member name is the exact term and belongs there. In a business-intent comment, say "never fewer than 7 or more than 30", not "clamped to [7, 30]".
-- **If the ticket or stakeholder already described it in plain English, use that wording verbatim.** Don't paraphrase a clear requirement into worse prose — quote it.
-- **Concrete examples beat abstract description.** Dates and values ("created May 20 → expires June 1") land faster than a general rule.
-- **The test:** read it back as the requirement-writer. If a non-coder couldn't follow how the code meets their ask, rewrite.
-- **No ambiguous references.** When more than one noun could be the antecedent, repeat the noun instead of "it"/"this"/"that"/"they". See § "No Ambiguous References" below.
+Write an intent comment on non-trivial business logic, aimed at the non-technical stakeholder who wrote the requirement.
+- One or two plain sentences, as you'd say them out loud: no member names jammed into prose, no "note that", "in order to" or "deliberately".
+- Say what the block achieves for the business, not how it works ("a quote created during wind season is good for 7 days", not "the `IsBetween` guard returns the in-season floor").
+- Lead with the outcome. Add mechanism only for the one subtle step.
+- No obscuring notation ("clamp", "ternary", "predicate", `[7, 30]`, pseudo-code): say "never fewer than 7 or more than 30". The exact technical noun ("method", a class name) is not jargon.
+- When the ticket or stakeholder already said it in plain English, quote it.
+- Prefer concrete dates and values ("created May 20 → expires June 1").
+- Test: could the requirement-writer follow how the code meets their ask?
 
 ## No Ambiguous References
 
-When a sentence has more than one noun a pronoun or demonstrative could point to, repeat the noun. Never leave "it", "this", "that", "they", "those", "which", or "whatever" for the reader to resolve when two or more candidates are in scope. Repeating the noun beats an elegant-but-vague reference every time.
-
-Applies to all written prose: chat replies, plan files, code and doc comments, commit messages, PR descriptions, and rules files themselves.
-
-| Bad | Good |
-|---|---|
-| "Set `RenewalOn` after the predecessor's date, and make sure it's unique" (which date is "it"?) | "Set `RenewalOn` after the predecessor's `RenewalOn`, and keep `RenewalOn` unique in the family" |
-| "Copy the rater to the carrier files and verify they match" (the files? the raters?) | "Copy the rater to the carrier files and verify each carrier file matches the source rater" |
+When two or more nouns could be the antecedent, repeat the noun instead of "it", "this", "that", "they", "those", "which" or "whatever".
 
 ## Never name Eli's personal tooling in anything published
 
-Skills, scripts, rules files, and ticket-folder artifacts under `~/.claude/` are private to one
-machine. A PR description, YouTrack comment, or Slack message naming one — `/eli--prebind-validation`,
-`Run-DotnetTest.ps1`, a query filename under `artifacts/` — is undecodable to every reader but Eli,
-and it leaks personal workflow into a team artifact. Name the repo-level thing instead: the trait the
-tests carry, the test class, the project, the command from the repo's own docs. If the only name you
-have is a personal one, describe what it did in plain terms.
+Never name a skill, script, rules file or ticket-folder artifact from `~/.claude/` in a PR, YouTrack or Slack post. Name the repo-level thing (the test trait, test class, project, or the repo's own command), or describe what it did.
 
 ## Posted text speaks as Eli: "I", never "we"
 
-Anything posted under Eli's account (YouTrack comments, Slack messages, PR descriptions, PR replies)
-is written in Eli's voice. His decisions and his actions are "I". "We" credits a decision or an
-action to a group that never made it, and it leaves the reader unable to tell who acted.
-
-| Bad | Good |
-|---|---|
-| "We're pushing the Hadron V3 go-live back a week." | "I'm pushing the Hadron V3 go-live back a week." |
-
-- **What happened:** two SW-56006 comments to Ehren opened with "We're moving" and "We're pushing"
-  for go-live decisions Eli made alone.
+Anything posted under Eli's account uses "I" for his decisions and actions, never "we".
 
 ## Call things by their exact name — repeat it, don't vary it
 
-Name each thing by its exact term and repeat that exact term every time you mean it. Never swap in a synonym, a broader category word, or a vaguer umbrella term to avoid repetition. Varying vocabulary so prose doesn't feel repetitive ("elegant variation") is a creative-writing habit; in technical writing the substitute is always less precise than the exact term, so it trades accuracy for style and manufactures ambiguity. Repeating the precise term is correct — not a flaw to fix.
-
-Broader than "No Ambiguous References" above: that rule bans pronouns and demonstratives when two or more antecedents are in scope. This rule bans the synonym or umbrella swap even when nothing is ambiguous, because the vaguer word is still less precise than the exact term.
-
-**Product and domain terms are exact names too.** Every product surface and domain concept has one
-established name (the printed quote, the quote page, the confirmation page, an element, a soft
-decline), and that name is the only word for it. Never coin a variant: "printout" for the printed
-quote, "the confirm view" for the confirmation page. A coined variant reads as a different thing,
-and the reader has to stop and work out whether it is one.
-
-| Bad (coined variant) | Good (established term) |
-|---|---|
-| "the printout would hide the confirmed years" | "the printed quote would hide the confirmed years" |
-
-Applies to all prose: chat replies, code and doc comments, CLAUDE.md, rule files, commit messages, PR descriptions, Slack, YouTrack, RCAs.
-
-| Bad (term varied) | Good (exact term repeated) |
-|---|---|
-| "a change could re-rate existing business; that business keeps its premium" | "a change could re-rate existing quotes and policies; those quotes and policies keep their premium" |
+Use one exact term for each thing and repeat it every time, even when nothing is ambiguous. Never swap in a synonym, a broader word or an umbrella term. Product surfaces and domain concepts each have one established name (the printed quote, the quote page, the confirmation page, an element, a soft decline). Never coin a variant like "printout".
 
 ## Swyfft's lexicon is reserved: a term carries only its Swyfft meaning
 
-The terms in `swyfft-domain.md` § "Swyfft/Insurance Terminology" are Swyfft's company lexicon, not
-general words that happen to appear in the code. Some are ordinary insurance vocabulary that
-Swyfft has narrowed to one specific referent. Either way, the Swyfft meaning is the only one any
-writing here may carry.
-
-Borrow a term for something adjacent and the reader has to work out which sense you meant, and
-they will guess the Swyfft one.
-
-| Bad (borrows "product line") | Good (names the thing) |
-|---|---|
-| "the fix lands outside Eli's product line" | "the fix lands outside pre-bind" |
-| "ZenDesk is a different product line" | "ZenDesk is a different subsystem" |
-
-The rule cuts the other way too. When a thing has a term in that list, that term is its only name.
-Never reach for a generic technical word instead. The generic word is always less precise than the
-term, and a reader who knows the lexicon has to stop and work out whether you meant the thing it
-names.
-
-| Bad (generic word for a named thing) | Good (the reserved term) |
-|---|---|
-| "the quote holds a row the config no longer produces" | "the quote holds an element the config no longer generates" |
+The terms in `swyfft-domain.md` § "Swyfft/Insurance Terminology" carry only their Swyfft meaning. Never borrow one for something adjacent: write "outside pre-bind", not "outside Eli's product line".
 
 ## Scenarios get an opener plus bullets — never a run-on sentence
 
-When prose enumerates parallel cases — scenarios, surfaces, outcomes, options, before/after
-worlds — write a one-sentence opener naming what the list covers, then one bullet per case, then
-the conclusion (if any) as its own sentence after the list. Never chain the cases through one
-sentence with commas and "and"/"so": the run-on hides the parallel structure, and each added case
-makes the sentence harder to parse.
+Parallel cases (scenarios, surfaces, outcomes, options) get a one-sentence opener, one bullet per case, and any conclusion as its own sentence after the list. Never chain them through one sentence.
 
-Sits beside § "Consistent bullet granularity": that rule governs the bullets once written (same
-unit per bullet); this rule governs when bullets are required.
-
-| Bad (run-on) | Good (opener + bullets) |
-|---|---|
-| "The quote page would still have hidden the sliders, the confirmation page would have stopped rendering them, and the printed quote would have hidden them too, so the confirmed years would not have displayed anywhere." | "Under that filter, after the agent confirmed the years:<br>• the quote page would still have hidden the sliders<br>• the confirmation page would have stopped rendering them<br>• the printed quote would have hidden them too<br>So the confirmed years would not have displayed on any of those three surfaces." |
-
-<!-- Added 2026-09-03 after PR #22620 — Eli: reviews must be as concise as possible, both directions. -->
 ## PR review prose: the shortest thing that lands the point
 
-Applies to every PR review comment and reply, both reviewing others' PRs and replying on your own.
-
-Say the finding, cite the evidence, stop. One or two sentences per point; a paragraph is the
-exception and needs a reason.
-
-- **Cite, don't recount.** `File.cs:42` beats a description of what the file does.
-- **No verification receipts.** What you checked is not a finding. Give the conclusion.
-- **Don't restate the diff, or the reviewer's comment beyond the quote you reply under.**
-- **Agreement is one sentence.** "Agreed, fixed in `<sha>`."
+For every PR review comment and reply: state the finding, cite the evidence (`File.cs:42`), stop. One or two sentences per point. No verification receipts, and no restating the diff or the reviewer's comment. Agreement is one sentence: "Agreed, fixed in `<sha>`."
 
 ## Consistent bullet granularity — don't mix single- and multi-item bullets
 
-Within one list, every bullet holds the same unit: one item per bullet throughout, or the same grouping throughout. Never put a single-item bullet next to a sibling that crams several distinct items behind commas. If the items are worth listing, give each its own bullet; if they're worth grouping, group them all the same way. Mixed granularity reads as sloppy and makes the reader wonder whether the comma-jammed items are different in kind from the standalone ones.
+Every bullet in a list holds the same unit. Never put a one-item bullet next to one that crams several items behind commas.
 
-Applies to all prose: chat replies, Slack, code and doc comments, PR descriptions, YouTrack, rules files.
-
-| Bad (mixed granularity) | Good (consistent) |
-|---|---|
-| • policy fee (`DbbPolicyFee`)<br>• state tax, service fee, stamping, SLIP+ | • policy fee (`DbbPolicyFee`)<br>• state tax (`DbbStateTax`)<br>• service fee (`DbbServiceFee`)<br>• stamping fee (`DbbStampingFee`)<br>• SLIP+ (`SurplusLinesServiceFee`) |
-
-<!-- Added 2026-09-01 while closing SW-55518 — Eli: codify the RCA outline rather than improvising
-     one per ticket. Sections reconciled from Google's published SRE postmortem template
-     (https://sre.google/workbook/postmortem-culture/) against the three RCAs on SW-51664. -->
 ## RCA structure
 
-An RCA posted on a ticket uses these headings, in this order. Skip a section that has nothing to
-say. Never reorder them.
+An RCA on a ticket uses only these headings, in this order, skipping any with nothing to say (no Lessons Learned, Action Items, Glossary or Appendix):
+- **`## Root Cause Analysis: <subject>`**: one line naming what failed.
+- **Scope**: the exact records covered (quote ids, policy numbers, configs, environment), in one or two sentences.
+- **Root cause**: the mechanism, each claim carrying the file:line, query or log line that proves it, with hypothesis and proven labeled separately.
+- **Timeline**: dated events, one per line, only when the *when* explains the *why* (a window the defect was live, a gap that explains a self-heal, two changes that only broke together, a recurrence). Omit it when the cause is a state.
+- **Customer impact**: what was charged, shown or sent wrongly. Write "None" only when the defect looked customer-facing and wasn't. Otherwise omit the section.
+- **Conclusion**: the disposition in the first three words: not a defect, fixed, spun off to SW-XXXXX, or no action with reason.
 
-- **`## Root Cause Analysis: <subject>`** — one line naming what failed.
-- **Scope** — the exact records the RCA covers: quote ids, policy numbers, configs, environment. One
-  or two sentences.
-- **Root cause** — the mechanism, each claim carrying the file:line, query, or log line that proves
-  it. Hypothesis and proven stay labeled separately.
-- **Timeline** — dated events, one per line, in order. Include it only when the reader needs the
-  *when* to understand the *why*: a window the defect was live, a gap that explains why it
-  self-healed or resisted reproduction, an interleaving of two changes that only broke together, a
-  recurrence that explains flapping. Omit it when the cause is a state rather than a sequence.
-  "The change shipped, someone reported it, it was fixed" is the life cycle of every ticket and
-  explains nothing.
-- **Customer impact** — what was charged, shown, or sent wrongly. "None" earns the section only when
-  the defect looked customer-facing and wasn't, which is a fact the reader needs. Omit it when
-  nothing about the defect could have reached a customer.
-- **Conclusion** — the disposition in the first three words: not a defect, fixed, spun off to
-  SW-XXXXX, or no action with reason.
-
-A correction to an earlier RCA is a new comment headed `## Correction`, naming what the previous RCA
-got wrong before giving the new cause. Never edit the original.
-
-The sections the SRE template carries that these drop — Lessons Learned, Action Items with owners,
-Glossary, Appendix — assume a multi-team incident postmortem. A ticket RCA covers one defect.
+A correction is a new comment headed `## Correction` that names what the earlier RCA got wrong. Never edit the original.
 
 ## Tense precision — don't state the future or a hypothesis as present fact
 
-Say what is true *now* in the present tense, and what *will* be true in the future or conditional. Don't collapse a predicted, not-yet-live, or hypothetical outcome into the present — it reads as a claim about current reality and leaves the reader unable to tell what has actually happened from what you expect to happen. Watch this hardest in dated / go-live reasoning, where the relevant event is in the future relative to now.
-
-| Bad | Good |
-|---|---|
-| "every prod quote shows 0.03%" (said before the product is live and before the cutover) | "once it launches 7/6 — past the cutover — every production quote will rate at 0.03%" |
-| "the fee is fixed" (when the fix is unmerged) | "the fix is on the branch; once merged the fee will be correct" |
-
-**Writing that describes a change — PR descriptions, RCAs, commit messages, ticket comments — uses
-past tense for pre-change behavior and present tense for post-change behavior.** A present-tense
-sentence about the old behavior tells the reader the bug is still there; a present-tense sentence
-about something the change removed is simply false once merged. The reader has no other signal for
-which world a sentence describes.
-
-The trap is the sentence that mixes a durable fact with a fixed defect — half of it stays present,
-half must go past. Split the sentence rather than picking one tense for both halves.
-
-| Bad | Good |
-|---|---|
-| "the rule reads the flag before premium sets it" (in a PR that fixes exactly that) | "the rule read the flag before premium set it" |
-| "those risks get a 1.0 factor and no referral" (factor unchanged; referral is what the PR adds) | "those risks got no referral, and still get a 1.0 factor" |
-
-Applies to all prose: chat, comments, RCAs, YouTrack/Slack, PR descriptions.
+Never state a predicted, not-yet-live or hypothetical outcome in the present tense. Writing that describes a change uses past tense for the old behavior and present tense for the new. A sentence mixing a durable fact with a fixed defect gets split.
 
 ### The tense map — pick the world first, then the tense
 
-Every clause describes exactly one world: the old code, the shipped change, a hypothetical, an
-event. Pick which world before writing the clause; a sentence that needs two worlds gets split
-into two sentences. Inside a hypothetical (any "would"/"would have" scenario), no clause may take
-the simple present, even a clause that is also true of the shipped code: mid-scenario, present
-tense is indistinguishable from a claim about what the code does now.
+Every clause describes one world. A sentence that needs two worlds becomes two sentences. Inside a hypothetical, no clause takes the simple present, even one that is also true of the shipped code.
 
 | What the clause describes | Tense / mood | Example |
 |---|---|---|
@@ -327,53 +123,18 @@ tense is indistinguishable from a claim about what the code does now.
 | Events of the work itself (edits, reverts, test runs) | Simple past | "We started the filter and reverted it." |
 | Two past events in sequence | Past perfect ("had") for the earlier one | "The quote had already been purchased when the audit ran." |
 
-Present perfect ("the errors have cleared") is the sneakiest offender: it smuggles a present-tense
-claim into scenario narration. Inside a hypothetical, replace it with the scenario's own mood
-("the errors would have cleared"); elsewhere, prefer simple past with the event named ("the errors
-cleared on recalc").
+Never use the present perfect ("the errors have cleared") inside a hypothetical. Use the scenario's mood ("would have cleared"), and elsewhere the simple past with the event named ("cleared on recalc").
 
 ## Code comments: write them, then audit them at code-complete
 
-When implementing non-trivial business logic, add an intent/business-reason comment per § "How to write one" — explain in plain language what the code
-is *trying to achieve* for the person who wrote the requirement, not what it mechanically does. This
-is a default habit, not an afterthought.
-
 ### Mandatory comment self-audit at code-complete
 
-Before the code-complete HARD STOP, re-read this file (don't work from memory) and audit every comment the diff adds or changes. This is real work. It is
-not a checklist to skim and declare passed, and reporting the audit as done without having deleted
-anything is the most common way it gets faked.
+Before the code-complete HARD STOP, re-read this file and record a verdict (keep, trim, delete) for every comment the diff adds or changes. No sampling.
+1. First ask whether the comment should exist. The default is no. Delete anything the code, an assertion message, a `because` string, a test name or a method name already says, and any repeat of a fact within the same file. Repetition across separate code sites is correct.
+2. Judge the survivors against this file: business reason, no plan-scoped framing, no intra-PR references, no notation, two sentences at most.
+3. Verify every "never", "always", "only" and "every" against the code, or delete the quantifier.
+4. Never argue a comment into staying.
 
-**Walk every added or changed comment one at a time and record a verdict for each: keep, trim, or
-delete.** No sampling, no "the rest are fine". A comment with no recorded verdict has not been
-audited.
+Fix every violation before announcing code-complete, on every code change.
 
-**Question 1 is always "should this comment exist at all?", and the default answer is no.** Ask it
-before judging the wording, because a well-worded comment that shouldn't exist still gets deleted.
-Delete on sight:
-- Anything restating what the adjacent code already says.
-- Anything a nearby assertion message, `because` string, test name, or method name already says.
-- Any second or third statement of one fact inside the same file. Repetition across separate code
-  sites is correct (§ "Sibling-as-substitute" in the writing rules); repetition stacked inside one
-  file, class, or method is slop.
-
-**Only then judge the survivors** against the writing rules: business reason rather than mechanism,
-no plan-scoped framing, no intra-PR commit references, no jargon or notation, and one or two plain
-sentences. A comment running past two sentences is over budget and gets cut down, not excused.
-
-**Verify a comment's claims the way you would verify prose.** A comment asserting "never", "always",
-"only", or "every" is a factual claim: confirm it against the code or delete the quantifier. A
-confident false comment is worse than no comment.
-
-**Never argue a duplicate into staying.** Reaching for a rule to justify keeping a comment is the
-tell that it should go. Deleting is always available and never introduces an error.
-
-Fix every violation *before* announcing code-complete. This audit is part of reaching code-complete,
-never a step the user has to request, and it applies to every code change, not only plan-driven
-work. The diff should already be clean before Eli opens it.
-
-**A comment-only change never justifies a build or a test run.** Comments, XML docs, and
-encoding fixes cannot change behavior, so re-running tests to "confirm" them proves nothing.
-After a comment-audit pass, check whether the diff since the last green run contains a single
-executable change. If it does not, the prior run still stands — say so and move on. If it does,
-run only the suites that executable change can affect.
+A comment-only change never justifies a build or test run. If the diff since the last green run has no executable change, that run stands. Otherwise run only the suites the executable change affects.
