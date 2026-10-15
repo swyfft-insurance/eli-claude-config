@@ -25,17 +25,19 @@ Optional flags after the mode:
 
 ## Run
 
-```bash
-pwsh -NoProfile -File "$HOME/.claude/scripts/Git-Diff.ps1" -Mode <local|branch|all> # via-diff-skill
+Run it through the PowerShell tool. The pretooluse hook blocks pwsh and `.ps1` invocations through the Bash tool.
+
+```powershell
+& "$HOME/.claude/scripts/Git-Diff.ps1" -Mode <local|branch|all> # via-diff-skill
 ```
 
 With options:
-```bash
-pwsh -NoProfile -File "$HOME/.claude/scripts/Git-Diff.ps1" -Mode branch -StatOnly # via-diff-skill
-pwsh -NoProfile -File "$HOME/.claude/scripts/Git-Diff.ps1" -Mode local -Path "Swyfft.Services.UnitTests/SomeFile.cs" # via-diff-skill
+```powershell
+& "$HOME/.claude/scripts/Git-Diff.ps1" -Mode branch -StatOnly # via-diff-skill
+& "$HOME/.claude/scripts/Git-Diff.ps1" -Mode local -Path "Swyfft.Services.UnitTests/SomeFile.cs" # via-diff-skill
 ```
 
-**IMPORTANT:** Append `# via-diff-skill` to bypass the pretooluse hook block.
+**IMPORTANT:** Append `# via-diff-skill` to bypass the pretooluse hook's raw `git diff` block.
 
 ## What each mode shows
 
