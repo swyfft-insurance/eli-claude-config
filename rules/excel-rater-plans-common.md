@@ -73,6 +73,7 @@ The actuaries build their next delivery from their SharePoint copy. A message ke
 
 - The actuaries own the rating algorithm. Tell them what changed in how it behaves, and why, in rating terms. Sheet and cell addresses are locators, not the substance.
 - Write "the rater" or "our raters", never "your rater" or "your formulas".
+- Lead with what required the change: the ticket's requirement, quoted, or the defect or live C# the rater had to match. Present the edit as following from it ("To meet the SW-XXXXX requirement, the rater now …"), never as Eli's own action ("I changed …").
 
 Every message, for an edit made on SharePoint or one handed to them, carries:
 

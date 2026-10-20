@@ -17,6 +17,7 @@ Every term below is reserved (`comments-docs-and-external-writing.md` § "Swyfft
 - **Carrier**: the insurer the risk is written with (`CarrierCode`).
 - **Hard decline**, **soft decline**, **time-sensitive soft decline**, **referral**: the four decline types, collectively "declines", defined in `Swyfft.Services/RiskSelection/AGENTS.md` § "Decline Type Hierarchy".
 - **ClosedSet**: a strongly-typed enum-like class under `Swyfft.Common/SetDefinitions/` (`StateCode`, `CarrierCode`, `ConstraintCode`), with usage rules in `Swyfft.Common/SetDefinitions/AGENTS.md`. Never the ordinary phrase "closed set" for an exhaustive list.
+- **Release**: the Friday deploy of `beta` to production. Never the Tuesday beta merge, when `beta` is cut from `development`. The YouTrack field `Release Stage` keeps its literal name.
 
 Eli works pre-bind (quoting). The quote owns the rating config and the policy inherits it. `Swyfft.Services.PostBind` covers post-bind automation.
 

@@ -62,3 +62,5 @@ state/mcp-discover-verdicts.json
 /tickets
 /skills/.trash
 remote-settings.json.synced-at
+remote-settings.json.signature.json
+policy-limits.json.signature.json

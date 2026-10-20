@@ -39,6 +39,10 @@ The plan implements the smallest change that meets the AC. A repo convention, a 
 
 Every option in an architecture question states its size: files changed, classes and registrations added. The smallest option that meets the AC goes first and is the recommendation. A bigger one is recommended only when the smallest fails the AC, and the recommendation names how.
 
+## Another open PR never narrows scope or creates a dependency
+
+The ticket's AC sets the scope. An open PR that touches the same states, files or behavior is never a reason to drop part of the AC, wait on that PR, branch from it, or reuse its code. Build the full AC on its own base; whichever PR merges second resolves the conflicts. Only Eli makes one PR depend on another.
+
 ## Every question uses the mandated format (MANDATORY)
 
 Every question while planning or executing takes the Question format in `talking-to-eli.md` § "Be concise — this is the top rule". A bare "y", "n" or number must answer it completely. Banned: open-ended asks ("Anything else?", "Good as-is, or want revisions?"), two questions in one message, and a choice described in prose with no question attached. Check each question against this section before sending it. When a reply fits none of the offered answers, re-ask in the mandated format; never infer.
@@ -101,7 +105,7 @@ Each kind of test subject (quote, policy, claim) has one sanctioned creation pat
 1. The test-setup docs in full: `Swyfft.TestUtilities/CLAUDE.md` (test types, base classes, § "Homeowner Quote Setup"), `Swyfft.TestUtilities/ConstantsAndExpects/CLAUDE.md` (test addresses), the target test project's `CLAUDE.md` (its test-data section names the creation helper), and `.claude/rules/dotnet-testing.md`. Listing them as pre-reads doesn't count.
 2. Existing tests for the same subject, matched on product line, carrier and config family. Copy an arrange from those, never from a test of a different subject.
 
-The plan carries the exact creation call and the doc sentence that prescribes it. Without both, HARD STOP.
+The plan carries the exact creation call and the doc sentence that prescribes it. Without both, HARD STOP. The HARD STOP is the failure path, not an option: find the call while planning, from the docs or an existing test of the same subject on `development`, and never defer it to a stop during execution.
 
 ## IMPORTANT: Step 0b: Create a Branch
 
@@ -298,14 +302,6 @@ A written step in the post-verification sequence runs `/eli--audit-pr-desc` on t
 ### AC coverage map
 
 A table mapping every AC to the subsection that covers it.
-
-### UI acceptance criteria need a screenshot
-
-When an AC is about what an agent sees (a new or moved element, changed wording, a layout change), the plan opens the running site, confirms it, and screenshots it for the PR description; a captured assert doesn't prove the screen. A change to which rules fire, shown through the quote page's existing decline and premium display, gets no screenshot.
-
-Create the subject with a throwaway integration test, not the site's create flow, that calls the product's quote generator with the config pinned and prints the quote id. Commercial: `CommercialQuoteGenerator.CreateCommercialQuote(addressKey, stateConfig)` via the `QuoteGenerator` property on `CommercialIntegrationTestBase`. Homeowner: `HomeownerQuoteTestBuilder` via `HoBuilder`. Both are in `Swyfft.TestUtilities/AGENTS.md`. Use the target carrier's own good address from `Swyfft.TestUtilities/ConstantsAndExpects/` (Vave FL: `CommercialGoodAddressKeyVaveFL000`); another carrier's address soft-declines. Confirm zero premium errors before opening. The throwaway test stays until Eli says to remove it.
-
-Build with `~/.claude/scripts/Build-Solution.ps1`, then start the site with `pwsh ./RunSwyfftWeb.ps1` from the repo root, in the background (it runs `--no-build`). It's up when `https://localhost:5001` answers. A Commercial quote opens at `/commercial/<quoteId>/customize`. Stop the site before the next build; a running `Swyfft.Web` locks `Swyfft.Web\bin`.
 
 ## `/eli--prebind-validation` is the default for most plans
 

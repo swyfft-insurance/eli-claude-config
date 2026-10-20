@@ -18,6 +18,10 @@ A test earns its place by failing when behavior is wrong. Never write these, and
 
 Captured asserts are the exception: they detect change on purpose, and the diff review is the check.
 
+## A risk rule needs no integration test
+
+A new or changed risk rule is covered by unit tests of its logic and by its product line's `*AllRisksTests` captured assert, which records which configs run it (`CommercialAllRisksTests` → `Data/Commercial/CommercialRules.txt`). An integration test that creates a quote to watch the rule fire re-proves the risk pipeline, which is established infrastructure. The testing pyramid never calls for one.
+
 ## TDD Hard Stop
 Bug fixes: write failing test → run → verify it FAILS → HARD STOP for approval → then fix.
 Refactoring: write safety-net test → run → verify it PASSES → HARD STOP for approval → then refactor.

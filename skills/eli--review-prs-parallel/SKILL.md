@@ -202,7 +202,7 @@ Each PR's message contains, and contains only:
    state (bot findings, prior approvals, unresolved threads).
 3. **The findings for that PR that survived step 4b**, each drafted as the exact inline comment
    text you would post, with its `file:line` anchor verified against the PR head ref.
-4. **Your recommendation** for that PR: plain approve, comment-only with inlines, or hold.
+4. **Your recommendation** for that PR: plain approve, approve with inlines, comment-only with inlines, or hold. Pick it by step 4c.
 5. **One closing question** asking what to do with this PR.
 
 Then stop. Do not preview the next PR, do not say how many remain, do not carry findings forward.
@@ -261,6 +261,14 @@ Verify every line number against the PR head ref before drafting an anchor. Neve
 line number through unchecked.
 
 Present only what survives. If nothing survives for a PR, present that plainly and recommend approve.
+
+### 4c. Pick the disposition from the surviving findings
+
+A PR with no surviving findings gets a **plain approve**.
+
+A PR that meets its goal, whose surviving findings each happen only under rare conditions and do limited harm, gets **approve with inlines**. The approval counts. Each inline thread still blocks merge until the author answers it.
+
+**Comment-only** is for a finding that defeats the PR's goal, or one whose harm is serious however rarely it happens.
 
 ### 5. Gate 2 — WAIT for explicit approval, per PR
 
