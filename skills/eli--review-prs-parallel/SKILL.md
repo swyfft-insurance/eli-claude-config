@@ -237,8 +237,7 @@ it. The body read above is the only thing that catches that.
 The audit's job here is to kill the finding, not to polish it. Expect that:
 
 - A finding whose premise fails is **retracted**, not rewritten. A retracted finding can flip the
-  recommendation from comment-only to plain approve, and that flip is the correct outcome, not a
-  failure of the review.
+  recommendation to plain approve, and that flip is the correct outcome, not a failure of the review.
 - The most common failure is a finding that describes intended, tested behavior as a defect. Before
   claiming a code path violates an invariant, find the test that covers that path and read what it
   asserts. A test named for the exact behavior in question settles it.
@@ -260,15 +259,15 @@ the remedy. That is always available, it is shorter, and it is what the author w
 Verify every line number against the PR head ref before drafting an anchor. Never carry a subagent's
 line number through unchecked.
 
-Present only what survives. If nothing survives for a PR, present that plainly and recommend approve.
+Present only what survives. If nothing survives for a PR, present that plainly.
 
 ### 4c. Pick the disposition from the surviving findings
 
 A PR with no surviving findings gets a **plain approve**.
 
-A PR that meets its goal, whose surviving findings each happen only under rare conditions and do limited harm, gets **approve with inlines**. The approval counts. Each inline thread still blocks merge until the author answers it.
+A PR that meets its goal, whose surviving findings each happen only under rare conditions and do limited harm, gets **approve with inlines**.
 
-**Comment-only** is for a finding that defeats the PR's goal, or one whose harm is serious however rarely it happens.
+**Comment-only** is for a finding that defeats the PR's goal, or one whose harm is serious however rarely it happens. When a finding makes the PR dangerous to merge as-is, say so in the recommendation. Request changes stays Eli's call (step 6).
 
 ### 5. Gate 2 — WAIT for explicit approval, per PR
 
