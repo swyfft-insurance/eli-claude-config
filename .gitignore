@@ -64,3 +64,5 @@ state/mcp-discover-verdicts.json
 remote-settings.json.synced-at
 remote-settings.json.signature.json
 policy-limits.json.signature.json
+remote-settings.json.signature-iat.json
+policy-limits.json.signature-iat.json
