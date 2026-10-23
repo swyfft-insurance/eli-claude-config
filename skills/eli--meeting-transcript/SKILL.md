@@ -60,6 +60,9 @@ No `meetingTranscriptUrl` means the event is not a Teams meeting. Stop and say s
   `Set-CsTeamsMeetingConfiguration -EnableGraphTranscriptAccess $true -EnableAttributedTranscripts $true`.
   If the error comes back, tell Eli. Retrying won't help.
 - **No transcript content**: the meeting wasn't transcribed. Stop and say so.
+- **"exceeds maximum allowed tokens … Output has been saved to `<file>`"**: the transcript was too
+  large to come back in the conversation, and Claude Code saved it to that file. This is not a
+  failure. Go to step 5, which reads the file. Don't read the file into the conversation.
 
 ### 5. Save it
 
@@ -71,8 +74,9 @@ python ~/.claude/skills/eli--meeting-transcript/save-transcript.py --uri "<meeti
 
 The connector returns the transcript inline, so there is no file to copy. The script finds that
 `read_resource` call in the session log under `~/.claude/projects/` and writes its result to disk
-exactly as Microsoft returned it. Never write the transcript out by hand. Retyping it costs tokens
-and can change the text.
+exactly as Microsoft returned it. When the log holds only a pointer to the file Claude Code saved
+the result to, the script reads that file. Never write the transcript out by hand. Retyping it
+costs tokens and can change the text.
 
 Output folder:
 
@@ -83,7 +87,7 @@ Output folder:
 |------|---------|
 | `transcript.vtt` | The WebVTT exactly as returned |
 | `transcript.md` | One paragraph per speaker turn: `[offset] **Speaker:** text` |
-| `source.json` | Subject, transcript URL, and the session log the script read |
+| `source.json` | Subject, transcript URL, the session log the script read, and the saved result file when there was one |
 
 When the result holds more than one transcript, the files are numbered: `transcript-1.vtt`,
 `transcript-2.vtt` and so on.

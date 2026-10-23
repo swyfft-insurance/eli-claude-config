@@ -107,7 +107,7 @@ PROCESS:
    Read the dump from the folder the script prints. Never copy its output into a scratchpad file: parallel reviewers share the scratchpad, and a generic filename gets overwritten with another PR's ticket.
 
 2. Fetch PR:
-   gh pr view {NUM} --repo swyfft-insurance/swyfft_web --json files,additions,deletions,body,isDraft
+   gh pr view {NUM} --repo swyfft-insurance/swyfft_web --json files,additions,deletions,body,isDraft,headRefOid
    gh pr diff {NUM} --repo swyfft-insurance/swyfft_web
 
 3. Fetch existing reviews/comments (don't duplicate already-flagged issues):
@@ -150,6 +150,7 @@ Your scope-match check compares the DIFF to the TICKET. When the diff deviates f
 
 OUTPUT FORMAT (<600 words):
 PR #{NUM} — {one-line summary}
+Reviewed head: {headRefOid}
 Ticket understanding: {one sentence per ticket}
 Scope match: {yes / explain mismatch — compare the DIFF to the TICKET, not to the PR body}
 Existing review state: {one sentence — bot findings, unresolved threads, prior approvals}
@@ -219,6 +220,8 @@ A subagent's findings are unverified claims. They are produced under a 5-minute 
 and a 1-level trace cap, so they routinely rest on a premise the agent never checked. Presenting
 them raw wastes Eli's turn on claims that do not survive first contact with the code.
 
+**Step zero: confirm the review covers the current head** (`pr-theirs-review.md` § "Review the PR as it is now"). Compare the agent's `Reviewed head` with `gh pr view <NUM> --json headRefOid`. If they differ, read the commits added since the reviewed head yourself, before anything else. Never launch another agent for them.
+
 **Step one, before any of the rest: read that PR's body in full** (`gh pr view <NUM> --repo
 swyfft-insurance/swyfft_web --json body --jq '.body'`). Read the whole thing, Reviewer Notes
 included, and kill every finding the author already discloses, explains, or records as deliberate.
@@ -263,7 +266,7 @@ Present only what survives. If nothing survives for a PR, present that plainly.
 
 ### 4c. Pick the disposition from the surviving findings
 
-A PR with no surviving findings gets a **plain approve**.
+A PR with no surviving findings gets a **plain approve**. When another reviewer's unresolved thread raises something verified and agreed with, the approve comes with a top-level comment instead: one sentence saying the approval expects that thread to be addressed, linking it. The comment posts with `comment --body-file` before the bodyless `approve`.
 
 A PR that meets its goal, whose surviving findings each happen only under rare conditions and do limited harm, gets **approve with inlines**.
 

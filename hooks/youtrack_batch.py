@@ -13,6 +13,9 @@ Flow:
 
 Batch JSON shape:
   {"actions": [
+      {"type": "create",          "ref": "T1", "summary": "...", "description": "...",
+       "singleFields": {"IssueType": "Feature", "Priority": "Major"},
+       "fields": {"Carrier": ["QBE"]}, "assignee": "konstantin"},
       {"type": "comment",         "issue": "SW-1", "text": "..."},
       {"type": "link",            "issue": "SW-1", "linkType": "duplicates", "target": "SW-2"},
       {"type": "setStage",        "issue": "SW-1", "value": "Done"},
@@ -32,6 +35,9 @@ it changed after staging.
 An attach action names a file under ~/.claude/tickets/. Staging records the file's size and
 SHA-256 in the action, so the approval binds to the file's exact content: a file edited after
 staging fails validation and cannot be uploaded.
+
+A create action makes a new SW issue and names it with a ref. Any later action in the same batch
+can use "@<ref>" as its issue or link target, and execution substitutes the new issue's id.
 """
 
 import argparse
@@ -49,10 +55,14 @@ STAGED_DIR = os.path.join(BATCH_DIR, "staged")
 EXECUTED_DIR = os.path.join(BATCH_DIR, "executed")
 YOUTRACK_BASE = "https://swyfft.myjetbrains.com/youtrack"
 
-MAX_ACTIONS = 12
+MAX_ACTIONS = 20
 MAX_COMMENT_CHARS = 8000
+MAX_SUMMARY_CHARS = 250
+MAX_DESCRIPTION_CHARS = 20000
 HASH_CHARS = 12
 ISSUE_RE = re.compile(r"^SW-\d+$")
+CREATE_REF_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,9}$")
+PROJECT_SHORT_NAME = "SW"
 
 # Closed value sets: every settable value is enumerated, so a batch can never smuggle
 # extra command tokens into the YouTrack command API.
@@ -61,8 +71,25 @@ STAGE_VALUES = [
     "Ready for Test", "Test", "Failed Test", "Tested", "Done",
 ]
 RELEASE_STAGE_VALUES = ["NA", "Development", "Beta", "Production"]
-# The only assignee a batch may set. Assigning anyone else is a single action, not a batch.
-ASSIGNEE_VALUES = ["eli.koslofsky"]
+# Assignees a batch may set, enumerated so a login can never carry extra command tokens.
+ASSIGNEE_VALUES = [
+    "alex.good", "chris", "chris.schenk", "dan.melson", "darius", "ehren", "eli.koslofsky",
+    "eric.chen", "jay", "jill.ashley", "jnichols", "john.deangelis", "justin", "ken",
+    "konstantin", "larry.beall", "laurel", "marykay.hurlburt", "phil.hobbs", "ron.ratzlaff",
+    "steve.rysavy", "warren.hirschbuehler", "wayne", "wendell",
+    "carmen", "drew.house", "james.whitfield", "joshua.spink", "mahendra", "nick.fee",
+    "patti.sundius", "surabhi.tiwari",
+]
+# Single-value fields a create action may set, every value enumerated for the same reason.
+SINGLE_FIELD_VALUES = {
+    "IssueType": ["Feature", "Bug", "Support", "Epic", "Inquiry"],
+    "Priority": ["Minor", "Normal", "Major", "Critical", "Show Stopper"],
+    "Platform": ["Internal", "External"],
+    "Business Owner": [
+        "carmen", "gena.motter", "greg.granger", "jay.prasad", "jennifer.wagner", "ken",
+        "roman", "steve.rysavy",
+    ],
+}
 LINK_TYPES = [
     "duplicates", "relates to", "subtask of",
     "depends on", "is duplicated by", "parent for",
@@ -86,8 +113,8 @@ FIELD_VALUES = {
     ],
 }
 ACTION_TYPES = [
-    "comment", "link", "setStage", "setReleaseStage", "setAssignee", "addFields", "attach",
-    "editComment",
+    "create", "comment", "link", "setStage", "setReleaseStage", "setAssignee", "addFields",
+    "attach", "editComment",
 ]
 COMMENT_ID_RE = re.compile(r"^\d+-\d+$")
 # Attachments come only from ticket work folders, so a batch cannot upload an arbitrary file.
@@ -137,6 +164,7 @@ def validate(batch):
         errors.append("batch has no actions")
     if len(actions) > MAX_ACTIONS:
         errors.append(f"batch has {len(actions)} actions; max is {MAX_ACTIONS}")
+    refs = set()
     for i, a in enumerate(actions, 1):
         where = f"action {i}"
         if not isinstance(a, dict):
@@ -146,9 +174,12 @@ def validate(batch):
         if atype not in ACTION_TYPES:
             errors.append(f"{where}: type {atype!r} not in {ACTION_TYPES}")
             continue
+        if atype == "create":
+            errors.extend(_validate_create(a, where, refs))
+            continue
         issue = a.get("issue", "")
-        if not ISSUE_RE.match(str(issue)):
-            errors.append(f"{where}: issue {issue!r} does not match SW-<digits>")
+        if not _is_issue_or_known_ref(issue, refs):
+            errors.append(f"{where}: issue {issue!r} is neither SW-<digits> nor an earlier create's @ref")
         allowed_keys = {
             "comment": {"type", "issue", "text"},
             "link": {"type", "issue", "linkType", "target"},
@@ -171,8 +202,9 @@ def validate(batch):
         elif atype == "link":
             if a.get("linkType") not in LINK_TYPES:
                 errors.append(f"{where}: linkType {a.get('linkType')!r} not in {LINK_TYPES}")
-            if not ISSUE_RE.match(str(a.get("target", ""))):
-                errors.append(f"{where}: target {a.get('target')!r} does not match SW-<digits>")
+            if not _is_issue_or_known_ref(a.get("target", ""), refs):
+                errors.append(
+                    f"{where}: target {a.get('target')!r} is neither SW-<digits> nor an earlier create's @ref")
         elif atype == "setStage":
             if a.get("value") not in STAGE_VALUES:
                 errors.append(f"{where}: Stage value {a.get('value')!r} not in {STAGE_VALUES}")
@@ -199,6 +231,50 @@ def validate(batch):
                 errors.append(f"{where}: current comment text was not fetched at stage time")
             elif a.get("oldText") == text:
                 errors.append(f"{where}: new comment text is identical to the current text")
+    return errors
+
+
+def _is_issue_or_known_ref(value, refs):
+    value = str(value)
+    return bool(ISSUE_RE.match(value)) or (value.startswith("@") and value[1:] in refs)
+
+
+def _validate_create(a, where, refs):
+    errors = []
+    allowed_keys = {"type", "ref", "summary", "description", "singleFields", "fields", "assignee"}
+    extra = set(a.keys()) - allowed_keys
+    if extra:
+        errors.append(f"{where}: unexpected keys {sorted(extra)}")
+    ref = a.get("ref", "")
+    if not CREATE_REF_RE.match(str(ref)):
+        errors.append(f"{where}: ref {ref!r} must be a letter followed by up to 9 letters or digits")
+    elif ref in refs:
+        errors.append(f"{where}: ref {ref!r} is already used by an earlier create")
+    else:
+        refs.add(ref)
+    summary = a.get("summary")
+    if not isinstance(summary, str) or not summary.strip():
+        errors.append(f"{where}: summary is empty")
+    elif "\n" in summary or len(summary) > MAX_SUMMARY_CHARS:
+        errors.append(f"{where}: summary must be one line of at most {MAX_SUMMARY_CHARS} chars")
+    description = a.get("description", "")
+    if not isinstance(description, str):
+        errors.append(f"{where}: description must be a string")
+    elif len(description) > MAX_DESCRIPTION_CHARS:
+        errors.append(f"{where}: description is {len(description)} chars; max {MAX_DESCRIPTION_CHARS}")
+    single_fields = a.get("singleFields", {})
+    if not isinstance(single_fields, dict):
+        errors.append(f"{where}: singleFields must be an object")
+    else:
+        for name, value in single_fields.items():
+            if name not in SINGLE_FIELD_VALUES:
+                errors.append(f"{where}: field {name!r} not in {sorted(SINGLE_FIELD_VALUES)}")
+            elif value not in SINGLE_FIELD_VALUES[name]:
+                errors.append(f"{where}: {name} value {value!r} not in {SINGLE_FIELD_VALUES[name]}")
+    if "fields" in a:
+        errors.extend(_validate_fields(a["fields"], where))
+    if "assignee" in a and a["assignee"] not in ASSIGNEE_VALUES:
+        errors.append(f"{where}: Assignee value {a['assignee']!r} not in {ASSIGNEE_VALUES}")
     return errors
 
 
@@ -276,7 +352,19 @@ def render(actions):
     h = batch_hash(actions)
     lines = [f"=== YOUTRACK BATCH {h} ==="]
     for i, a in enumerate(actions, 1):
-        if a["type"] == "comment":
+        if a["type"] == "create":
+            lines.append(f"{i}. create {PROJECT_SHORT_NAME} issue @{a['ref']}:")
+            lines.append(f"Summary: {a['summary']}")
+            fields = [f"{name} = {value}" for name, value in sorted(a.get("singleFields", {}).items())]
+            fields += [f"{name} = {', '.join(values)}" for name, values in sorted(a.get("fields", {}).items())]
+            if fields:
+                lines.append("Fields: " + "; ".join(fields))
+            if a.get("assignee"):
+                lines.append(f"Assignee: {a['assignee']}")
+            lines.append("Description:")
+            lines.append(a.get("description", ""))
+            lines.append("---")
+        elif a["type"] == "comment":
             lines.append(f"{i}. {a['issue']}: add comment:")
             lines.append(a["text"])
             lines.append("---")
@@ -392,6 +480,61 @@ def _upload_attachment(a, token):
         return resp.status, resp.read().decode("utf-8", "replace")
 
 
+def _fetch_project_id(token):
+    req = urllib.request.Request(
+        f"{YOUTRACK_BASE}/api/admin/projects?fields=id,shortName&$top=500",
+        method="GET",
+        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        projects = json.loads(resp.read().decode("utf-8", "replace"))
+    for project in projects:
+        if project.get("shortName") == PROJECT_SHORT_NAME:
+            return project["id"]
+    raise RuntimeError(f"project {PROJECT_SHORT_NAME} not found")
+
+
+def _create_issue(a, project_id, token, on_created):
+    """Create the issue, report its id through on_created before setting any field (so a failed
+    field command still leaves the new id on record), then set the fields one command each."""
+    status, body = _api(
+        "POST",
+        f"{YOUTRACK_BASE}/api/issues?fields=idReadable",
+        {
+            "project": {"id": project_id},
+            "summary": a["summary"],
+            "description": a.get("description", ""),
+            "usesMarkdown": True,
+        },
+        token,
+    )
+    issue = json.loads(body)["idReadable"]
+    on_created(issue)
+    queries = [f"{name} {value}" for name, value in sorted(a.get("singleFields", {}).items())]
+    queries += [
+        f"{name} {value}" for name, values in sorted(a.get("fields", {}).items()) for value in values]
+    if a.get("assignee"):
+        queries.append(f"Assignee {a['assignee']}")
+    for query in queries:
+        status, _body = _api(
+            "POST",
+            f"{YOUTRACK_BASE}/api/commands",
+            {"query": query, "issues": [{"idReadable": issue}]},
+            token,
+        )
+    return issue, status
+
+
+def _resolve_refs(a, created):
+    """Copy of the action with every @ref replaced by the id its create action produced."""
+    resolved = dict(a)
+    for key in ("issue", "target"):
+        value = str(resolved.get(key, ""))
+        if value.startswith("@"):
+            resolved[key] = created[value[1:]]
+    return resolved
+
+
 def _run_action(a, token):
     if a["type"] == "attach":
         return _upload_attachment(a, token)
@@ -451,25 +594,47 @@ def execute(h):
         print(f"ERROR: {err}", file=sys.stderr)
         return 1
 
+    # Resolve the project before any action runs, so a lookup failure leaves the stage unspent.
+    project_id = None
+    if any(a["type"] == "create" for a in actions):
+        try:
+            project_id = _fetch_project_id(token)
+        except Exception as ex:
+            print(f"ERROR: cannot resolve project {PROJECT_SHORT_NAME}: {ex}", file=sys.stderr)
+            return 1
+
     results = []
+    created = {}
     failed = False
     for i, a in enumerate(actions, 1):
+        label = f"@{a['ref']}" if a["type"] == "create" else a["issue"]
         if failed:
             results.append({"action": i, "status": "skipped (earlier action failed)"})
             continue
         try:
-            status, _body = _run_action(a, token)
+            if a["type"] == "create":
+                def on_created(issue, ref=a["ref"]):
+                    created[ref] = issue
+                    print(f"{i}. create @{ref}: created {issue}")
+                issue, status = _create_issue(a, project_id, token, on_created)
+                results.append({"action": i, "status": f"created {issue}, fields HTTP {status}"})
+                continue
+            resolved = _resolve_refs(a, created)
+            label = resolved["issue"]
+            status, _body = _run_action(resolved, token)
             results.append({"action": i, "status": f"HTTP {status}"})
-            print(f"{i}. {a['type']} {a['issue']}: HTTP {status}")
+            print(f"{i}. {a['type']} {label}: HTTP {status}")
         except urllib.error.HTTPError as ex:
             body = ex.read().decode("utf-8", "replace")[:500]
             results.append({"action": i, "status": f"FAILED HTTP {ex.code}: {body}"})
-            print(f"{i}. {a['type']} {a['issue']}: FAILED HTTP {ex.code}: {body}", file=sys.stderr)
+            print(f"{i}. {a['type']} {label}: FAILED HTTP {ex.code}: {body}", file=sys.stderr)
             failed = True
         except Exception as ex:
             results.append({"action": i, "status": f"FAILED: {ex}"})
-            print(f"{i}. {a['type']} {a['issue']}: FAILED: {ex}", file=sys.stderr)
+            print(f"{i}. {a['type']} {label}: FAILED: {ex}", file=sys.stderr)
             failed = True
+    if created:
+        results.append({"created": created})
 
     # Single-use: consume the stage even on partial failure, so a retry can't silently
     # re-run the actions that already succeeded (comments are not idempotent). Restage

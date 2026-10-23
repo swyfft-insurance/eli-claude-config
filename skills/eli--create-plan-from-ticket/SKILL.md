@@ -1,13 +1,11 @@
 ---
 name: eli--create-plan-from-ticket
-description: Co-design an implementation plan from a YouTrack ticket via sustained interactive Q&A. Loads all rules, reads the ticket and subsystem docs, walks architectural and verification decisions one at a time, and writes the final plan to a per-ticket folder under ~/.claude/tickets/ only after the design is fully settled. Use this instead of drafting plans from memory.
+description: Co-design an implementation plan from a YouTrack ticket via a short Q&A limited to the decisions only Eli can make. Loads all rules, reads the ticket and subsystem docs, walks architectural and verification decisions one at a time, and writes the final plan to a per-ticket folder under ~/.claude/tickets/ only after the design is fully settled. Use this instead of drafting plans from memory.
 ---
 
 # Create Plan From Ticket
 
-This skill enforces the planning rules in `~/.claude/rules/plan-mode.md`. Its purpose is to **prevent the agent from dumping a long plan file as the first response to "plan this."** Plans are co-designed via Q&A, not generated.
-
-> **The agent's strongest temptation is to skip Q&A and jump to the plan. Resist it. The whole point of this skill is the conversation BEFORE the plan file gets written.**
+This skill enforces the planning rules in `~/.claude/rules/plan-mode.md`. Its purpose is to prevent the agent from dumping a long plan file as the first response to "plan this." The plan is settled with Eli before it is written, through the few questions only he can answer.
 
 > **BETWEEN EVERY STEP — re-read `~/.claude/rules/plan-mode.md`.** Even if you "just read it" two minutes ago. Even if it appeared in a system reminder at session start. The rules drift out of working memory faster than recall suggests — most violations the agent commits during a step (dumping a plan blob, calling ExitPlanMode mid-discussion, skipping verification subsections, guessing at script args, deferring decisions, asking anti-pattern questions) are violations of rules already in `plan-mode.md`. The cost of re-reading is small; the cost of a rule violation is enormous user-facing frustration. Skipping with "I just read it" is the exact pattern this checkpoint exists to prevent. Re-read at every step transition, no exceptions.
 
@@ -78,7 +76,7 @@ If no existing file, proceed to Step 5.
 included, in Part 2. Establish the AC per `excel-rater-plans-common.md` § "A rater plan's AC", then
 go to Step 7.5.
 
-> **This is the most important step in the skill. Do not rush it. Do not call it done after 2-3 questions.**
+> **Ask only what Eli has to decide.** A question earns a message only when its answer changes the code and nothing else settles it: not the ticket, the rules, the code, or a check you can run. Zero questions is a valid outcome. Settle everything else yourself and state it in the outline. An edge case that touches a handful of records goes in the code-complete summary as a flagged note, never in a question.
 
 ### One thing at a time, every question carries its evidence (MANDATORY)
 
@@ -99,12 +97,14 @@ Step 5 opens in this order, one message each:
 1. The AC list, ending `Plan against these? (y/n)`.
 2. The questions, one per message.
 
-**Every question must carry its evidence inline**, because the user has no source material in front of them otherwise:
-1. **Verbatim ticket text:** quote the ticket text the decision turns on, word for word. Never paraphrase it, and never quote text the decision doesn't turn on. If the decision is not ticket-derived, say so explicitly: "(not in the ticket, discovered in code)".
-2. **The relevant code excerpt** with `file:line`, showing exactly what changes.
-3. **The decision + numbered options**, each stated as a concrete consequence.
+**Every question is answerable at a glance.** Eli has no source material in front of him, and he can't answer what he has to decode.
+1. **Lead with the decision in plain words:** what each option means for a customer, a policy or the code, in sentences he can answer without opening a file.
+2. **Then the minimum evidence:** the ticket sentence the decision turns on, quoted verbatim, or "(not in the ticket, found in code)". At most one code pointer.
+3. **No internals he has to decode:** no version numbers, config names, lookup names or line lists, unless the decision is about one of them.
 
-Prefer prose with numbered options over AskUserQuestion when the evidence is substantial (AskUserQuestion truncates it). A question without its evidence is incomplete — the user should never have to go read the ticket or grep the code to answer.
+Prefer prose with numbered options over AskUserQuestion when the evidence is substantial, because AskUserQuestion truncates it.
+
+**Record who decided.** "Eli's call" means he chose it unprompted or overrode a recommendation. A recommendation he accepted with a bare "y" is recorded as my recommendation, accepted. When later evidence undercuts it, reopen it as my error, never as his decision.
 
 **Every question takes the mandated format.** Before sending any question, `Read` `~/.claude/rules/plan-mode.md` § "Every question uses the mandated format".
 
@@ -138,7 +138,7 @@ This is real engagement with the ticket content, not template-filling. If Pass 1
 
 ### Pass 2 — Category-coverage sweep
 
-After Pass 1 feels exhausted, sweep the canonical category checklist as a final guard against blind spots. For each category, ask: "Have we discussed how this applies?"
+After Pass 1, check each category below yourself against the ticket and the code. A category becomes a question only when that check leaves a decision open.
 
 | Category | Always relevant for | Typical questions |
 |---|---|---|
@@ -166,7 +166,8 @@ After each cluster of questions, you may ask "Draft the outline now? (y/n)". The
 
 ### Banned in Q&A
 
-- Rushing to outline after 2-3 questions — must be sustained discussion
+- A question the ticket, the rules, the code or a check already answers. Settle it and put it in the outline.
+- A question in internals Eli has to decode (see "Every question is answerable at a glance").
 - Filler / strawman / anti-pattern options (see `talking-to-eli.md` § "Don't Offer Anti-Pattern Options"). Every option you present must be genuinely plausible.
 - Asking questions whose answers are obvious from the ticket — just confirm and proceed
 - Letting Pass 2 do most of the work because Pass 1 was lazy

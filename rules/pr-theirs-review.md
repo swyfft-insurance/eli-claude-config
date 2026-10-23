@@ -12,6 +12,14 @@
 - A finding about a specific file/line is an inline comment (`pr-review.py comment --inline`). Top-level comments are for feedback with no location.
 - A subagent doing any part of the review gets the hard caps in `pre-pr-review.md`.
 
+## Review the PR as it is now
+
+A review covers the PR's current head. Record the head SHA the review read. Before presenting a PR to Eli, and again before posting, compare that SHA with the PR's current `headRefOid`. If the head moved, review the new commits before presenting. Never offer approving unreviewed commits as an option.
+
+## Laurel Nichols's captured-assert updates: verify every change is expected
+
+When a PR by Laurel Nichols (`LaurelNichols`) changes captured-assert expected-result files, the review verifies that the new values are expected. Trace each distinct change to the merged PR whose code produces it, and confirm the new value is that PR's intended output. A change no merged PR explains is a finding. Approval waits until every change is traced, and the presentation names the PR behind each change. Every approval, a plain one included, comes with a top-level comment. The comment says the PR is approved and the new values are correct, and it names the PR behind each change.
+
 ## Presenting PRs to Eli
 
 Name the author every time a PR is mentioned: tables (an Author column), groupings ("#20760 (justinswyfft)"), prose, follow-up restatements, standups.

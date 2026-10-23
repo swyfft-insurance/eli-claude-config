@@ -39,6 +39,7 @@ A ticket's mechanism, technical-notes or code-pointer section is a lead to verif
 - Use `create_issue`, never `create_draft_issue`.
 - Attach every dump, log, output and screenshot a ticket relies on when filing it. Never point at a file on a dev machine. If something can't be attached yet, the ticket isn't ready to file.
 - Never put an `@mention` in a heading. Put it on its own line below.
+- A ticket never carries an open question. Resolve every question before drafting, from the source material, the code, a skill built for it (`/go-live-dates` turns an effective date into go-live dates), or Eli. A question only the business owner can answer goes to Eli first, and the draft waits for the answer.
 
 ## Tag Eli's tech debt tickets `technical debt`
 
@@ -56,6 +57,14 @@ A ticket Eli files for his own refactor, test-infrastructure or tooling work get
     "https://swyfft.myjetbrains.com/youtrack/api/commands"
   ```
   HTTP 200 with an empty `{}` is success. The ticket then reads `Release Stage: None`, which is NA. A failure would read `Production`.
+
+## Release Stage at PR creation
+
+When putting up a PR, check Release Stage on each of its tickets.
+
+- Release Stage should always be NA at PR creation.
+- A second PR on a ticket also gets NA. Release Stage reflects the ticket's final PR reaching whatever stage.
+- When a ticket's Release Stage isn't NA, call it out to Eli with the ticket and its current value. There may be exceptions, so set it to NA only after his y, using the command API call in § "Fields and stages".
 
 ## SolarWinds queries in tickets
 

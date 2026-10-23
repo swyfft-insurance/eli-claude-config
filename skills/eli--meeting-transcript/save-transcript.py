@@ -4,6 +4,8 @@ The connector returns the transcript inline as a tool result, so there is no fil
 logs every tool result to the session's JSONL under ~/.claude/projects/. This script finds the
 read_resource call whose uri matches --uri, takes its result from that log, and writes it to disk.
 That keeps the transcript byte-for-byte as Microsoft returned it, with nothing retyped by the agent.
+A result too large for the conversation is saved by Claude Code to a file, and the log holds only a
+pointer to that file. The script follows the pointer and reads the file.
 
 Usage:
     python save-transcript.py --uri "<meeting-transcript:///...>" [--ticket-folder SW-XXXXX-title]
@@ -30,6 +32,7 @@ READ_RESOURCE_TOOL_SUFFIX = "Microsoft_365__read_resource"
 SESSION_LOGS_TO_SEARCH = 20
 CUE_TIMING = re.compile(r"^(\d{2}:\d{2}:\d{2})\.\d{3}\s+-->\s+")
 VOICE_TAG = re.compile(r"<v\s+([^>]*)>(.*?)(?:</v>)?$", re.DOTALL)
+SPILLED_RESULT_POINTER = re.compile(r"Output has been saved to (.+?\.txt)\.?$", re.MULTILINE)
 
 
 def fail(message):
@@ -68,6 +71,19 @@ def find_tool_result(uri):
         if latest_result:
             return latest_result
     return None
+
+
+def read_spilled_result(result_text):
+    """Return (text, spilled_path): the saved file's text when result_text is a pointer to one, else result_text."""
+    spilled = SPILLED_RESULT_POINTER.search(result_text)
+    if not spilled:
+        return result_text, None
+    spilled_path = spilled.group(1)
+    if not os.path.isfile(spilled_path):
+        fail(f"The read_resource result was saved to {spilled_path}, which no longer exists. "
+             "Call read_resource on the uri again, then rerun.")
+    with open(spilled_path, encoding="utf-8") as spilled_file:
+        return spilled_file.read(), spilled_path
 
 
 def occurrence_local_date(uri, transcript):
@@ -146,6 +162,7 @@ def main():
     result_text, is_error, log_path = found
     if is_error:
         fail(f"The read_resource call failed: {result_text}")
+    result_text, spilled_path = read_spilled_result(result_text)
     try:
         result = json.loads(result_text)
     except json.JSONDecodeError:
@@ -184,7 +201,8 @@ def main():
         })
 
     with open(os.path.join(out_dir, "source.json"), "w", encoding="utf-8") as source_file:
-        json.dump({"subject": subject, "uri": args.uri, "sessionLog": log_path}, source_file, indent=2)
+        json.dump({"subject": subject, "uri": args.uri, "sessionLog": log_path, "spilledResult": spilled_path},
+                  source_file, indent=2)
 
     print(json.dumps({"subject": subject, "date": date, "outDir": out_dir, "transcripts": files}, indent=2))
 
