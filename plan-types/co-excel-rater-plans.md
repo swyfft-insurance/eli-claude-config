@@ -1,13 +1,6 @@
----
-paths:
-  - "**/Commercial/EAndS/**/*.xlsm"
-  - "**/ByPerilSeederCommercialEAndS*.cs"
-  - "**/CommercialEAndS*.cs"
-  - "**/CommercialStateConfig.cs"
----
 # Excel Rater (ByPeril) — Commercial Implementation Tickets
 
-The Commercial playbook for the Excel Rater (ByPeril) plan type (`plan-mode.md` § "Plan Types"). It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Commercial's own.
+The Commercial playbook for the Rater update and Rater bug plan types (`rater-update.md`, `rater-bug.md`). It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Commercial's own.
 
 ## Mandatory pre-reads — before authoring a Commercial rater plan
 

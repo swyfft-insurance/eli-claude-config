@@ -72,7 +72,7 @@ unopened is context the reporter deliberately attached and you ignored.
       Claude Code so the process inherits the new PATH. Never report the error as a result; a
       no-`pages` Read still works meanwhile.
 - **Excel/binary** (`.xlsm`, `.xlsx`, `.zip`): give the user the path. A rater workbook goes through
-  the sanctioned dump path only (`~/.claude/rules/excel-rater-plans-common.md`).
+  the sanctioned dump path only (`~/.claude/plan-types/excel-rater-plans-common.md`).
 
 These attachments often contain critical context (SolarWinds logs, error dumps, repro data) that isn't in the ticket description.
 

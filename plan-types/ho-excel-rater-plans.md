@@ -1,13 +1,6 @@
----
-paths:
-  - "**/Homeowner/ByPeril/**/*.xlsm"
-  - "**/ByPerilSeederHomeowner*.cs"
-  - "**/ByPerilHomeowner*ExcelRaterService*.cs"
-  - "**/HomeownerStateConfig/**"
----
 # Excel Rater (ByPeril) — Homeowner Implementation Tickets
 
-The Homeowner playbook for the Excel Rater (ByPeril) plan type (`plan-mode.md` § "Plan Types"). It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Homeowner's own.
+The Homeowner playbook for the Rater update and Rater bug plan types (`rater-update.md`, `rater-bug.md`). It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Homeowner's own.
 
 ## Mandatory pre-reads — before authoring an Excel rater plan
 

@@ -8,7 +8,7 @@ A test that breaks one of these gets fixed before it lands.
 - **Isolated**: no ordering dependency and no reliance on another test's state. Each test arranges the data it asserts on.
 - **Repeatable**: the same result on any machine, timezone or date. Pin the clock with `Time.SetDateTime(...)` and write dates as literals, not offsets from now. Never `DateTime.UtcNow`, unseeded randomness, or a dependence on today's date.
 - **Self-validating**: the test asserts its own pass or fail. Nothing to read off the console.
-- **Timely**: written with or before the code (§ "TDD Hard Stop").
+- **Timely**: written with or before the code (`~/.claude/plan-types/bug.md` and `refactoring.md`, § "Steps and stops").
 
 ## Never write a test that restates the code
 
@@ -21,10 +21,6 @@ Captured asserts are the exception: they detect change on purpose, and the diff 
 ## A risk rule needs no integration test
 
 A new or changed risk rule is covered by unit tests of its logic and by its product line's `*AllRisksTests` captured assert, which records which configs run it (`CommercialAllRisksTests` → `Data/Commercial/CommercialRules.txt`). An integration test that creates a quote to watch the rule fire re-proves the risk pipeline, which is established infrastructure. The testing pyramid never calls for one.
-
-## TDD Hard Stop
-Bug fixes: write failing test → run → verify it FAILS → HARD STOP for approval → then fix.
-Refactoring: write safety-net test → run → verify it PASSES → HARD STOP for approval → then refactor.
 
 ## Investigation & TDD
 - A root cause is a hypothesis, labeled as one, until a test reproduces it.

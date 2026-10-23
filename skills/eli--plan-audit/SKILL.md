@@ -36,14 +36,14 @@ part of the audit. Resolve it deterministically, and resolve it before any later
 
 1. **Read the plan file.** Extract the plan type **verbatim** as the plan declares it. Never infer the
    type from the ticket, the file paths, or what the work looks like.
-2. **Derive the valid types from `plan-mode.md` at runtime.** Never a list written here or recalled:
+2. **Derive the valid types from `~/.claude/plan-types/` at runtime.** Never a list written here or recalled:
 
    ```bash
-   awk '/^## Plan Types/{f=1;next} /^## /{f=0} f && /^### /{sub(/^### /,"");print}' ~/.claude/rules/plan-mode.md
+   grep -h '^# Plan type: ' ~/.claude/plan-types/*.md | sed 's/^# Plan type: //'
    ```
 
-3. **Match the declared type against that output exactly.** Then read that type's own section in
-   `plan-mode.md` and list every file and skill the section names.
+3. **Match the declared type against that output exactly.** Then read that type's file in
+   `~/.claude/plan-types/` and list every file and skill it names.
 
 The resolution happens silently. Nothing about it is reported.
 
@@ -53,7 +53,7 @@ The resolution happens silently. Nothing about it is reported.
 - the declared type matches nothing in the derived list
 - the declared type matches more than one
 
-Each means the plan is wrong or `plan-mode.md` moved. A hard stop is the one thing that does reach
+Each means the plan is wrong or `~/.claude/plan-types/` moved. A hard stop is the one thing that does reach
 Eli, because it asks him for something. Say which of the three it is, and nothing else.
 
 ## 1. Read the rules, with actual Read calls, in this turn
@@ -89,7 +89,7 @@ that lets the rest through unchecked.
 Planned tests are the case that has bitten. Every test the plan adds or modifies, and every column
 and assert in its case table, gets its own row against each `testing.md` section.
 
-### 2a. `plan-mode.md`, Parts A, B and C — every plan, every type
+### 2a. `plan-mode.md` — every plan, every type
 
 The rows are the file's `##` and `###` headings, derived when the skill runs, never from a list
 written here:
@@ -104,10 +104,10 @@ the plan section that earns it. A heading with no row fails the audit. The file 
 it exists so a skipped section is visible as a missing row.
 
 **The declared type never narrows this pass.** Step 0 resolves which playbooks get *added* in 2b; it
-subtracts nothing here. A type can reduce or exempt an individual rule, and Bug Fix reduces several,
-but only that type's own section may grant the exemption. Read the section before recording an N/A,
-and record the exemption's source. An N/A justified by "this is a rater ticket" rather than by text in
-`plan-mode.md` is a violation wearing an N/A.
+subtracts nothing here. A type can reduce or exempt an individual rule, but only that type's file
+may grant the exemption. Read the section before recording an N/A, and record the exemption's source.
+An N/A justified by "this is a rater ticket" rather than by text in the type's file is a violation
+wearing an N/A.
 
 Two failure modes to watch. A rule mandating text physically in the plan is satisfied only by that
 text being there, never by the plan honoring it in spirit. And "the plan doesn't mention this rule" is
@@ -129,6 +129,7 @@ and always apply.
 
 Add to the same pass:
 
+- the plan's type file and every `~/.claude/plan-types/` file it names
 - the repo docs the plan's own subsystem pre-reads name, which carry mandatory conventions of their own
 - every rules file the plan's own steps name
 

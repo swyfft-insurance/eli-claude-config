@@ -1,14 +1,3 @@
----
-paths:
-  - "**/Homeowner/ByPeril/**/*.xlsm"
-  - "**/ByPerilSeederHomeowner*.cs"
-  - "**/ByPerilHomeowner*ExcelRaterService*.cs"
-  - "**/HomeownerStateConfig/**"
-  - "**/Commercial/EAndS/**/*.xlsm"
-  - "**/ByPerilSeederCommercialEAndS*.cs"
-  - "**/CommercialEAndS*.cs"
-  - "**/CommercialStateConfig.cs"
----
 # Excel Rater (ByPeril) — Shared Conventions
 
 Shared by the Homeowner (`ho-excel-rater-plans.md`) and Commercial (`co-excel-rater-plans.md`) playbooks. Both products run one Excel test infrastructure, so anything about it belongs here.
@@ -132,18 +121,18 @@ The rater is the acceptance criteria (`Swyfft.Services/Premium/AGENTS.md` § "Th
 
 ## The diff is the requirement
 
-`plan-mode.md` § "Plan Types" § "Excel Rater (ByPeril)" governs. The diff is the `ExpectedResults/` baseline diff, regenerated as soon as the raters are placed, with no seeder change or reseed. The `version_history` sheet is the actuaries' intent: a missing row doesn't mean nothing changed, and a row doesn't prove a change is functional.
+`rater-update.md` governs. The diff is the `ExpectedResults/` baseline diff, regenerated as soon as the raters are placed, with no seeder change or reseed. The `version_history` sheet is the actuaries' intent: a missing row doesn't mean nothing changed, and a row doesn't prove a change is functional.
 
 ## Implement the seeder first
 
-Implementation starts at the scoping checkpoint, never before the diff. Within it the order is seeder, then a green full reseed, then premium, rater service, elements and validation. The seeder is the first layer that reads the actual sheets, so layout and opt-in breakage surface there.
+Implementation starts after discovery, never before the diff. Within it the order is seeder, then a green full reseed, then premium, rater service, elements and validation. The seeder is the first layer that reads the actual sheets, so layout and opt-in breakage surface there.
 
 ## New code goes where the codebase already keeps that kind of code (MANDATORY)
 
 - Code only premium generation uses goes in the premium generator hierarchy (the shared base, or the state and carrier generators), never an adjacent class.
 - A small method or constant more than one subsystem uses goes in an existing static helper class.
 
-A new static class is never the default. When a plan adds one, Part 2 says why no existing home fits.
+A new static class is never the default. When a plan adds one, the plan says why no existing home fits.
 
 ## Deprecated and run-off carriers are out of scope (MANDATORY step)
 
@@ -151,17 +140,17 @@ A carrier that no longer writes new business is out of scope unless the ticket n
 
 Every rater plan:
 
-- names the deprecated and run-off carriers in its states before Part 2's C# change list
+- names the deprecated and run-off carriers in its states before the plan's C# change list
 - at the code-complete HARD STOP, names each class in the diff a deprecated carrier runs and shows its tests, premium and seeding are unchanged
 - at the tests-complete HARD STOP, confirms their validation tests pass with zero baseline diff
 
 ## Plan shape — the same five steps for both products
 
-Steps 1 to 4 are written up front. Step 5 is written at the checkpoint, from the diff.
+Steps 1 to 4 are discovery, done before any plan exists. Step 5 is the plan, written from the diff.
 
 1. Branch.
 2. **Place the rater(s).** Find each on SharePoint (§ "Find the file yourself") and open its `webUrl` for Eli to download. Take it from `~/Downloads`, overwrite the canonical rater under `Data/`, propagate it byte-identical to every in-scope carrier file, and hash-verify.
-3. **Scoping checkpoint — HARD STOP.** Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`. Then run the three tests below in parallel, one background `Run-DotnetTest.ps1` call each through the PowerShell tool (it takes one `-FilterMethod`). None of them rates a premium.
+3. **Scoping checkpoint.** Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`. Then run the three tests below in parallel, one background `Run-DotnetTest.ps1` call each through the PowerShell tool (it takes one `-FilterMethod`). None of them rates a premium.
 
    - **`RaterFileContents_ShouldMatchCaptured`** regenerates the baselines. The `ExpectedResults/` diff is what the delivery changed.
      ```
@@ -177,7 +166,7 @@ Steps 1 to 4 are written up front. Step 5 is written at the checkpoint, from the
      ```
 
    `<trait>` is `TestGroup=ByPerilTests` for Homeowner and `TestGroup=Commercial` for Commercial. Every touched sheet in the diff, and every failure from the two sentinel checks, gets a verdict.
-4. **Versioning check — HARD STOP.** Run § "The versioning check" on the scoping diff and record every sheet's verdict in the plan. Part 2 waits until every sheet is versioned or inert.
+4. **Versioning check.** Run § "The versioning check" on the scoping diff and record every sheet's verdict for the message that ends discovery. The plan waits until every sheet is versioned or inert.
 5. **Implement** what the diff dictates (§ "Implement the seeder first"). **Verify**: run the full validation suite, review the regenerated diff, and confirm C# premium equals Excel premium across every index of every affected leaf, plus the extra suites each playbook lists.
 
 ## Researching rater structure — read the pre-dumped baselines
@@ -215,7 +204,7 @@ An option the rater has no factor row for is a production defect, and catching i
 
 ## Rater logic that singles out counties must be swept
 
-When the diff shows the rater treating a small set of counties, or groups of counties, differently from the rest of the state, the sweep rates at least one county from each group. Part 2 adds any county the sweep doesn't already rate. Data with a row for every county or zip singles none out and is out of scope.
+When the diff shows the rater treating a small set of counties, or groups of counties, differently from the rest of the state, the sweep rates at least one county from each group. The plan adds any county the sweep doesn't already rate. Data with a row for every county or zip singles none out and is out of scope.
 
 ## The sentinel checks prove every cell is written
 

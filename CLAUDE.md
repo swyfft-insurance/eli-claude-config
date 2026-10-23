@@ -25,11 +25,9 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. Re-read the r
 | Pre-PR Review | `pre-pr-review.md` | invoking `/review-pr` or launching any adversarial-review subagent |
 | PR Review (theirs) | `pr-theirs-review.md` | reviewing someone else's PR |
 | PR Feedback (mine) | `pr-mine-address-feedback.md` | replying to or resolving PR comments on my PR |
-| Plan Mode | `plan-mode.md` | entering plan mode |
+| Plan Mode | `plan-mode.md` | planning a ticket, or executing a plan |
 | Compaction | `compaction.md` | preparing for a compaction, or resuming after one |
-| Excel Rater Plans (shared) | `excel-rater-plans-common.md` | any Excel rater (ByPeril) ticket — HARD RULE, dump tasks, provisional scope, seeder-first |
-| Excel Rater Plans (HO) | `ho-excel-rater-plans.md` | planning or executing a Homeowner Excel rater (ByPeril) ticket |
-| Excel Rater Plans (Commercial) | `co-excel-rater-plans.md` | planning or executing a Commercial Excel rater (ByPeril) ticket |
+| Plan types | `~/.claude/plan-types/<type>.md` | planning a ticket: the type's file, and for the rater types the playbooks in the same folder |
 | Tool Access | `tool-access.md` | a tool call fails or seems unavailable |
 | Standup | `standup.md` | generating any standup update |
 | Code Ownership | `code-ownership.md` | a ticket names a team or owner, or a fix lands outside pre-bind |
