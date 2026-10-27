@@ -8,6 +8,7 @@ visibly in the transcript so Eli sees patterns in real time instead of after the
 """
 
 import json
+import os
 import re
 import sys
 
@@ -39,6 +40,40 @@ RED_FLAG_PATTERNS = [
         "authorization, not just acknowledgement.",
     ),
 ]
+
+
+TICKET_NUMBER_RE = re.compile(r"(?<![\w/-])SW-\d{4,6}(?![\w/-])")
+QUOTED_TITLE_RE = re.compile(r'\s*["“][^"”\n]+["”]')
+TICKET_NUMBER_RULE_PATTERN = r"^## Ticket numbers:.*?(?=^## |\Z)"
+
+
+def ticket_number_rule():
+    """The talking-to-eli.md section the block enforces, so the rule text lives in one place."""
+    rules_path = os.path.expanduser("~/.claude/rules/talking-to-eli.md")
+    try:
+        with open(rules_path, encoding="utf-8-sig") as rules_file:
+            match = re.search(TICKET_NUMBER_RULE_PATTERN, rules_file.read(), re.S | re.M)
+    except OSError:
+        return ""
+    return match.group(0).strip() if match else ""
+
+
+def strip_exempt_regions(text):
+    """Code, quoted drafts of posted text and links may carry bare ticket numbers."""
+    text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
+    text = re.sub(r"^\s*>.*$", " ", text, flags=re.MULTILINE)
+    text = re.sub(r"`[^`\n]*`", " ", text)
+    return re.sub(r"https?://\S+", " ", text)
+
+
+def find_untitled_tickets(text):
+    """Ticket numbers not followed by a quoted title, in order of first appearance."""
+    checked_text = strip_exempt_regions(text)
+    untitled = []
+    for match in TICKET_NUMBER_RE.finditer(checked_text):
+        if not QUOTED_TITLE_RE.match(checked_text, match.end()) and match.group() not in untitled:
+            untitled.append(match.group())
+    return untitled
 
 
 def extract_last_assistant_text(transcript_path):
@@ -82,13 +117,15 @@ def main():
     except Exception:
         sys.exit(0)
 
-    transcript_path = data.get("transcript_path") or data.get("transcriptPath", "")
-    if not transcript_path:
-        sys.exit(0)
-
-    text = extract_last_assistant_text(transcript_path)
+    text = data.get("last_assistant_message") or ""
+    if not text:
+        transcript_path = data.get("transcript_path") or data.get("transcriptPath", "")
+        if transcript_path:
+            text = extract_last_assistant_text(transcript_path)
     if not text:
         sys.exit(0)
+
+    untitled = find_untitled_tickets(text)
 
     warnings = []
     seen = set()
@@ -98,20 +135,25 @@ def main():
             warnings.append(f"  - {msg}")
             seen.add(msg)
 
+    output = {}
     if warnings:
         body = "\n".join(warnings)
         # Surface via systemMessage so it appears in the UI.
-        print(
-            json.dumps(
-                {
-                    "systemMessage": (
-                        "=== STOP HOOK AUDIT — possible rule violation(s) in last turn ===\n"
-                        + body
-                        + "\n=== END AUDIT ==="
-                    )
-                }
-            )
+        output["systemMessage"] = (
+            "=== STOP HOOK AUDIT — possible rule violation(s) in last turn ===\n"
+            + body
+            + "\n=== END AUDIT ==="
         )
+    if untitled:
+        output["decision"] = "block"
+        output["reason"] = (
+            "Ticket numbers without their YouTrack title: "
+            + ", ".join(untitled)
+            + ". Rewrite the message to follow talking-to-eli.md § Ticket numbers:\n\n"
+            + ticket_number_rule()
+        )
+    if output:
+        print(json.dumps(output))
 
     sys.exit(0)
 

@@ -44,6 +44,8 @@ Never call any part of the change "unrelated", "drive-by", "while I was in there
 
 ## Verification reports the end state
 
+Verification reports the PR's state when it is opened. Fixes after that follow `pr-mine-address-feedback.md` § "The PR description is a snapshot of the PR as opened".
+
 When a fix can't reach the tests that already passed, report one passing result with the fixed tests counted. Never list the failing run, and never mark untouched tests as not rerun.
 
 ## Attaching screenshots to a PR

@@ -31,6 +31,7 @@ Requirements come only from the ticket or from questions asked directly of the p
 - A concern nothing in hand supports, raised as a question, a query, a test or a design change.
 - Changing an AC without evidence the ticket is wrong.
 - Reopening Q&A because Eli asked a question. Answer it.
+- A guard, branch or test case for a scenario outside the defect the ticket reports, such as a contrived combination of conditions or a case no production path reaches. The code and tests cover the reported defect and its AC, and nothing more.
 
 ---
 
@@ -94,7 +95,7 @@ Every plan declares its type, which sets its workflow and HARD STOPs. Stop at th
 
 **Closing stops.** Every type ends with these:
 
-1. **HARD STOP: code complete.** Don't print the diff; Eli reviews it in GitHub Desktop. Wait for approval before running tests.
+1. **HARD STOP: code complete.** Tell Eli the diff is ready for his review in GitHub Desktop, without printing it, and ask him nothing else in that message. Wait for him to say his review is done. Only then ask to run the tests.
 2. **HARD STOP: tests complete.** Report results and wait for approval.
 3. **HARD STOP: before irreversible actions** (push, PR, seeding, external posts). Wait for approval.
 
@@ -151,7 +152,7 @@ Numbered steps in order, from the AC and the checklist. Each `Run-DotnetTest.ps1
 
 Each new or extended test file: filename, base class, and a case table (input → expected, one row per scenario). Tests follow `~/.claude/rules/testing.md`, conform to FIRST (`testing.md` § "FIRST principles govern every test"; a date-dependent test names its pinned clock date and uses literal dates), and aggregate failures across iterated inputs (`testing.md` § "Failure Aggregation").
 
-Unit tests carry the load. Exhaustive business-logic combinations (element values, ages, config versions, quote purposes) go in unit tests. Pick the lowest test class that proves each behavior. A higher-level test is added only when the behavior exists only wired up, as one happy path that never re-asserts those combinations.
+Which tests to write, and at which level: `~/.claude/rules/testing.md` § "Eli's testing pyramid: the fewest tests that prove the code works".
 
 ### Captured asserts to regenerate
 

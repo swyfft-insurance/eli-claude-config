@@ -266,7 +266,7 @@ Present only what survives. If nothing survives for a PR, present that plainly.
 
 ### 4c. Pick the disposition from the surviving findings
 
-A PR with no surviving findings gets a **plain approve**. When another reviewer's unresolved thread raises something verified and agreed with, the approve comes with a top-level comment instead: one sentence saying the approval expects that thread to be addressed, linking it. The comment posts with `comment --body-file` before the bodyless `approve`.
+A PR with no surviving findings gets a **plain approve**. When another reviewer's unresolved thread raises something verified and agreed with, the approve comes with a top-level comment instead: one sentence saying I'm approving but agree that thread should be addressed, linking it. The comment posts with `comment --body-file` before the bodyless `approve`.
 
 A PR that meets its goal, whose surviving findings each happen only under rare conditions and do limited harm, gets **approve with inlines**.
 

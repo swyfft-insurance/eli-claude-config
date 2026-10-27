@@ -38,8 +38,8 @@ The listing gives each file's name, size and `file:///` URI. `sharepoint_search`
 
 The flow:
 
-1. **Open the rater for Eli.** Find it (§ "Find the file yourself") and open its `webUrl` in Chrome with `Start-Process`. He downloads it.
-2. **Take it from `~/Downloads`.** A repeat download is saved as `name (1).xlsm`. Save the edited file under the exact SharePoint filename.
+1. **Open each rater for Eli.** List its folder with `read_resource` (§ "Find the file yourself") for the exact filename and size, take that file's `webUrl` from `sharepoint_search`, and open it with `Start-Process`. Never open a folder page for a download. Folder pages are for the step 5 upload. He downloads it.
+2. **Take it from `~/Downloads`.** Confirm its size matches the listing. A repeat download is saved as `name (1).xlsm`. Save the edited file under the exact SharePoint filename.
 3. **Edit in desktop Excel through COM** (`New-Object -ComObject Excel.Application`). No other library writes a rater.
    - Eli approves the edit list before Excel opens: every cell and its new content, every structural change (named range, sheet, tab name), and the `version_history` row word for word (date, analyst, text). Write only what was approved.
    - Fill every changed cell orange (`#FFC000`) and turn every touched sheet's tab orange. Add the `version_history` row, highlighted the same way.

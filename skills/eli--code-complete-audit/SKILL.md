@@ -25,6 +25,9 @@ Run `/eli--diff all`: everything the branch carries against `origin/development`
 uncommitted and untracked alike. The waves walk every added or changed line, comment, identifier
 and test in it.
 
+On a PR-feedback fix, audit `/eli--diff local` only. The committed branch was already audited and
+approved. A violation on a line outside that diff goes to Eli and is never edited.
+
 ## 1. Derive the waves at run time
 
 The governing files, in wave order:

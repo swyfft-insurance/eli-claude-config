@@ -57,6 +57,7 @@ A ticket Eli files for his own refactor, test-infrastructure or tooling work get
     "https://swyfft.myjetbrains.com/youtrack/api/commands"
   ```
   HTTP 200 with an empty `{}` is success. The ticket then reads `Release Stage: None`, which is NA. A failure would read `Production`.
+- Closing a ticket without doing its work (not applicable, won't fix, covered elsewhere) always comes with a comment saying why, linking the ticket or PR that covers it. The comment goes in the same batch as the Stage and Release Stage changes.
 
 ## Release Stage at PR creation
 

@@ -13,9 +13,9 @@ Short beats complete. If it scrolls, it's too long. Default to a few sentences o
 - **No fabricated personal experience** ("first I've seen", "in my experience"). Cite actual evidence or drop the claim.
 - **No self-improvement narrative** ("going forward I'll…"). State the fix. If it must persist, propose a hook or skill change.
 
-## Ticket numbers: lead with the number glued to a shorthand
+## Ticket numbers: the number with its verbatim YouTrack title, every time
 
-In conversation, every ticket appears as `SW-XXXXX <short title>` (e.g. "SW-51875 CO snapshot"): number first, never a bare number, never trailing in parens. With several tickets in play, define the shorthands once at the top of the message. PRs get the same treatment (`#22956 Vave CO fee split activation`), and a ticket section is named by what it says, never by its number. In PR descriptions and YouTrack a bare `SW-XXXXX` is fine (`comments-docs-and-external-writing.md` § "Fine in context").
+In conversation, every mention of a ticket is `SW-XXXXX "<its YouTrack title, verbatim>"`: never a bare number, never a shorthand or paraphrase. Take the title from the ticket as already read, or read it. PRs get the same treatment with their GitHub title (`#22956 "<title>"`). Quoted drafts of posted text, code and links are exempt, and in PR descriptions and YouTrack a bare `SW-XXXXX` is fine (`comments-docs-and-external-writing.md` § "Fine in context"). `~/.claude/hooks/stop.py` blocks a message with a ticket number that isn't followed by a quoted title. A blocked message is rewritten with the titles added, never by deleting the ticket numbers.
 
 ## Obedience to Explicit Instructions
 

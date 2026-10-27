@@ -1,110 +1,102 @@
 ---
 name: eli--fact-check-writing
-description: Audit a piece of writing (CLAUDE.md, docs, RCA, PR description, PR review comment, plan) in successive single-predicate waves until a wave finds zero factual defects and zero unsound proposals. Audits both what the text asserts and what it tells the reader to do. Use when asked to fact-check, harden, or "do another pass" on written prose.
+description: Fact-check a piece of writing (CLAUDE.md, docs, RCA, PR description, PR review comment, Slack or YouTrack draft, plan). Confirm every claim is correct and every proposal is sound, and change ONLY what is actually incorrect. The ideal result is the text unchanged. Use when asked to fact-check or "do another pass" on written prose.
 ---
 
-# Fact-Check Writing (waves)
+# Fact-Check Writing
 
-Audits a draft by running **waves** over it. One wave = one named predicate applied to EVERY
-sentence, run to completion — never a general once-over. Waves are ordered strictest-first so
-errors are caught in wave 1, not discovered by escalating standards across passes.
+## The goal: confirm the text is right
 
-> **RE-READ THIS SKILL FILE BETWEEN EVERY WAVE.** Multi-step and repetition-based skills decay in
-> working memory as tool results pile up — mid-audit drift away from the skill's mandates is a
-> known, repeated failure. Re-read this file before each wave, every time, no exceptions.
+A fact-check confirms that the writing is correct. **The ideal outcome is no change at all.**
+Change a sentence ONLY when it is actually incorrect: what it says is false, or a proposal in it
+would not work. Nothing else is a reason to touch it.
 
-## Before wave 1 — MANDATORY read
+None of these is a defect:
+- The sentence is incomplete, or leaves out a caveat.
+- It could be shorter, tighter, more precise, or easier to defend.
+- It characterizes instead of enumerating.
+- You would have framed, ordered or emphasized it differently.
+- It fails under a stricter or more literal reading than the plain one.
 
-`Read` (don't recall — "I just read it" is not reading it):
+A clean fact-check returns the input verbatim. That is success, not a missed opportunity.
+
+> **RE-READ THIS SKILL FILE BETWEEN EVERY WAVE.** Drifting away from these mandates mid-audit is a
+> known, repeated failure.
+
+## Before wave 1: mandatory read
+
+`Read` (don't recall):
 - `~/.claude/rules/comments-docs-and-external-writing.md` § "Fixing a failed claim means deleting
   it — rewrites create new unverified claims"
 
-## Fix discipline (every wave)
+## What a sentence says
 
-**The default outcome of every wave is the input, unchanged.** Retain the original text. A sentence
-is edited only when what it asserts is false, and then by deletion or by substituting the verified
-value (the quote, the literal name, the number). Nothing else is a reason to touch a sentence: not
-that it could be tighter, not that it characterizes rather than enumerates, not that a narrower
-phrasing would be easier to defend, not that the auditor would have written it differently. A
-framing or emphasis the author chose is the author's, and "incomplete" is not "wrong".
-
-Every change in the output must trace to one named false claim. A change that cannot be traced that
-way is a rewrite, and a rewrite is the failure this skill exists to prevent.
-
-Per § "Fixing a failed claim means deleting it — rewrites create new unverified claims":
-**DELETE IT. Deletion is the default fix and needs no justification.** Replacement is the
-exception, allowed only when the replacement is already-verified material already in hand: the
-verbatim quote, the literal name, the exact thing read or run. A fix must never add a claim that
-itself needs fact-checking. Not writing the sentence is always an option and is never the wrong
-call.
-
-**Length is never a target.** The text comes out shorter only when a claim was actually wrong and
-dropping it beat researching a rephrasing. That is the only source of shrinkage. When the waves find
-nothing wrong, the correct output is the input, unchanged, and a word count that did not move is a
-clean audit rather than a failed one.
-
-**A sentence that survives the waves is not yours to rewrite.** Leave every clean sentence verbatim,
-including ones you would have written differently. Cutting good content to make the count fall
-destroys the sentences carrying the point, because those are the only ones left to cut.
-
-The seductive failure is the receipt: Gate 3 requires an absence or universal claim to carry its
-verification inline, so you reach for another clause to support the claim instead of deleting the
-claim. **Deleting the claim satisfies Gate 3 too, costs zero words, and is the preferred fix.**
-Never trade a word of length for a claim the reader did not ask for.
+Check what the sentence means in plain English, in its context, to the reader it was written for.
+Never construct a reading the words don't carry and then fact-check that. A sentence describing
+how something works ("each request gets its own connection") describes the pattern. It is not a
+count of every request that exists.
 
 ## The waves
 
-Run in order. Within a wave, walk every sentence — no sampling.
+One wave applies one check to every sentence, with no sampling. Run them in order.
 
-1. **Source** — does each claim trace to something read, run, or quoted? Claims of absence carry
-   their verification inline (`core-behavior.md` Gate 3). No source → verify it NOW (run the
-   grep, read the file) or delete the claim.
-2. **Strength** — does the source carry the claim *as phrased*? A doc comment or ticket supports
-   only an attributed claim ("per its doc: …"). A sample supports no universal. A folder-scoped
-   search supports no repo-wide conclusion — widen the search or narrow the claim.
-   **Causal connectors are claims.** "A because B", "A so B", "A therefore B", "A since B" assert
-   causation on top of A and B, so each connector is a third thing to verify. Verifying A and B and
-   moving on is how a fabricated link survives an audit. Unverified causation → delete the
-   connector and leave the facts as separate sentences.
-3. **Quantifiers** — every "each / every / all / only / never / the two" is a separate
-   verification obligation. Verify it exhaustively or delete the quantifier.
-4. **Paraphrase** — interpretations of names, comments, and docs are replaced with the literal
-   name or the verbatim quote.
-5. **Advice** — every sentence telling the reader to do something is a proposal, not a claim, and
-   waves 1-4 cannot touch it. They all work by going and reading a source; a proposal has no
-   source, so it passes clean the moment the nouns inside it point at real things. Find them by
-   their verbs: "should", "worth", "consider", "the fix is", "needs to", "recommend", "just".
-   Check each proposal on its own terms:
-   - **Does the proposed action achieve the stated goal?** Read the thing being changed and the
-     thing being cited, then follow the change through to the outcome.
-   - **Is the goal already achieved without it?** A proposal that duplicates what existing code, an
-     existing rule, or the surrounding text already does is redundant however real its nouns are.
-   - **Is every part of it load-bearing?** A proposal joining two changes with "and" is two
-     proposals. Check each separately; one can be sound and the other not.
+1. **Source.** Each factual claim traces to something read, run or quoted. When it doesn't, verify
+   it now: read the file, run the grep, run the query. A verified claim stays as written.
+2. **Strength.** The evidence supports the claim as the plain reading states it. A sample doesn't
+   support a universal. A folder-scoped search doesn't support a repo-wide conclusion. A doc
+   comment or ticket supports only an attributed claim. **Causal connectors are claims.**
+   "Because", "so", "therefore" and "since" assert a causation on top of the facts they join.
+   Verify the causation itself.
+3. **Quantifiers.** "Each", "every", "all", "only", "never" and "the two" cover the set the
+   sentence is about, read in context. The quantifier is wrong only when a member of that set
+   breaks it.
+4. **Paraphrase.** A paraphrase of a name, comment, doc or quote is wrong only when it misstates
+   its source. A correct paraphrase stays.
+5. **Advice.** A sentence telling the reader to do something ("should", "worth", "consider", "the
+   fix is", "needs to", "recommend", "just") is a proposal, and waves 1-4 don't test it. Check it
+   on its own terms:
+   - **Does the action achieve the stated goal?** Read the thing being changed and the thing being
+     cited, then follow the change through to the outcome.
+   - **Is the goal already met without it?** A proposal that duplicates existing code, an existing
+     rule or the surrounding text is redundant.
+   - **Is every part load-bearing?** A proposal joining two changes with "and" is two proposals.
+     Check each.
 
-   A proposal that fails any of these is **deleted**, not softened. Rephrasing it as a question
-   does not rescue it: a question premised on a false proposal costs the reader exactly as much
-   time. State the problem and leave the fix to whoever owns the code. That is always available
-   and never wrong.
+## Fixing an incorrect sentence
+
+Fix only the part that is incorrect, per § "Fixing a failed claim means deleting it — rewrites
+create new unverified claims":
+- **A false claim**: delete it, or replace it with already-verified material in hand (the verbatim
+  quote, the literal name, the exact number). Never rephrase it. A rephrasing is a new, unverified
+  claim.
+- **A false causal connector**: delete the connector. The facts it joined stay as separate
+  sentences.
+- **A false quantifier**: delete the quantifier.
+- **A wrong paraphrase**: replace it with the literal name or the verbatim quote.
+- **An unsound proposal**: delete it. Don't soften it or turn it into a question.
+
+A claim you can't verify either way is not a fix target. Leave it as written and name it below the
+text (§ "Output").
+
+A fix never adds a claim that itself needs checking, and never adds words to defend a claim.
+
+## Before replying: justify every change
+
+Compare your output with the input, sentence by sentence. For every change, name the incorrect
+claim it fixes and the evidence that shows it is incorrect. Revert any change you can't justify
+that way.
 
 ## Termination
 
-Stop when a wave finds **zero factual defects and zero unsound proposals**.
-Then stop self-passing: the same auditor re-reading the same evidence has hit its ceiling.
-
-**Never narrate the stop.** This section is instruction to you, not copy for the reply. Sentences
-like "remaining defects are for a different reader" are skill boilerplate, and pasting them into the
-reply is filler that describes the process instead of delivering the text.
+Stop when a full set of waves finds nothing incorrect. Don't run another pass over the same
+evidence after that.
 
 ## Output
 
-**The reply is the revised text, verbatim, and nothing else.**
+The reply is the text, complete and verbatim. It is unchanged when nothing was incorrect, and
+otherwise carries only the fixes. Nothing else goes in the reply, except one line per claim you
+couldn't verify, naming the claim and what verifying it would take.
 
-No findings list, no per-wave dispositions, no word-count delta, no preamble, no reflection on how
-the audit went, no explanation of why a fix was chosen, no self-criticism, no promises about future
-passes. **Never quote a failed claim back at Eli, and never write a Retractions block.** He read the
-original once already; reprinting the parts that were wrong makes him read them twice and buries the
-text he actually needs. A deleted claim leaves no trace in the output.
-
-Show the complete final text every time, even when every wave was clean, and even when the text is
-long. If the text was written to a file, it still gets shown in the reply.
+No findings list, no per-wave report, no word counts, no preamble, no commentary on the audit, no
+explanation of fixes. Never quote a failed claim back at Eli, and never write a Retractions block.
+Show the complete text even when it is long or was written to a file.

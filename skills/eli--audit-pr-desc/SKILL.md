@@ -40,6 +40,9 @@ posted, byte for byte.
 The proposed **title** is audited too. Pass it in the same invocation or state it in the response
 before starting, because several rules govern the title alone.
 
+**An `### After review` bullet, and any sentence it strikes and replaces, is audited alone.** Steps 2
+to 4 run on those sentences only, step 0's diff is the bullet's commit, and no suite is rerun for it.
+
 ## 0. Establish the two sources, before anything else
 
 `pr-creation.md` says a description comes from exactly two sources: the ticket, and the actual
@@ -88,6 +91,9 @@ Walk every narrative sentence (everything outside Ticket Link and Verification) 
 per sentence in `artifacts/pr/body-audit.md`: does the diff, or a comment or doc the diff adds, already
 tell the reviewer this? Name where. **Yes means delete.** The sentence survives only when the row
 names the specific question a reviewer would ask that neither the diff nor its comments answer.
+The row also names where the sentence comes from: a line of the ticket, quoted, or a hunk of the
+diff. A sentence that comes only from the plan file, a decision made in chat, or memory is deleted,
+however useful it looks (`pr-creation.md`: the ticket and the diff are the only sources).
 Examples of survivors: a fix that lives in a binary the diff cannot show, a ruling from the ticket or
 Slack that explains code that looks wrong, a deviation from the ticket's stated scope.
 

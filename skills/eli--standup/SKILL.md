@@ -94,7 +94,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
   - `to` = "Develop" → "picked up" or "started developing"
   - `to` = "Review" → "finished coding"
   - `to` = "Blocked" → "blocked" (read the ticket's `comments` in `ticketDetails` to explain why)
-  - `to` = "Done" → "closed out". Several Done moves on the same day become one bullet ("closed out seven log monitor tickets").
+  - `to` = "Done" → "closed the ticket", meaning only that the ticket was closed. Never "closed out" or "finished", which a listener hears as the work being done. When a comment says why it closed (covered elsewhere, not applicable), say so. Several Done moves on the same day become one bullet ("closed seven log monitor tickets").
   - All other values (Backlog, Ready for Dev, Ready for Test, Test, Tested, Failed Test) → skip. Ticket housekeeping, not coding.
   - Same-day collapse: if a ticket has BOTH a Develop and Review transition on the same day, that means the whole ticket was completed in one day. Emit ONE bullet — don't narrate both transitions as separate bullets.
   - Example: SW-49790 moves to Develop and Review on Wednesday → "SW-49790 — picked up and finished the Hadron LA EachElementOption test failure, opened PR 19974"

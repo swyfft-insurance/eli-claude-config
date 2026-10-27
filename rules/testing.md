@@ -1,5 +1,14 @@
 # Test Writing
 
+## Eli's testing pyramid: the fewest tests that prove the code works
+
+- **Fewest tests.** Write the fewest tests that prove the code works. Each test proves one behavior the change adds or fixes. No test re-proves what another test already proves, and none carries setup or data the code under test never reads.
+- **Unit tests prove the behavior.** A test goes up a level only when unit tests alone can't prove the code works end to end, and the plan gives that reason.
+- **Most wiring is already proven.** Most changes plug into a flow that existing tests already prove is wired, and those changes get unit tests only. A new or changed risk rule is the standing case: unit tests of its logic plus its product line's `*AllRisksTests` captured assert, which records which configs run it (`CommercialAllRisksTests` → `Data/Commercial/CommercialRules.txt`). An integration test that creates a quote to watch the rule fire re-proves the risk pipeline, which is established infrastructure.
+- **Unproven wiring gets one integration test.** It runs one scenario through the wired-up code to make sure the full flow ties together as expected: the behavior the change adds, or the scenario a bug failed. It doesn't repeat the unit tests' cases.
+- **Some code starts at integration.** When the code's behavior can only be proven wired up, testing starts with integration tests, and they cover the cases. Two examples: a query whose SQL translation a unit test can't run, and a bug inside a real service that a mocked unit test can't reach. Unit tests that mock that path add no value and aren't written.
+- **Acceptance tests are very rare.**
+
 ## FIRST principles govern every test
 
 A test that breaks one of these gets fixed before it lands.
@@ -18,13 +27,8 @@ A test earns its place by failing when behavior is wrong. Never write these, and
 
 Captured asserts are the exception: they detect change on purpose, and the diff review is the check.
 
-## A risk rule needs no integration test
-
-A new or changed risk rule is covered by unit tests of its logic and by its product line's `*AllRisksTests` captured assert, which records which configs run it (`CommercialAllRisksTests` → `Data/Commercial/CommercialRules.txt`). An integration test that creates a quote to watch the rule fire re-proves the risk pipeline, which is established infrastructure. The testing pyramid never calls for one.
-
 ## Investigation & TDD
 - A root cause is a hypothesis, labeled as one, until a test reproduces it.
-- A bug inside a real service gets an integration test. Mocked unit tests can't reach the real code path.
 - Before planning a test, research the infrastructure: the base classes the target project declares (`grep "public abstract class .*Base"` over it, not a default to `UnitTestBase`/`IntegrationTestBase`), its setup patterns, and the available test data and addresses.
 - Build the scenario from the failing environment's real data (DB queries, logs), not synthetic values.
 - Prefer `[Theory]` with `[MemberData]` over `[Fact]` for several scenarios of one behavior.

@@ -91,16 +91,18 @@ and assert in its case table, gets its own row against each `testing.md` section
 
 ### 2a. `plan-mode.md` — every plan, every type
 
-The rows are the file's `##` and `###` headings, derived when the skill runs, never from a list
-written here:
+The sections are the file's `##` and `###` headings, derived when the skill runs, never from a list
+written here. Every rule in a section gets its own row: each bullet, numbered item or sentence that
+requires, bans or defines something:
 
 ```bash
 grep -n '^##' ~/.claude/rules/plan-mode.md
 ```
 
 Every heading gets a row whether or not the plan mentions it. The table is written to
-`~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md`, one row per heading with the verdict and
-the plan section that earns it. A heading with no row fails the audit. The file is never shown to Eli;
+`~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md`, one row per rule, labeled
+`<file> :: <heading> :: <the rule's opening words>`, with the verdict and the plan section that earns
+it. A heading with no row fails the audit, and so does a rule with no row. The file is never shown to Eli;
 it exists so a skipped section is visible as a missing row.
 
 **The declared type never narrows this pass.** Step 0 resolves which playbooks get *added* in 2b; it
