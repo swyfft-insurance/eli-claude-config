@@ -102,9 +102,10 @@ grep -n '^##' ~/.claude/rules/plan-mode.md
 Then confirm every Part of the file has headings to audit:
 
 ```bash
-awk '/^# Part/{part=$0; n[part]=0; next} part && /^##/{n[part]++}
-     END{for (p in n) if (n[p]==0) print "NO HEADINGS: plan-mode.md :: " p}' ~/.claude/rules/plan-mode.md
+bash ~/.claude/skills/eli--plan-audit/part-guard.sh
 ```
+
+Shell code that reads awk's whole-record field lives in a script beside this file: the skill loader replaces a dollar sign followed by 0 in SKILL.md with the arguments.
 
 Any output fails the audit: that Part has lost its `##` headings, and the grep above skips every rule
 in it. Walk the Part by hand, a row per rule, and tell Eli its headings need restoring.

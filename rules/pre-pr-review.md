@@ -10,6 +10,8 @@ The project's `/review-pr` prompt template has no time, file or output caps. Sub
 - **Output cap**: "Report under 600 words."
 - **Stop-early instruction**: "If you find a Critical issue early, stop and report it. Don't keep tracing."
 
+This overrides `/review-pr`'s "Fill in the values and change nothing else": its reviewer and claim-verifier prompts get these caps appended.
+
 Never use these phrases in an Agent prompt: "Be thorough", "Trace 2-3 levels up and down", "Look hard for them", "Read enough surrounding context", or "Question your assumptions" without a scope limit.
 
 ## If a delegated review runs over

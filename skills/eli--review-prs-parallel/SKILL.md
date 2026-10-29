@@ -182,12 +182,20 @@ reports that land after it. Waiting for the last report is the only order that l
 as the last thing on his screen. Once presentations start, nothing is still running, so nothing can
 land between a question and his answer.
 
-While waiting, do step 4b's work on the first PR (read its body, fact-check its findings), so its
-presentation is ready the moment the last report lands.
+While waiting, do step 4b's work on each PR as its report lands, so the step 3c batch is ready the moment the last report lands.
+
+### 3c. Batch the plain approves into one message, before any other presentation
+
+Once the last agent has reported, run step 4b on every PR and pick each one's disposition by step 4c. Every PR that comes out a plain approve with no reply to post goes in one message, ahead of the rest:
+
+- One bullet per PR: `**#NNNNN "title"**`, then two sentences saying what the PR does and who it's by.
+- One closing question: `Approve all N? (y/n)`.
+
+On a yes, re-run step zero on each PR, approve each with `pr-review.py approve`, and report the results in one line. A PR whose head moved drops out of the batch and is presented on its own. Then present the remaining PRs one at a time under step 4.
 
 ### 4. Present ONE PR AT A TIME — mandatory, never a batch
 
-**Never present more than one PR per message.** Not a summary table of all of them, not a
+**Never present more than one PR per message**, except the plain-approve batch in step 3c. Not a summary table of all of them, not a
 grouped recommendation list, not "here are all three." One PR, one message, then stop and wait
 for Eli's decision on that PR before mentioning the next one. This is not a preference to weigh
 against concision — a batch presentation forces Eli to hold several unrelated code reviews in his
@@ -212,7 +220,7 @@ Never hand Eli a finding with a caveat that you did not verify part of it. Verif
 job, and an unverified claim shipped behind a hedge is the thing this whole step exists to stop.
 
 When every PR has been presented and decided, you may post a single short closing line listing
-what was executed. That closing line is the only place more than one PR may appear together.
+what was executed. That closing line and the step 3c batch are the only places more than one PR may appear together.
 
 ### 4b. Fact-check that PR's findings BEFORE presenting them — mandatory
 
@@ -339,7 +347,7 @@ Mark all PR-review tasks `completed`. Don't leave the task list with `in_progres
 ## Important
 
 - **Approval status is irrelevant to the review.** If Eli asked you to review a PR, review it with full rigor regardless of whether it's already approved, has changes requested, or is in draft. Never flag "this is already approved" or "this already has changes requested" back to Eli in pre-flight as if it might change his mind — he picked these PRs knowing the state, and others can miss things he wouldn't. Approval status only matters at the action stage (which verb to use when posting), not at the review stage. Don't pass it into the agent prompt either — the agent reads existing reviews via `gh pr view --json reviews` to avoid duplicating findings, and that's sufficient.
-- **One PR per message, always.** The parallelism belongs to the subagents, not to the presentation. A summary table covering several PRs, a grouped recommendation list, or any message naming more than one PR's findings violates step 4. This gets corrected every time it happens — do not reinvent the batch table because it looks tidier.
+- **One PR per message, except the step 3c plain-approve batch.** The parallelism belongs to the subagents, not to the presentation. A summary table covering several PRs, a grouped recommendation list, or any message naming more than one PR's findings violates step 4. This gets corrected every time it happens — do not reinvent the batch table because it looks tidier.
 - **A subagent finding is a hypothesis, not a result.** Step 4b's fact-check is not optional and not a formality: findings from a capped 5-minute review fail verification often, most often by describing intended and already-tested behavior as a defect. Retract rather than rewrite, and never present a finding with a hedge about the part you did not check.
 - **Check every PR's base ref for stacking (step 1b).** Several Swyfft devs stack PRs routinely, Justin especially. A base that is not `development` changes which tree the agent must read, changes the presentation order to parent-first, and is merge-order context Eli needs stated in a sentence. It is never a review finding.
 - **No presentation until the last agent reports.** A question asked mid-fan-out is buried by the
