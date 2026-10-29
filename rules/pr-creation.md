@@ -1,5 +1,7 @@
 # PR Creation
 
+## Writing and filing the PR
+
 - **Read the ticket first**: invoke `/eli--read-ticket` on every YouTrack ticket in the branch name.
 - Write the description from two sources only: the ticket and the actual diff. Never from memory or plan files.
 - **"Actual diff" means the full content diff, read at draft time.** Pull `/eli--diff branch` fresh and read every hand-written file's hunks. A `--stat` file list is not the diff, and neither are reads from earlier in the session.

@@ -1,5 +1,7 @@
 # Addressing Feedback on My PRs
 
+## Replying and resolving
+
 - **Quote only what needs quoting.** An inline reply quotes only the sub-part of a multi-point comment it answers, if any. A top-level reply quotes each point and replies under it. Never label points `#1`, `#2`: GitHub renders those as links.
 - **Drafts shown to Eli carry the reviewer's verbatim text** in a blockquote above each reply, never a placeholder like `(quote Justin)`. This governs the draft, not the posted body.
 - Reply to every thread, then resolve it. The merge queue requires resolution.
@@ -15,7 +17,7 @@ Decide from each comment's own words whether it asks for anything. Length and a 
 
 A comment goes to Eli for a ruling only when it requests a change and passes the verdict in `/eli--pr-feedback` step 3. A question is answered in its reply, and one that proposes a change counts as a requested change. A wrong claim no other reply has corrected is corrected in the reply. A soft suggestion inside a confirmatory comment ("worth a line in the PR body") is weighed in the reply, not promoted to a ruling. When the reviewer asks for nothing, never frame the reply as a decline: correct a wrong claim, acknowledge a right one, stop.
 
-Not actionable is not the same as not answered: still reply to the thread, still resolve it.
+Not actionable is not the same as not answered: still reply to the thread, still resolve it. A top-level review that asks for nothing is the exception: it gets no reply.
 
 ## A feedback fix is the minimum change that resolves the comment
 

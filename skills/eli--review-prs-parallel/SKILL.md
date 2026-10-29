@@ -266,7 +266,7 @@ Present only what survives. If nothing survives for a PR, present that plainly.
 
 ### 4c. Pick the disposition from the surviving findings
 
-A PR with no surviving findings gets a **plain approve**. When another reviewer's unresolved thread raises something verified and agreed with, the approve comes with a top-level comment instead: one sentence saying I'm approving but agree that thread should be addressed, linking it. The comment posts with `comment --body-file` before the bodyless `approve`.
+A PR with no surviving findings gets a **plain approve**. When another reviewer's unresolved thread raises something verified and agreed with, the approve comes with a `reply` in that thread: one sentence saying I agree it should be addressed. The reply posts before the bodyless `approve`.
 
 A PR that meets its goal, whose surviving findings each happen only under rare conditions and do limited harm, gets **approve with inlines**.
 
@@ -324,6 +324,8 @@ python ~/.claude/scripts/pr-review.py approve {NUM} --inline /tmp/inline.json
 ```bash
 python ~/.claude/scripts/pr-review.py request-changes {NUM} --body-file /tmp/body.txt --inline /tmp/inline.json
 ```
+
+**Reply in another reviewer's inline thread:** `python ~/.claude/scripts/pr-review.py reply {NUM} {COMMENT_ID} --body-file <f>`
 
 Notes:
 - `--repo` defaults to `swyfft-insurance/swyfft_web`; pass `--repo OWNER/REPO` for others.

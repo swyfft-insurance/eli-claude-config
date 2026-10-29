@@ -1,5 +1,7 @@
 # Comments, Docs, and External Writing
 
+## What this file governs
+
 Every rule here governs durable prose (code comments, docstrings, CLAUDE.md, rule files, in-repo notes) and everything posted (YouTrack comments and RCAs, Slack, PR descriptions). Chat replies, commit messages and plan files follow the prose-quality rules too. A section with a narrower scope says so.
 
 ## ⚠️ Word slop is the cardinal sin

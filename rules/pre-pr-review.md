@@ -1,8 +1,8 @@
 # Pre-PR Adversarial Review
 
-The project's `/review-pr` prompt template has no time, file or output caps. Subagents are fine; their prompts carry the caps below.
-
 ## Every Agent prompt MUST include hard caps
+
+The project's `/review-pr` prompt template has no time, file or output caps. Subagents are fine; their prompts carry the caps below.
 
 - **Time budget**: "Spend no more than 5 minutes. If approaching the limit, stop and report what you have."
 - **File-read cap**: "Read at most 15 files."

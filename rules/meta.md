@@ -1,12 +1,14 @@
 # Meta: Rules Architecture
 
+## When to read this file
+
 Read this before modifying any rules file, CLAUDE.md, or memory.
 
 ## Architecture
 
 - `~/.claude/CLAUDE.md` is a pointer file: the captain/crew preamble and a table pointing to rules files. Anything over two lines belongs in a rules file.
 - `~/.claude/rules/*.md` hold the rules, one topic per file. Every rules file has a pointer row in CLAUDE.md.
-- `~/.claude/plan-types/*.md` hold everything specific to one plan type, plus the rater playbooks both rater types read. Nothing loads them at launch: `plan-mode.md` Part A, a plan's pre-reads and `/eli--plan-audit` read the one a plan needs. `CLAUDE.md` has one pointer row for the folder. The one exception to "each rule lives in exactly one place": a type file writes out every rule its type depends on, so a rule that also governs work outside planning lives in its own file and in the type file.
+- `~/.claude/plan-types/*.md` hold everything specific to one plan type, plus the rater playbooks both rater types read. Nothing loads them at launch: `plan-mode.md` Part A, a plan's pre-reads and `/eli--plan-audit` read the one a plan needs. `CLAUDE.md` has one pointer row for the folder. The one exception to "each rule lives in exactly one place": a type file writes out every rule its type depends on, so a rule that also governs work outside planning lives in its own file and in the type file. Every rule in a type file, bullet or numbered item, starts with a bold name, which `/eli--plan-audit` checks it by.
 - `~/.claude/hooks/pretooluse.py` only blocks tool calls. A block message that carries rule text reads it from the rules file on disk. Never hardcode rule text in it.
 - Each rule lives in exactly one place.
 

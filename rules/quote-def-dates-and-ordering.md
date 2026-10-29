@@ -1,5 +1,7 @@
 # Quote-def Dates: real vs override, and what gets seeded
 
+## Real dates and override dates
+
 Every quote def has two independent date pairs (`NewQuotesOn`, `RenewalOn`):
 - **Real / prod**: in `QuoteDefinitions.txt`. Governs prod.
 - **Override**: local/dev/beta only, for testing a config before its prod go-live. Each product line keeps its overrides only in its row's file below. `Seeder.cs`'s `SetQuoteDefOverrides` takes only a `HomeownerStateConfig`.

@@ -1,5 +1,7 @@
 # Captured Assert Tests
 
+## Running them
+
 Run and regenerate them with `/eli--prebind-validation`.
 
 ## How captured-assert updates work: known, don't research it

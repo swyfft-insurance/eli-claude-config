@@ -21,6 +21,10 @@ Usage:
   pr-review.py approve <PR#> [--inline <comments.json>] [--repo OWNER/REPO]
   pr-review.py comment <PR#> --inline <comments.json> [--body-file <f>] [--repo ...]
   pr-review.py request-changes <PR#> --body-file <f> [--inline <comments.json>] [--repo ...]
+  pr-review.py reply <PR#> <comment-id> --body-file <f> [--repo ...]
+
+`reply` answers an existing inline thread. <comment-id> is the numeric id of any comment in
+that thread (`gh api repos/OWNER/REPO/pulls/<PR#>/comments` lists them).
 
 <comments.json> is a JSON array of inline comments, each:
   {"path": "src/Foo.cs", "line": 383, "side": "RIGHT", "body": "finding text..."}
@@ -202,6 +206,28 @@ def cmd_request_changes(args):
           f"with {len(comments)} inline comment(s) (verified).")
 
 
+def cmd_reply(args):
+    body = read_body_file(args.body_file)
+    if not normalize(body):
+        raise SystemExit("reply requires a non-empty --body-file.")
+    block_copilot_mentions(body)
+    out = gh_api(
+        f"repos/{args.repo}/pulls/{args.pr}/comments/{args.comment_id}/replies",
+        method="POST",
+        input_text=json.dumps({"body": body}),
+        jq="{id: .id, in_reply_to_id: .in_reply_to_id}",
+    )
+    result = json.loads(out)
+    posted = json.loads(gh_api(f"repos/{args.repo}/pulls/comments/{result['id']}"))
+    if normalize(posted.get("body")) != normalize(body):
+        raise SystemExit(
+            f"READ-BACK FAILED: reply {result['id']} body does not match what was sent: "
+            f"{normalize(posted.get('body'))[:80]!r}"
+        )
+    print(f"#{args.pr}: REPLY {result['id']} in thread of comment "
+          f"{result['in_reply_to_id']} (verified).")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Sanctioned PR-review writer.")
     parser.add_argument("--repo", default=DEFAULT_REPO)
@@ -223,6 +249,12 @@ def main():
     p_rc.add_argument("--body-file", required=True)
     p_rc.add_argument("--inline")
     p_rc.set_defaults(func=cmd_request_changes)
+
+    p_rep = sub.add_parser("reply")
+    p_rep.add_argument("pr", type=int)
+    p_rep.add_argument("comment_id", type=int)
+    p_rep.add_argument("--body-file", required=True)
+    p_rep.set_defaults(func=cmd_reply)
 
     args = parser.parse_args()
     args.func(args)

@@ -1,5 +1,7 @@
 # Merge Conflict Resolution
 
+## Never bulk-resolve
+
 Never bulk-resolve conflicts: no `git checkout --ours` or `--theirs` across files, no batch operations.
 
 ## Process

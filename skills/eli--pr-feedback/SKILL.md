@@ -5,7 +5,7 @@ description: Address reviewer feedback on my PRs. Use when you need to reply to 
 
 # Address PR Feedback
 
-Every review comment, from a person or a bot (Copilot, Claude), is a claim about the PR. This skill decides which claims hold up, brings Eli only those, makes the fixes he picks, and replies to and resolves every thread.
+Every review comment, from a person or a bot (Copilot, Claude), is a claim about the PR. This skill decides which claims hold up, brings Eli one thread at a time with its verdict and reply, makes the fixes he picks, and replies to and resolves every thread.
 
 ## Arguments
 
@@ -45,7 +45,7 @@ Per comment:
 ### 3. Verdict
 
 Sort each comment first:
-- **Asks for nothing** (`pr-mine-address-feedback.md` § "A review comment is not automatically a request"): it gets a reply and is resolved.
+- **Asks for nothing** (`pr-mine-address-feedback.md` § "A review comment is not automatically a request"): an inline thread gets a reply and is resolved. A top-level review gets no reply (step 4).
 - **A question**: answered in its reply from the research. A question that proposes a change ("should this also handle Y?") is a requested change and gets a verdict.
 - **A claim about wording, docs, naming, tests or style**: actionable when it is true, the diff adds or changes what it's about, and something goes wrong (question 4 below).
 - **A claim that the code does the wrong thing**: the four questions below.
@@ -57,68 +57,42 @@ For a wrong-behavior claim, step 2 must have verified the mechanism first. A ver
 3. **This PR's.** The diff causes it, or the ticket's AC is unmet without the fix. Behavior the diff doesn't touch is not this PR's.
 4. **Something goes wrong.** Name what a person or downstream system gets wrong: an amount charged, a document, a transaction, a screen. If nothing does, the comment fails.
 
-A comment that fails is not actionable. Its reply says what failed and why, and the thread is resolved.
+A comment that fails is not actionable. On an inline thread, its reply says what failed and why, and the thread is resolved.
 
-### 4. Present
+### 4. Present one thread at a time
 
-Re-read this file before each message in this step. The entry shape decays within a few messages otherwise.
+Re-read this file before each message in this step. The shape decays within a few messages otherwise.
 
-**The first message is the thread list:** every thread and top-level review, in fetch order, each with its verdict. The list asks for no decision. Eli can overrule any verdict in it.
+One inline thread per message: the actionable threads first, then the rest, each group in fetch order. Never list the threads, never put two threads in one message, and never preview the next thread or say how many remain. After the closing question, stop. Waiting means emitting nothing.
 
-```
-Thread 1: <file>:<line> (@<author>)
-> <comment body>
-Verdict: actionable | not actionable: <what failed and why> | asks for nothing | question
-```
+A top-level review is presented only for its actionable points and its questions, after the inline threads, in its own message, the same way. A review that asks for nothing is never presented and gets no reply. A Copilot review's body is out of scope (step 1).
 
-```
-Review: @<author> (<state>)
-> <review body>
-Verdict: ...
-```
+Each message contains, and contains only:
+1. **Header:** `<file>:<line>` (@reviewer) for an inline thread or `Review` (@reviewer) for a top-level review, plus "(reviewer replied)" when the thread has replies.
+2. **The commented lines** (inline threads only), verbatim, in a code block.
+3. **The comment:** the reviewer's exact text in a blockquote, plus any other replies on the thread.
+4. **Strongest case for the comment** (actionable only): one sentence stating the concern at full strength, as if you agreed with it.
+5. **Verdict:** the step 3 answer in one or two sentences, with evidence.
+6. **Options** (actionable only): a lettered list of genuinely plausible choices, each saying what it changes.
+7. **Recommendation** (actionable only): your pick and a one-sentence reason.
+8. **The reply:** the exact text to post, for the recommended option, or otherwise the only reply (step 5).
+9. **One closing question.** Actionable: which option. Otherwise: "Post this reply and resolve the thread? (y/n)", or "Post this reply? (y/n)" for a top-level review.
 
-End the list with the actionable count. When it's zero, say so in one line and go to step 6.
+The decision is Eli's: recommend, never decide. He answers with one token (`a`, or `y`).
 
-**Then the actionable items, one per message.** Present one, stop, and wait for Eli's pick before the next. Never put two items in one message. The decision is Eli's: recommend, never decide.
+### 5. Writing a reply
 
-Every entry has the same fields in the same order:
-1. **Header:** `<file>:<line>` (@reviewer), plus "×N identical" when batched or "(reviewer replied)" when the thread has replies.
-2. **Code block:** the commented lines, verbatim.
-3. **Comment quote:** the reviewer's exact text, in a blockquote.
-4. **Thread context**, when present: the other replies on the thread.
-5. **Strongest case for the comment:** one sentence stating the concern at full strength, as if you agreed with it.
-6. **Verdict:** the step 3 answers, one line each, with evidence.
-7. **Recommendation:** your pick and a one-sentence reason.
-8. **Options:** a lettered list. Every option is a genuinely plausible choice.
-
-Formatting:
-- One identifier per decision, in one numbering scheme. Sub-numbers (`1.1`) are fine; parallel schemes are not.
-- A numbered list, never a table.
-- Restructuring on request renumbers. It never strips quotes, code, thread context or option descriptions.
-
-Eli answers one entry with one token (`1a`).
-
-### 5. Fix
-
-After the last pick:
-1. Make every chosen fix. Each is the minimum change that resolves its comment (`pr-mine-address-feedback.md` § "A feedback fix is the minimum change that resolves the comment").
-2. Build, and run the tests the fixes affect.
-3. Ask once to commit and push (`~/.claude/rules/git-safety.md`). Commit, push and confirm the push. A rejected push stops the skill, and nothing is posted.
-
-### 6. Replies
-
-Draft a reply for every thread and top-level review, actionable or not, and show them together for approval. Each draft sits under the reviewer's verbatim text in a blockquote.
 - An agreement with a fix made is one word: "Done."
 - A decline, disagreement, correction or answer is a sentence or two per point, citing evidence (`comments-docs-and-external-writing.md` § "PR review prose: the shortest thing that lands the point").
 - A not-actionable reply says what failed.
 - A top-level reply opens by tagging the reviewer (`Responding to @ehrenw's review:`) and quotes each point it answers. An inline reply quotes only the sub-part it answers, if any.
 - Never tag copilot (`pr-mine-address-feedback.md` § "Never tag copilot; post only what was approved, byte for byte").
 
-Wait for an explicit approval. Clarifications and side comments are not approval.
+### 6. After each answer
 
-### 7. Post and resolve
-
-Post each approved body byte for byte, then resolve its thread:
+- **A reply with no code change:** post it byte for byte and resolve its thread, if it has one, then present the next thread.
+- **A reply that describes a fix:** hold it, and present the next thread. It posts in step 7, after the push (`pr-mine-address-feedback.md` § "Order of operations: push before replying").
+- **An edit or a different pick:** re-present that thread whole and wait again.
 
 ```bash
 python ~/.claude/scripts/pr-feedback.py reply <PR#> <comment-database-id> "<approved reply body>"
@@ -127,6 +101,14 @@ python ~/.claude/scripts/pr-feedback.py review-reply <PR#> "<approved reply body
 ```
 
 `review-reply` posts a top-level review's reply on the conversation tab.
+
+### 7. Fix, push, then post the held replies
+
+After the last thread, when any pick needs a fix:
+1. Make every chosen fix. Each is the minimum change that resolves its comment (`pr-mine-address-feedback.md` § "A feedback fix is the minimum change that resolves the comment").
+2. Build, and run the tests the fixes affect.
+3. Ask once to commit and push (`~/.claude/rules/git-safety.md`). Commit, push and confirm the push. A rejected push stops the skill, and nothing more is posted.
+4. Post each held reply byte for byte, and resolve its thread.
 
 ### 8. The PR description
 

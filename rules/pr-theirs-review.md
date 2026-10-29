@@ -26,7 +26,8 @@ Name the author every time a PR is mentioned: tables (an Author column), groupin
 
 ## Posting the review
 
-- All posting goes through `~/.claude/scripts/pr-review.py` (`approve [--inline <json>]` / `comment --inline <json>` / `request-changes --body-file <f>`). Raw `gh pr review`, `gh pr comment` and `gh api ... POST .../reviews|/comments` are blocked; reads are not. A non-zero exit means nothing reliable posted.
+- All posting goes through `~/.claude/scripts/pr-review.py` (`approve [--inline <json>]` / `comment --inline <json>` / `request-changes --body-file <f>` / `reply <comment-id> --body-file <f>`). Raw `gh pr review`, `gh pr comment` and `gh api ... POST .../reviews|/comments` are blocked; reads are not. A non-zero exit means nothing reliable posted.
+- A response to another reviewer's inline comment is a `reply` in that thread, never a top-level comment.
 - Approvals carry no body text. Once Eli says approve, run `pr-review.py approve <PR#>`.
 
 ## Review actions (least to most severe)

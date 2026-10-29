@@ -109,6 +109,7 @@ GATED_POST_COMMAND_PATTERNS = (
     (r"\bgh\s+issue\s+(create|comment|edit)\b", "gh issue create/comment/edit"),
     (r"\bcurl\b[^|;]*\b(POST|PUT)\b[^|;]*youtrack", "curl POST/PUT to the YouTrack API"),
     (r"\bcurl\b[^|;]*youtrack[^|;]*\b(POST|PUT)\b", "curl POST/PUT to the YouTrack API"),
+    (r"\bgit\b[^|;&]*\bworktree\s+add\b", "git worktree add"),
 )
 
 # The whole message must BE an approval. "yes but reword the second paragraph" is an edit,
@@ -885,7 +886,8 @@ def main():
            and not re.search(r"pr-feedback", cmd):
             print(
                 "BLOCKED: Do not reply to or resolve PR comments directly. "
-                "Use the /eli--pr-feedback skill, which enforces research-then-draft-then-approve workflow.",
+                "Use the /eli--pr-feedback skill, which enforces research-then-draft-then-approve workflow. "
+                "On someone else's PR, use `pr-review.py reply`.",
                 file=sys.stderr,
             )
             sys.exit(2)
@@ -904,7 +906,8 @@ def main():
             print(
                 "BLOCKED: Do not post PR reviews/comments directly. "
                 "Use ~/.claude/scripts/pr-review.py (approve | comment --inline <json> | "
-                "request-changes --body-file <f>). It sends bodies verbatim via `gh api "
+                "request-changes --body-file <f> | reply <PR#> <comment-id> --body-file <f>). "
+                "It sends bodies verbatim via `gh api "
                 "--input` and reads each one back to confirm it landed — preventing the "
                 "literal-@file / mangled-body class of bug. Reads (gh pr view, gh api GET) "
                 "are not blocked.",

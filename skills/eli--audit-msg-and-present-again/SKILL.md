@@ -1,69 +1,54 @@
 ---
 name: eli--audit-msg-and-present-again
-description: Audit my most recent message against the rules and re-present it corrected — or retract it. Use when my last message needs to be checked against the rules (word slop, rule violations, suspect claims) instead of Eli having to type "read the rules" himself. Covers general communication; /eli--ask-properly is the variant for question formatting, /eli--revise-draft for iterating draft text.
+description: Audit my most recent message by running every audit that applies to it (word slop, facts, tense, question format, the artifact's own audit, and a heading-by-heading rules pass), then re-present it corrected or retract it. Use when my last message needs checking against the rules instead of Eli having to type "read the rules" himself.
 ---
 
-# Audit Message — read the rules, audit what I just said, say it right or retract it
+# Audit Message: run every audit that applies, then say it right or retract it
 
-When invoked, do this and nothing else. The subject is the last message you sent before this
-skill was invoked.
+When invoked, do this and nothing else. The subject is the last message you sent before this skill was invoked. Each step runs on the text the step before it produced. A skill invoked here skips its own "present" step, and its output feeds the next step.
 
-## 1. Read the rules — actual Read calls, this turn
+## 1. Word slop
 
-Issue actual `Read` tool calls on ALL of:
-- `~/.claude/rules/core-behavior.md` — the Gates, Gate 3, "say nothing", "every explanation teaches"
-- `~/.claude/rules/talking-to-eli.md` — concision, exact names, options, caveats, invented weight
-- `~/.claude/rules/comments-docs-and-external-writing.md` — all prose rules
+Invoke `/eli--word-slop`. It rewrites the message from scratch around what Eli asked, so it runs first, and every later step checks its output.
 
-Plus, when the message's content matches, the topical file(s): drafts of Slack/YouTrack/PR text →
-`slack.md` / `youtrack.md` / `pr-creation.md`; version references → `swyfft-domain.md`;
-investigation findings → `investigation.md`.
+## 2. Facts
 
-"They're already in my context" / "I just read them" do NOT count. This skill is invoked at the
-exact moment your memory of the rules has demonstrably failed — no Reads in this turn's
-transcript = skill failure.
+Invoke `/eli--fact-check-writing` on the text. A claim that fails is deleted. A claim that can be checked gets checked now, with real tool calls in this turn.
 
-## 2. Fact audit — invoke /eli--fact-check-writing on the message
+## 3. Tense
 
-Invoke `/eli--fact-check-writing` (Skill tool) and run its waves against the message — every
-factual claim traced to something read, run, or quoted; quantifiers verified or deleted;
-paraphrases replaced with the literal quote. Its fix discipline applies unchanged: a claim that
-fails verification is deleted. Checkable-but-unchecked claims get checked NOW, with real tool
-calls in this turn.
+Invoke `/eli--tense-audit` on the text.
 
-## 3. Rules audit — sentence by sentence
+## 4. Questions
 
-Treat the message as guilty until proven clean. The rows are the `##` headings of the files read in
-step 1, derived when the skill runs, never from a list written here:
+When the text asks Eli anything, or leaves a decision he has to make unasked, invoke `/eli--ask-properly` on it.
 
-```bash
-grep -n '^## ' ~/.claude/rules/core-behavior.md ~/.claude/rules/talking-to-eli.md ~/.claude/rules/comments-docs-and-external-writing.md
-```
+## 5. The artifact's own audit
 
-plus the headings of any topical file step 1 added. Every heading gets a verdict, **Satisfied** with
-the sentence that earns it, **N/A** with the reason, or **Violated** with the fix applied. The table
-is written to `msg-audit.md` in the session scratchpad directory. A heading with no row has not been
-audited. The file is never shown to Eli.
+When the message carries one of these drafts, invoke its audit:
+- a PR description: `/eli--audit-pr-desc` (its body file must exist on disk)
+- a standup: `/eli--audit-standup-draft`
+- a plan: `/eli--plan-audit`
 
-## 4. Present the verdict — one of two outcomes
+## 6. Rules pass, heading by heading
 
-**NEVER write a Retractions block, and never quote a failed claim back at Eli.** He read it once
-already; reprinting it makes him read it twice and buries the corrected text under a list of things
-that are not true. Deleted claims leave no trace in the output.
+`Read`, with actual Read calls this turn, `~/.claude/rules/core-behavior.md`, `~/.claude/rules/talking-to-eli.md` and `~/.claude/rules/comments-docs-and-external-writing.md`. Add the topical files the content matches: `slack.md`, `youtrack.md` or `pr-creation.md` for a draft of posted text, `swyfft-domain.md` for version references, `investigation.md` for findings, and `plan-mode.md` plus the plan type's file in `~/.claude/plan-types/` for any message sent while working a ticket. Every question in such a message is checked against `plan-mode.md` § "Banned" and the type file's ban list. A dedupe notice is not a read: use the content it points to.
 
-- **The message survives**: present the full corrected message and nothing else. Every fix, factual
-  or stylistic, is made silently. No findings list, no narration of the audit.
-- **The message does not survive** — its core point fails verification, or it shouldn't have been
-  sent: do NOT re-present it. Say in one or two sentences that the message was wrong, state what is
-  actually true with its evidence, and re-ask any question that still stands. It is always
-  acceptable for the audit's outcome to be "my last message was wrong; disregard it."
+The rows are the `##` headings of those files, derived when the skill runs:
 
-## 5. Constraints
+    grep -n '^## ' ~/.claude/rules/core-behavior.md ~/.claude/rules/talking-to-eli.md ~/.claude/rules/comments-docs-and-external-writing.md
 
-- Audit only the last message. Don't expand scope, don't continue the underlying work, don't
-  answer your own questions.
-- The audit is the work. Running the Reads and then re-pasting the message unchanged is theater —
-  if you found nothing to fix, be suspicious of the audit, not proud of the message.
-- Steps 2 and 3 are not optional. Before presenting, `msg-audit.md` must exist in the scratchpad
-  with a verdict row for every heading from the grep, and the transcript must show the
-  `/eli--fact-check-writing` Skill call. If either is missing, the audit did not run.
+plus the headings of any topical file added. Every heading gets a verdict: **Satisfied** with the sentence that earns it, **N/A** with the reason, or **Violated** with the fix applied. The table goes in `msg-audit.md` in the session scratchpad and is never shown to Eli.
+
+## 7. Present: one of two outcomes
+
+Never write a Retractions block, and never quote a failed claim back at Eli. Deleted claims leave no trace in the output.
+
+- **The message survives**: present the full corrected message and nothing else. Every fix is made silently.
+- **The message does not survive** (its core point fails verification, or it shouldn't have been sent): don't re-present it. Say in one or two sentences that it was wrong, state what is true with its evidence, and re-ask any question that still stands.
+
+## 8. Constraints
+
+- Audit only the last message. Don't expand scope, continue the underlying work, or answer your own questions.
+- An audit that finds nothing is suspect, not the message's credit.
+- Steps 1, 2, 3 and 6 always run. Before presenting, the transcript shows the `/eli--word-slop`, `/eli--fact-check-writing` and `/eli--tense-audit` Skill calls, plus each conditional audit that applied, and `msg-audit.md` has a row for every heading. If any is missing, the audit did not run.

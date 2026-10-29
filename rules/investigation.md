@@ -1,6 +1,8 @@
 # Investigation
 
-- **Never suspect established infrastructure** (ClosedSets, SwyfftVersion, GetTableVersion, equality operators, DI, EF). Treat it like framework code unless a ticket is changing it. When it seems wrong, the bug is in your code or your understanding.
+## What to suspect, and what to read first
+
+- **Never suspect established infrastructure.** Treat core Swyfft components (ClosedSets, DI, EF, equality operators) like Microsoft framework code: assume they work unless one is itself the subject of the feature or bug being worked on. A defect in one would fail hundreds of tests, not a handful.
 - **Read the full inheritance chain**, base to leaf, before saying what a class does or doesn't override.
 
 ## Git history investigation

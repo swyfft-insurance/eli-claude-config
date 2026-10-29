@@ -178,6 +178,7 @@
   "autoMemoryEnabled": false,
   "preferredNotifChannel": "iterm2_with_bell",
   "fileCheckpointingEnabled": false,
+  "idleCompaction": false,
   "autoMode": {
     "allow": [
       "$defaults",

@@ -1,6 +1,8 @@
 # Excel Rater (ByPeril) — Homeowner Implementation Tickets
 
-The Homeowner playbook for the Rater update and Rater bug plan types (`rater-update.md`, `rater-bug.md`). It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Homeowner's own.
+## What this playbook covers
+
+- **The Homeowner playbook for the Rater update and Rater bug plan types (`rater-update.md`, `rater-bug.md`).** It inherits all of `plan-mode.md` and `excel-rater-plans-common.md`, and holds only what is Homeowner's own.
 
 ## Mandatory pre-reads — before authoring an Excel rater plan
 
@@ -16,15 +18,15 @@ Read these before authoring, and list them as the plan's required pre-reads, wha
 - **Config guards:** `/eli--prebind-validation` (config ordering, quote-def index guards).
 - **Renewal migrations:** `MigrationCoverageTests`, on every rater ticket that changes production code.
 
-Run the validation tests through `Run-DotnetTest.ps1` with `-FilterTrait "TestGroup=ByPerilTests"`. Without the trait the run also pulls in the Commercial validation tests, which the pre-tool hook blocks. `-FilterNamespace "*{ST}.EAndS"` scopes to one state but drops its Admitted leaves.
+- **Run the validation tests through `Run-DotnetTest.ps1` with `-FilterTrait "TestGroup=ByPerilTests"`.** Without the trait the run also pulls in the Commercial validation tests, which the pre-tool hook blocks. `-FilterNamespace "*{ST}.EAndS"` scopes to one state but drops its Admitted leaves.
 
 ## Renewal migrations — always run the tests; cover changed option sets
 
-A plan that changes a rated input's option set between config versions (values added, removed or renamed) includes the `Swyfft.Services/QuoteMigrations` migration, or confirms an existing one covers the new boundary. `MigrationCoverageTests` runs on every rater ticket that changes production code, whatever the plan believes about option sets. A ticket that changes only test code and rater files skips it.
+- **A plan that changes a rated input's option set between config versions (values added, removed or renamed) includes the `Swyfft.Services/QuoteMigrations` migration, or confirms an existing one covers the new boundary.** `MigrationCoverageTests` runs on every rater ticket that changes production code, whatever the plan believes about option sets. A ticket that changes only test code and rater files skips it.
 
 ## Component → Excel-signal map
 
-The diff signal on the left tells you which component on the right must change. The map isn't exhaustive: the scoping diff decides which rows apply, and a surface missing from it isn't ruled out.
+- **The diff signal on the left tells you which component on the right must change.** The map isn't exhaustive: the scoping diff decides which rows apply, and a surface missing from it isn't ruled out.
 
 | Rater signal in the diff | C# component to change | Key file(s) |
 |---|---|---|

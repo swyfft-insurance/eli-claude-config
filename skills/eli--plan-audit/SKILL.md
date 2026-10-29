@@ -99,6 +99,16 @@ requires, bans or defines something:
 grep -n '^##' ~/.claude/rules/plan-mode.md
 ```
 
+Then confirm every Part of the file has headings to audit:
+
+```bash
+awk '/^# Part/{part=$0; n[part]=0; next} part && /^##/{n[part]++}
+     END{for (p in n) if (n[p]==0) print "NO HEADINGS: plan-mode.md :: " p}' ~/.claude/rules/plan-mode.md
+```
+
+Any output fails the audit: that Part has lost its `##` headings, and the grep above skips every rule
+in it. Walk the Part by hand, a row per rule, and tell Eli its headings need restoring.
+
 Every heading gets a row whether or not the plan mentions it. The table is written to
 `~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md`, one row per rule, labeled
 `<file> :: <heading> :: <the rule's opening words>`, with the verdict and the plan section that earns
@@ -125,9 +135,15 @@ ls ~/.claude/rules/*.md
 ```
 
 Every file in that output gets a one-line verdict: **applies** or **N/A with the reason**. Then derive
-each applying file's rows the same way, `grep -n '^##' <file>` (or `grep -n '^- '` for a file that is
-a bullet list with no headings), and give every row a verdict in the same table, exactly as in 2a. The files Step 1 names are already in this set
+each applying file's rows the same way, `grep -n '^##' <file>`, and give every row a verdict in the same table, exactly as in 2a. The files Step 1 names are already in this set
 and always apply.
+
+The plan's type file, and every `~/.claude/plan-types/` file it names, gets a row per rule, as in 2a:
+every bullet or numbered item, labeled with its bold name. A type file's banned items are checked
+against the whole plan, not only the steps they sit under.
+
+A file marked applies that yields no `##` headings fails the audit: its format no longer matches the
+greps here.
 
 Add to the same pass:
 
@@ -141,11 +157,28 @@ A file marked N/A without a reason counts as unaudited, the same as a rule with 
 marked applies, and for `plan-mode.md`:
 
 ```bash
-grep '^## ' "<rules file>" | sed 's/^## //' | while IFS= read -r heading; do
+grep -E '^##+ ' "<rules file>" | sed -E 's/^##+ //' | while IFS= read -r heading; do
   grep -qF -- "$heading" ~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md \
     || echo "MISSING: <rules file> :: $heading"
 done
 ```
+
+For `plan-mode.md`, the type file and every `~/.claude/plan-types/` file it names, check that every
+rule has a name and that every name got a row. Run it once per file; frontmatter and code blocks are
+skipped, and indented bullets count:
+
+```bash
+f=<file>
+body() { awk 'NR==1&&/^---/{fm=1;next} fm{if(/^---/)fm=0;next} /^ *```/{c=!c;next} !c' "$f"; }
+body | grep -E '^ *(- |[0-9]+\. )' | grep -vE '^ *(- |[0-9]+\. )\*\*' | sed "s|^|UNNAMED: $f :: |"
+body | grep -oE '^ *(- |[0-9]+\. )\*\*[^*]+\*\*' | sed -E 's/^ *(- |[0-9]+\. )\*\*//; s/\*\*$//' | while IFS= read -r name; do
+  grep -F -- "$(basename "$f")" ~/.claude/tickets/<ticket-folder>/artifacts/plan-audit.md | grep -qF -- ":: $name" \
+    || echo "MISSING: $f :: $name"
+done
+```
+
+An `UNNAMED` line fails the audit: the rule gets a bold name in its file, with Eli's approval
+(`meta.md`), before the audit is done.
 
 Any `MISSING` line fails the audit: walk that section against the plan, record its row, and rerun
 until nothing prints. A one-line verdict standing in for a whole file is exactly what this catches,
@@ -176,8 +209,10 @@ Claims a plan gets wrong most often, each verified individually and never on tru
 - **Every step's scope.** Each step traces to an AC item or to a mandatory rule the plan names. A
   step that traces to neither is deleted.
 - **Every step's premise.** A step that adds a column, a class, or an edit to shared code rests on a
-  claim that it is needed, even when no sentence states it. Verify that claim in the code, and
-  record the evidence beside the step.
+  claim that it is needed, even when no sentence states it. Verify that claim and record the evidence
+  beside the step. Reading code shows where things are and what they say. What code does when it runs
+  is shown by a test, a query or a log line, never by reading it (`bug.md` § 4, "Treating code
+  reading as proof").
 
 Flagging provisional is permitted only where the declared type's own rules permit it, and never for a
 fact readable while authoring. Labeling a verified item provisional drains the flag of meaning at the

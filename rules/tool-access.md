@@ -1,5 +1,7 @@
 # Tool Access
 
+## Never claim you lack access
+
 Never tell Eli you lack access. YouTrack is reachable through MCP and GitHub through `gh`. If a call fails, load the tool with ToolSearch. If it still fails, ask.
 
 ## A gap in Eli's tooling is a gap to fix, not a limit to report

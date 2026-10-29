@@ -66,3 +66,5 @@ Examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (`Sw
 ## Setup asserts: verify the arrange before testing behavior
 
 After arranging a test, especially when a helper or factory creates the subject (a quote, a policy), assert the subject exists and holds the state the later assertions depend on: the config, properties and elements they read. Assert only preconditions a later assertion relies on. If the test reads an element off the created quote, the setup assert confirms the helper populated that element, not merely that it returned a quote.
+
+Setup asserts are mandatory in every test, a throwaway discovery test included. A throwaway test's result is evidence only when its setup asserts prove it built the scenario it claims to test: the subject matches the failing environment's data in every value the scenario depends on.
