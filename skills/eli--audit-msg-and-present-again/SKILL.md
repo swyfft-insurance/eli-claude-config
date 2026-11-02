@@ -5,7 +5,7 @@ description: Audit my most recent message by running every audit that applies to
 
 # Audit Message: run every audit that applies, then say it right or retract it
 
-When invoked, do this and nothing else. The subject is the last message you sent before this skill was invoked. Each step runs on the text the step before it produced. A skill invoked here skips its own "present" step, and its output feeds the next step.
+When invoked, do this and nothing else. The subject is the file passed as the argument, an unsent draft, when there is one, and otherwise the last message you sent before this skill was invoked. Every skill invoked here audits that subject wherever its own instructions say "the last message you sent". Each step runs on the text the step before it produced. A skill invoked here skips its own "present" step, and its output feeds the next step.
 
 ## 1. Word slop
 
@@ -46,9 +46,10 @@ Never write a Retractions block, and never quote a failed claim back at Eli. Del
 
 - **The message survives**: present the full corrected message and nothing else. Every fix is made silently.
 - **The message does not survive** (its core point fails verification, or it shouldn't have been sent): don't re-present it. Say in one or two sentences that it was wrong, state what is true with its evidence, and re-ask any question that still stands.
+- **The subject is a file**: write the corrected text back to the file before presenting it.
 
 ## 8. Constraints
 
-- Audit only the last message. Don't expand scope, continue the underlying work, or answer your own questions.
+- Audit only the subject. Don't expand scope, continue the underlying work, or answer your own questions.
 - An audit that finds nothing is suspect, not the message's credit.
 - Steps 1, 2, 3 and 6 always run. Before presenting, the transcript shows the `/eli--word-slop`, `/eli--fact-check-writing` and `/eli--tense-audit` Skill calls, plus each conditional audit that applied, and `msg-audit.md` has a row for every heading. If any is missing, the audit did not run.

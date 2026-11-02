@@ -63,7 +63,9 @@ Write an intent comment on non-trivial business logic, aimed at the non-technica
 
 ## No Ambiguous References
 
-When two or more nouns could be the antecedent, repeat the noun instead of "it", "this", "that", "they", "those", "which" or "whatever".
+A reader must never have to guess what a word refers to. Two cases:
+- **A pronoun with more than one possible antecedent.** Repeat the noun instead of "it", "this", "that", "they", "those", "which" or "whatever".
+- **"How", "why" or "what" with no object.** Write the object: "how to seed the config", not "how".
 
 ## Never name Eli's personal tooling in anything published
 

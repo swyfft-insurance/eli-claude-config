@@ -72,7 +72,7 @@ Each message contains, and contains only:
 2. **The commented lines** (inline threads only), verbatim, in a code block.
 3. **The comment:** the reviewer's exact text in a blockquote, plus any other replies on the thread.
 4. **Strongest case for the comment** (actionable only): one sentence stating the concern at full strength, as if you agreed with it.
-5. **Verdict:** the step 3 answer in one or two sentences, with evidence.
+5. **Verdict:** the step 3 answer in one or two sentences, with evidence. A not-actionable verdict names the step 3 question that failed. When the reviewer's mechanism holds, the same sentence concedes it and turns on "but": "Not actionable: the mechanism holds, but it fails <question>."
 6. **Options** (actionable only): a lettered list of genuinely plausible choices, each saying what it changes.
 7. **Recommendation** (actionable only): your pick and a one-sentence reason.
 8. **The reply:** the exact text to post, for the recommended option, or otherwise the only reply (step 5).

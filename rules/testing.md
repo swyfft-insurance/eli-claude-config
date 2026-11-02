@@ -32,35 +32,26 @@ Captured asserts are the exception: they detect change on purpose, and the diff 
 - Before planning a test, research the infrastructure: the base classes the target project declares (`grep "public abstract class .*Base"` over it, not a default to `UnitTestBase`/`IntegrationTestBase`), its setup patterns, and the available test data and addresses.
 - Build the scenario from the failing environment's real data (DB queries, logs), not synthetic values.
 - Prefer `[Theory]` with `[MemberData]` over `[Fact]` for several scenarios of one behavior.
-- Theory parameters use the real ClosedSet types (e.g. `AnswerYesNo`), never the strings they represent. Generate them with `GetAllValues().ToTheoryData()`.
+- Theory parameters follow `Swyfft.Common/SetDefinitions/CLAUDE.md` § "Type method parameters as ClosedSets, not strings". Theory data over every member of a ClosedSet comes from `GetAllValues().ToTheoryData()`.
 
-## Failure Aggregation
+## Failure Aggregation: catch and aggregate
 
-A test that iterates inputs (configs, indices, sheets, theory rows) collects every failure and throws one `AggregateException` at the end. It never stops at the first failure.
+When the code under test can throw for one input, catch each input's exception, aggregate the failures, and fail once after every input has run. A loop whose only failures are assertions uses an `AssertionScope` instead.
 
-```csharp
-var failures = new List<(string Label, Exception Error)>();
-foreach (var item in items)
-{
-    try { AssertSomething(item); }
-    catch (Exception ex) { failures.Add((item.Label, ex)); }
-}
-if (failures.Count > 0)
-{
-    var messages = failures.Select(f => $"{f.Label}: {f.Error}");
-    throw new AggregateException(
-        $"Failed {failures.Count}/{items.Count}:{Environment.NewLine}" +
-        string.Join(Environment.NewLine + Environment.NewLine, messages),
-        failures.Select(f => f.Error));
-}
-```
+Example: `DefaultElementGeneratorTests.GetDefaultElementsForState` (`Swyfft.Services.UnitTests/Common/Elements/DefaultElementGeneratorTests.cs`).
 
-Examples: `ValidateElementOptionsForConfig`, `RunCoverageDAmountsForConfig` (`Swyfft.Services.Excel.IntegrationTests/Homeowner/ByPerilValidationTestBase.cs`).
+## AssertionScope collects assertion failures
+
+To report every failing assertion instead of only the first, put the assertions in one `AssertionScope`. Never gather values and labels into a collection to assert over in a loop afterward.
+
+## Name the subject instead of writing `because` text
+
+AwesomeAssertions names a failure after the asserted expression (`Expected renewalPremium to be 1200M, but found 1100M`). Name every variable in an asserted expression for the scenario it holds. Add a `because` argument only for what no name can say, such as why the expected value is the right one.
 
 ## Test addresses
 
 - **Unit tests** use `TestAddressHelper.GetTestAddressesFiltered(productLine:, carrierCode:, ratingType:, state:).First()`. A helper-selected address in a unit test is never a determinism or FIRST Repeatable finding, and never gets reverted to a hardcoded constant. The exception is an address attribute that is the input under test (county, distance to coast, year built, territory): filter or pin for it and say why.
-- **Integration and acceptance tests** hardcode an address no other test class uses.
+- **Commercial integration tests hardcode their address**, never one from `TestAddressHelper` (Laurel Nichols' request).
 - **The address lists in `Swyfft.TestUtilities/ConstantsAndExpects/` are Laurel Nichols'.** Never add, retag or edit one to make a test pass. When a carrier has no address, the test neutralizes the unrelated declines it hits, as `QbeUpgradeConfirmationTests.NeutralizeUnrelatedDeclines` does, and says so in a comment.
 
 ## Setup asserts: verify the arrange before testing behavior

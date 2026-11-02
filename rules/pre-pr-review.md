@@ -21,9 +21,14 @@ Past 1.5x your estimated upper bound, abandon it with TaskStop immediately, with
 ## A review finding is a claim, not a result
 
 The reviewer read the diff cold and doesn't know what was asked for. Before Eli sees a finding, answer two questions, in order:
+A verifier's CONFIRMED proves the mechanism, not the defect.
 
-- **Is it a finding at all?** Open the AC, the plan section that chose the shape, or the precedent the code copied, and name that source in the verdict. The commonest false finding reports the requested behavior as a defect. A finding against the codebase's own precedent goes to Eli labelled as a convention change.
+- **Is it a finding at all?** Open the AC, Eli's ruling on the shape (the plan's Decisions, in his words), or the precedent the code copied, and name that source in the verdict. The commonest false finding reports the requested behavior as a defect. A finding against the codebase's own precedent goes to Eli labelled as a convention change.
 - **Is the mechanism real?** Verify the code path yourself.
+
+Every finding in the write-up quotes the ticket sentence or Eli ruling it breaks, or the one that allows it, and says whether its scenario happens in production or is an edge case the ticket never asks for. An edge case the ticket never asks for is not a finding (`plan-mode.md` § "Banned"). A write-up missing either answer for any finding is never presented.
+
+A finding must be a defect the diff introduces. Behavior the diff didn't cause, however real, is not a finding for this PR.
 
 The suggested fix is a second claim. Audit it against `coding-standards.md`, and reject a fix that duplicates a source of truth or tests what a captured assert already proves, even when the finding is real.
 

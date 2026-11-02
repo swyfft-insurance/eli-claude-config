@@ -63,7 +63,7 @@ In one message:
 
 ## 5. Steps and stops
 
-- **The test that reproduced the defect in discovery is kept as the regression guard.** The plan's first step brings it up to the repo's test standards and stops for Eli's approval. Then the fix, then the closing stops.
+- **The test that reproduced the defect in discovery is kept as the regression guard.** The plan's first step brings it up to the repo's test standards, runs `/eli--code-complete-audit <ticket-folder>` on it, and stops for Eli's approval. Then the fix, then the closing stops.
 
 ## 6. Verification
 

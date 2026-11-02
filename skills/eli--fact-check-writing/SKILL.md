@@ -55,6 +55,7 @@ One wave applies one check to every sentence, with no sampling. Run them in orde
 5. **Advice.** A sentence telling the reader to do something ("should", "worth", "consider", "the
    fix is", "needs to", "recommend", "just") is a proposal, and waves 1-4 don't test it. Check it
    on its own terms:
+   - **Whose advice is it?** In a draft posted as Eli, a proposal Eli didn't make is deleted.
    - **Does the action achieve the stated goal?** Read the thing being changed and the thing being
      cited, then follow the change through to the outcome.
    - **Is the goal already met without it?** A proposal that duplicates existing code, an existing
@@ -80,11 +81,15 @@ text (§ "Output").
 
 A fix never adds a claim that itself needs checking, and never adds words to defend a claim.
 
-## Before replying: justify every change
+## Before replying: justify every change, in writing
 
-Compare your output with the input, sentence by sentence. For every change, name the incorrect
-claim it fixes and the evidence that shows it is incorrect. Revert any change you can't justify
-that way.
+Compare your output with the input, sentence by sentence. Write one row per change to `fact-check.md` in the ticket's `artifacts/`, or in the session scratchpad when there is no ticket. The file is never shown to Eli.
+
+| Input text | Plain reading, in context | Evidence the plain reading is false |
+
+- The evidence column cites a file:line, a command's output or a quote that contradicts the plain reading. Evidence against a stricter reading, or against a neighboring sentence, is not evidence against this one.
+- Each sentence gets its own row. Finding one claim false changes nothing around it.
+- Before replying, revert every change whose row has no evidence, and every rewording no row justifies.
 
 ## Termination
 

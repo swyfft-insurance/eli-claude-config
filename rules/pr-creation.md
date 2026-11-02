@@ -52,6 +52,8 @@ When a fix can't reach the tests that already passed, report one passing result 
 
 ## Attaching screenshots to a PR
 
+**A PR gets a screenshot only when Eli asks for one.** Never plan, capture or attach one otherwise, whatever the change shows. The rest of this section applies once he has asked.
+
 ### A screenshot shows the change with a reasonable amount of the screen around it, outlined in red
 
 - One screenshot per surface the change touches, showing enough of the screen to see where the change sits, usually its section of the page. Never crop to the element alone.

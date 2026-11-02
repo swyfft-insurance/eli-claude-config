@@ -17,6 +17,7 @@ Part A covers planning a ticket, Part B what every plan file contains, Part C ex
 ## Start, every type
 
 1. **Read the ticket with `/eli--read-ticket` and move it to Develop (Step 0a).** If a hook blocks the move, stop and ask for that one action as a bare y/n.
+   - **Check Eli's own open PRs for duplicate tickets.** List them (`gh pr list --author eli-swyfft --state open --limit 200 --json number,title,files`) and read each one's tickets with `/eli--read-ticket`. The step-4 message names every PR whose ticket duplicates or partly duplicates this one. Never look at other developers' open PRs.
 2. **Pick the type by heading 1 of each file in `~/.claude/plan-types/`.** The more specific type wins. Confirm it with Eli.
 3. **Read the subsystem docs, the type's file, and the ticket's existing plan if there is one.**
 
@@ -28,7 +29,7 @@ Part A covers planning a ticket, Part B what every plan file contains, Part C ex
 
 4. **Settle the design from the ticket and what discovery found:**
    - **The smallest change that meets the AC.** A repo convention or another ticket's precedent never justifies more, and a mechanism the ticket names is the design.
-   - **An open PR touching the same code never narrows scope or creates a dependency.** Build the full AC on its own base.
+   - **Design against `development` plus Eli's open PRs.** Their code isn't on `development` yet and merges soon. When one changes code the design touches, the plan stacks on that PR instead of writing a second copy of its code.
    - **Post-bind work, or work that straddles the line, is Eli's call to do or hand off.**
    - **A question goes to Eli only when the ticket's words support two readings that produce different code, or the ticket conflicts with the code or a rule.**
 5. **One message to Eli:** what the ticket asks for, what discovery found, the outline, and the tests, one line each (the behavior in plain words; unit, integration or acceptance; the test class). Not grouped by AC; build, audits and review left out. It ends with a go-ahead.
@@ -107,7 +108,7 @@ First, before the pre-reads and the branch, for every ticket the plan covers, re
 Every type ends with these:
 
 1. **HARD STOP: code complete.** Tell Eli the diff is ready for his review in GitHub Desktop, without printing it, and ask him nothing else in that message. Wait for him to say his review is done. Only then ask to run the tests.
-2. **HARD STOP: tests complete.** Report results and wait for approval.
+2. **HARD STOP: tests complete.** Report results and end the message with "Verification done? (y/n)".
 3. **HARD STOP: before irreversible actions** (push, PR, seeding, external posts). Wait for approval.
 
 ## Seeder Overrides: required for every new not-yet-live state config
@@ -147,7 +148,26 @@ Only two skips:
 
 - **Manual QA applies to every change a tester can see:** anything that changes what a quote, policy, document, page or fee shows or does. The only exceptions are a refactor, a test-only change and a tooling change. A plan that claims one of those exceptions names it.
 
-- **When manual QA applies, the plan says how manual QA will test the change, and the design makes the change testable on beta.** The plan's last step, after the PR, posts that as a YouTrack comment on the story.
+- **Manual QA instructions state conditions and actions, never how to reach them.** Each scenario states the conditions the quote, policy, reprice or other subject under test must meet, the action to take, and the expected result. The QA team knows how to set up the conditions through the UI or other means. Never read UI code, page docs or test setup to find out how to reach them, and never write screens or clicks into the instructions. The design must let QA run every scenario on beta. For example, a new config whose production go-live is weeks away needs a seeder override (§ "Seeder Overrides"). Without one, beta seeds the production date, and QA can't quote on the config until it goes live. The plan's last step, after the PR, posts the instructions as a YouTrack comment on the story, in this shape:
+
+  ```markdown
+  ## Suggested instructions for manual QA
+
+  **Before you start:** <only when the change rides new quote definitions: the reused-quote warning>
+
+  ### Scenario <N>: <what the scenario proves>
+  - **Setup:** <the conditions>
+  - **Act:** <the action, in numbered steps when it takes more than one>
+  - **Assert:** <the expected result>
+  ```
+
+- **Use the fewest scenarios that prove the change.** One scenario covers every input that should produce the same result: its Setup lists the alternatives as sub-bullets under an opener that says the subject is in any one of them ("A quote with any one of these roofs:"). Each alternative is one state the subject can start in. The Act is the action whose result the scenario checks, in numbered steps when the action takes more than one. The Assert is the result. A scenario can start from the subject an earlier scenario left, named by its number ("The quote from Scenario 1, with Roof Age 15.").
+
+- **Setup, Act and Assert prefer sub-bullets.** When one holds more than one item, it gets a one-line opener and one sub-bullet per item.
+
+- **A change on new quote definitions opens with a reused-quote warning.** The comment names the new quote definitions and says three things: beta carries quotes copied from Prod; creating a quote at an address that already has a quote returns that existing quote, still on its older quote definition; and every new-business scenario starts at an address with no existing quote and confirms the quote is on the new definition.
+
+- **A scenario that crosses quote definitions names both.** A renewal scenario names, by config name, the quote definition the policy starts on and the one the renewal lands on.
 
 - **A rater change is covered by the rater validation tests in `Swyfft.Services.Excel.IntegrationTests`, which run more scenarios than a tester could.** Its comment asks manual QA only for a smoke test that a quote gets a premium, and says the validation tests cover the rest.
 
@@ -169,7 +189,7 @@ Only two skips:
 
 ### Tests to add or modify
 
-- **Each new or extended test file:** filename, base class, and a case table (input → expected, one row per scenario). Tests follow `~/.claude/rules/testing.md`, conform to FIRST (`testing.md` § "FIRST principles govern every test"; a date-dependent test names its pinned clock date and uses literal dates), and aggregate failures across iterated inputs (`testing.md` § "Failure Aggregation").
+- **Each new or extended test file:** filename, base class, and a case table (input → expected, one row per scenario). Tests follow `~/.claude/rules/testing.md`, conform to FIRST (`testing.md` § "FIRST principles govern every test"; a date-dependent test names its pinned clock date and uses literal dates), and aggregate failures across iterated inputs (`testing.md` §§ "Failure Aggregation: catch and aggregate" and "AssertionScope collects assertion failures").
 
 - **Which tests to write, and at which level:** `~/.claude/rules/testing.md` § "Eli's testing pyramid: the fewest tests that prove the code works".
 
@@ -251,6 +271,10 @@ Only two skips:
 ## ALWAYS FOLLOW THE PLAN
 
 - **Execute steps in order.** Never skip ahead, reorder or deviate. A step waits on its dependencies. Anything that prevents adherence is a HARD STOP: explain the blocker and wait.
+
+## A plan you wrote is your claim, not authority
+
+- **Never cite a plan section you wrote as the reason for a decision.** Only Eli's rulings, recorded in his words, carry his authority. Cite one of those, the ticket, a rule or the code. A plan choice with none of those behind it goes to Eli as your own choice.
 
 ## Read repo files with the `Read` tool, code files above all
 

@@ -188,7 +188,9 @@ While waiting, do step 4b's work on each PR as its report lands, so the step 3c 
 
 Once the last agent has reported, run step 4b on every PR and pick each one's disposition by step 4c. Every PR that comes out a plain approve with no reply to post goes in one message, ahead of the rest:
 
-- One bullet per PR: `**#NNNNN "title"**`, then two sentences saying what the PR does and who it's by.
+- One bullet per PR: `**#NNNNN "title"**` and its author, and nothing else on that line.
+  - The summary goes under it as sub-bullets, one fact each: what the PR does, then any merge-order or review-state context Eli needs.
+  - Never write the summary as sentences.
 - One closing question: `Approve all N? (y/n)`.
 
 On a yes, re-run step zero on each PR, approve each with `pr-review.py approve`, and report the results in one line. A PR whose head moved drops out of the batch and is presented on its own. Then present the remaining PRs one at a time under step 4.

@@ -6,7 +6,7 @@ New code conforms to SOLID. Existing code in scope gets refactored toward it whe
 
 ## Identifier names must be self-documenting
 
-An identifier (variable, property, method, parameter, field, constant, type) says what the thing holds or returns and what it is for. Prefer verbosity: `GetGroupRadix` fails, `GetElementCombinationPermutationCount` passes. Abbreviation is fine while the meaning survives (`CalcEachElementOptIterCount`). The test: read it at a use site with nothing else on screen. If it doesn't say what the thing is and what it's for, it is too short.
+An identifier (variable, property, method, parameter, field, constant, type) says what the thing holds or returns and what it is for. Verbose means every part of that meaning is in the name, not that every word is spelled out: `GetGroupRadix` fails because it leaves the meaning out, and `CalcEachElementOptIterCount` passes because it keeps all of the meaning in legible abbreviations. Abbreviate every word a reader still recognizes abbreviated. The test: read it at a use site with nothing else on screen. If it doesn't say what the thing is and what it's for, it is too short.
 
 ## General
 
@@ -33,7 +33,7 @@ Extract literals to named constants, including sentinels like `int.MaxValue` for
 
 ClosedSet usage rules live in `Swyfft.Common/SetDefinitions/CLAUDE.md`. Read it in full before writing or modifying any C# that touches a ClosedSet, even if you read it earlier in the session.
 
-Before the code-complete HARD STOP, re-read it and audit every ClosedSet usage the diff adds or changes: parameters typed as the ClosedSet, not `string`/`int`; `.Value` only at true system boundaries (external APIs, IMS, raw storage); comparisons and `.Switch()` in the documented forms. Fix every violation before announcing code-complete.
+Before the code-complete HARD STOP, re-read it and audit every ClosedSet usage the diff adds or changes against every section of it. Fix every violation before announcing code-complete.
 
 ## Dispatch dictionaries: behavior keyed by a value
 

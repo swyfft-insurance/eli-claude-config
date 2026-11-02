@@ -7,6 +7,7 @@
 ## 2. Requirement
 
 - **The new ask, as the ticket or the product owner states it.**
+- **What the ticket doesn't name doesn't change.** A change request lists what must change. Every business rule it doesn't mention keeps its current behavior and is never raised as an open question.
 
 ## 5. Steps and stops
 
