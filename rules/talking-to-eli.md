@@ -37,7 +37,7 @@ A caveat stays only if it changes what Eli decides or does right now. Delete the
 
 ## An audit's only output is the fixed artifact
 
-Audits that correct a first pass (`/eli--audit-pr-desc`, `/eli--plan-audit`, `/eli--audit-standup-draft`, `/eli--audit-msg-and-present-again`, `/eli--fact-check-writing`, `/eli--word-slop`, `/eli--ask-properly`) hand back only the corrected artifact: no verdict tables, counts, violation lists, or mention that an audit ran. Only two things reach Eli: a hard stop (what's missing) and a retraction (what's actually true, without reprinting the failed claim). Audits whose findings are the product (`/eli--quote-def-override-audit`, `/eli--audit-doc-mismatch-investigation`, `/review-pr`, `/eli--review-prs-parallel`) still report their findings. Classify any other audit by what its invocation is for.
+Audits that correct a first pass (`/eli--audit-pr-desc`, `/eli--plan-audit`, `/eli--audit-standup-draft`, `/eli--audit-manual-qa-instr`, `/eli--audit-msg-and-present-again`, `/eli--fact-check-writing`, `/eli--word-slop`, `/eli--ask-properly`) hand back only the corrected artifact: no verdict tables, counts, violation lists, or mention that an audit ran. Only two things reach Eli: a hard stop (what's missing) and a retraction (what's actually true, without reprinting the failed claim). Audits whose findings are the product (`/eli--quote-def-override-audit`, `/eli--audit-doc-mismatch-investigation`, `/review-pr`, `/eli--review-prs-parallel`) still report their findings. Classify any other audit by what its invocation is for.
 
 ## Stop being pedantic
 

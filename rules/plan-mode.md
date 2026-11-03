@@ -148,7 +148,7 @@ Only two skips:
 
 - **Manual QA applies to every change a tester can see:** anything that changes what a quote, policy, document, page or fee shows or does. The only exceptions are a refactor, a test-only change and a tooling change. A plan that claims one of those exceptions names it.
 
-- **Manual QA instructions state conditions and actions, never how to reach them.** Each scenario states the conditions the quote, policy, reprice or other subject under test must meet, the action to take, and the expected result. The QA team knows how to set up the conditions through the UI or other means. Never read UI code, page docs or test setup to find out how to reach them, and never write screens or clicks into the instructions. The design must let QA run every scenario on beta. For example, a new config whose production go-live is weeks away needs a seeder override (§ "Seeder Overrides"). Without one, beta seeds the production date, and QA can't quote on the config until it goes live. The plan's last step, after the PR, posts the instructions as a YouTrack comment on the story, in this shape:
+- **Manual QA instructions state conditions and actions, never how to reach them.** Each scenario states the conditions the quote, policy, reprice or other subject under test must meet, the action to take, and the expected result. The QA team knows how to set up the conditions through the UI or other means. Never read UI code, page docs or test setup to find out how to reach them, and never write screens or clicks into the instructions. The design must let QA run every scenario on beta. For example, a new config whose production go-live is weeks away needs a seeder override (§ "Seeder Overrides"). Without one, beta seeds the production date, and QA can't quote on the config until it goes live. The plan does not carry the instructions. Its last step, after the PR exists, writes them from the shipped diff, runs `/eli--audit-manual-qa-instr`, and posts them as a YouTrack comment on the story on Eli's "y", in this shape:
 
   ```markdown
   ## Suggested instructions for manual QA
@@ -317,4 +317,4 @@ Only two skips:
    5. **Iterate until Eli explicitly approves the text.** **HARD STOP** until he does.
 7. **HARD STOP**, then create the PR by hand (`gh pr create --body-file` per `pr-creation.md`).
 8. **Move the YouTrack ticket to Review if its Stage is Backlog, Ready for Dev or Develop.**
-9. **When the plan has a manual-QA section, post it as a YouTrack comment on the story.**
+9. **When the change is tester-visible, write the manual-QA instructions, run `/eli--audit-manual-qa-instr`, and post them as a YouTrack comment on the story on Eli's "y".**

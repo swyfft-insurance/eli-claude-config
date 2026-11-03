@@ -29,6 +29,7 @@ When the message carries one of these drafts, invoke its audit:
 - a PR description: `/eli--audit-pr-desc` (its body file must exist on disk)
 - a standup: `/eli--audit-standup-draft`
 - a plan: `/eli--plan-audit`
+- manual-QA instructions: `/eli--audit-manual-qa-instr`
 
 ## 6. Rules pass, heading by heading
 
