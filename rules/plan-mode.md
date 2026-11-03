@@ -163,11 +163,15 @@ Only two skips:
 
 - **Use the fewest scenarios that prove the change.** One scenario covers every input that should produce the same result: its Setup lists the alternatives as sub-bullets under an opener that says the subject is in any one of them ("A quote with any one of these roofs:"). Each alternative is one state the subject can start in. The Act is the action whose result the scenario checks, in numbered steps when the action takes more than one. The Assert is the result. A scenario can start from the subject an earlier scenario left, named by its number ("The quote from Scenario 1, with Roof Age 15.").
 
+- **A lone scenario is unnumbered.** When the comment has one scenario, its heading is `### Scenario: <what the scenario proves>`.
+
 - **Setup, Act and Assert prefer sub-bullets.** When one holds more than one item, it gets a one-line opener and one sub-bullet per item.
 
 - **A change on new quote definitions opens with a reused-quote warning.** The comment names the new quote definitions and says three things: beta carries quotes copied from Prod; creating a quote at an address that already has a quote returns that existing quote, still on its older quote definition; and every new-business scenario starts at an address with no existing quote and confirms the quote is on the new definition.
 
 - **A scenario that crosses quote definitions names both.** A renewal scenario names, by config name, the quote definition the policy starts on and the one the renewal lands on.
+
+- **A scenario names each element choice exactly as the config offers it.** Read the choices from the config's `GetDefaultElementsForState` capture, never from the ticket's wording or another carrier's element. Where one ticket term covers several choices, the scenario names the choices that exercise its condition.
 
 - **A rater change is covered by the rater validation tests in `Swyfft.Services.Excel.IntegrationTests`, which run more scenarios than a tester could.** Its comment asks manual QA only for a smoke test that a quote gets a premium, and says the validation tests cover the rest.
 
@@ -275,6 +279,10 @@ Only two skips:
 ## A plan you wrote is your claim, not authority
 
 - **Never cite a plan section you wrote as the reason for a decision.** Only Eli's rulings, recorded in his words, carry his authority. Cite one of those, the ticket, a rule or the code. A plan choice with none of those behind it goes to Eli as your own choice.
+
+## Label what a rule requires you to say
+
+- **A statement a rule or the plan requires at a stop (the deprecated-carrier check, an audit result, a mandated confirmation) goes under a label naming it as required, such as `Required deprecated-carrier check:`.** It never reads as a caveat or a concern.
 
 ## Read repo files with the `Read` tool, code files above all
 

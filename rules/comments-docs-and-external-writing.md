@@ -31,6 +31,7 @@ The reader, Eli included, doesn't have the ticket, the ACs or the line numbers i
 - Name the exact method, class or member, never a vaguer word ("calculation" for "method").
 - Pair every name with what it does and the business rule or AC it serves. A bare "line 238 does X" is unusable.
 - Lead with why the code exists.
+- **Name the product line** (Homeowner, Commercial, Flood, DBB) in the first sentence, and again wherever a state, carrier or config is named. The same state and carrier exist in more than one product line.
 
 Business-facing writing (YouTrack user stories) uses plain UW/Biz language. Developer-facing writing uses the exact technical term.
 

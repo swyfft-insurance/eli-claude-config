@@ -989,6 +989,19 @@ def main():
             )
             sys.exit(2)
 
+        # BLOCK: a SKILL.md under ~/.claude/skills whose new text contains a dollar sign followed by 0.
+        # The skill loader replaces that token with the skill's arguments, so shell code reading awk's
+        # whole-record field breaks without an error. That code lives in a script beside the SKILL.md.
+        normalized_path = file_path.replace("\\", "/")
+        if re.search(r"/\.claude/skills/[^/]+/SKILL\.md$", normalized_path) and "$0" in edit_content:
+            print(
+                "BLOCKED: this SKILL.md text contains '$0', which the skill loader replaces with the skill's "
+                "arguments. Put the shell code that uses it in a script beside the SKILL.md "
+                "(eli--plan-audit/part-guard.sh, eli--code-complete-audit/section-guard.sh) and call the script.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
     if messages:
         print(json.dumps({"systemMessage": "\n\n".join(messages)}))
 

@@ -1,14 +1,14 @@
 ---
 name: eli--code-complete-audit
-description: Audit a code diff against every personal coding, comment, testing and refactoring rule, the repo's root AGENTS.md, and the repo's .NET .claude/rules files, one rule section per wave, recording a verdict per object and fixing violations in place. Hands back the corrected code.
+description: Audit a code diff against every personal coding, comment, testing and refactoring rule, the repo's root AGENTS.md, and the repo's .NET .claude/rules files, one pass per rule file with a verdict per section that names every object it governs, fixing violations in place. Hands back the corrected code.
 ---
 
 # Code-Complete Audit
 
 Audits the diff whole. **The diff is guilty until proven clean.** A rule section with no recorded
-verdict has not been audited. If a wave finds nothing, be suspicious of the wave.
+verdict has not been audited. If a pass finds nothing, be suspicious of the pass.
 
-This skill holds the procedure only. It restates no rule, because the waves reach every section of
+This skill holds the procedure only. It restates no rule, because the passes reach every section of
 the files they walk, and a local copy would both duplicate and go stale.
 
 ## Invocation
@@ -22,15 +22,15 @@ The ticket folder is required. With no arg, stop and ask.
 ## 0. Pull the diff
 
 Run `/eli--diff all`: everything the branch carries against `origin/development`, committed,
-uncommitted and untracked alike. The waves walk every added or changed line, comment, identifier
+uncommitted and untracked alike. The passes walk every added or changed line, comment, identifier
 and test in it.
 
 On a PR-feedback fix, audit `/eli--diff local` only. The committed branch was already audited and
 approved. A violation on a line outside that diff goes to Eli and is never edited.
 
-## 1. Derive the waves at run time
+## 1. Derive the passes at run time
 
-The governing files, in wave order:
+The governing files, in pass order:
 
 - `~/.claude/rules/coding-standards.md`
 - `~/.claude/rules/comments-docs-and-external-writing.md`
@@ -44,12 +44,17 @@ The governing files, in wave order:
 `audit-files.sh`, beside this file, prints that list. It reads the repo's `.claude/rules/` when it
 runs, so a rule file added there is audited without editing this skill.
 
-One wave per `##` section of each file, derived when the skill runs, never from a list written
-here:
+One pass per file. A file's sections are its `##` headings, derived when the skill runs, never from
+a list written here:
 
 ```bash
 bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | xargs -d '\n' grep -Hn '^## '
 ```
+
+**A repo rule file the diff can't touch gets no pass.** When none of the `paths` globs in a repo
+`.claude/rules/*.md` file's frontmatter matches a file in the diff, record one row,
+`<file name> :: no file in the diff matches its paths`, naming the globs, and skip the file. A file
+with no `paths` frontmatter always gets a pass.
 
 A conflict between a repo file and a personal rule is a hard stop (§ 2, step 4). `frontend-*.md` is left
 out because Eli does not work frontend tickets. `powershell.md`, `teamcity.md` and
@@ -57,54 +62,50 @@ out because Eli does not work frontend tickets. `powershell.md`, `teamcity.md` a
 `AGENTS.md` files included. Where a rule points at one of those, the pointer stays for the human
 reader and this skill does not follow it.
 
-## 2. Run the waves
+## 2. Run the passes
 
-For each wave, in order:
+Each run starts a new `## Run <date and time>` section in
+`~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md`, and writes its rows there.
+The file is never shown to Eli.
 
-1. `Read` that section of its file, with an actual Read call, immediately before walking. Not from
-   memory, not from the rules loaded at session start, not from having read it for an earlier wave.
-2. Decide whether the section states a property the diff can satisfy or violate. A section that
-   describes a workflow rather than the code (a HARD STOP sequence, a TDD ordering) gets the verdict
-   **N/A** with the reason and the wave ends.
-3. Otherwise walk every object in the diff the section governs and record a verdict for each:
-   **Satisfied**, or **Violated** with the fix applied. The verdicts are written to
-   `~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md`, one row per section and
-   object, labeled `<file name> :: <heading>` (`csharp-patterns.md :: ClosedSets`). Several files
-   share headings, so the file name is what tells their rows apart. No sampling, no "the rest are fine". A section or object with no row has not been
-   audited. The file is never shown to Eli.
-4. Fix every violation in this wave before starting the next, so later waves see the corrected
+For each pass, in order:
+
+1. `Read` the whole file, with an actual Read call, immediately before the pass. Not from memory,
+   not from the rules loaded at session start, not from having read it for an earlier pass.
+2. Take its sections in order. A section that describes a workflow rather than the code (a HARD
+   STOP sequence, a TDD ordering) gets the verdict **N/A** with the reason. Walk every other
+   section against every object in the diff it governs.
+3. Write one row per section, labeled `<file name> :: <heading>` (`csharp-patterns.md ::
+   ClosedSets`). Several files share headings, so the file name is what tells their rows apart. The
+   row names each object the section governs and that object's verdict: **Satisfied**, or
+   **Violated** with the fix applied. A row that names no object ("nothing in the diff violates
+   it") is not a verdict, and neither is "the rest are fine". No sampling.
+4. Fix every violation in this pass before starting the next, so later passes see the corrected
    code. A fix that would change an approved design, or that the rule leaves to Eli, is a hard
    stop, not a silent edit. So is a conflict between a repo rule and a personal rule: quote both,
    recommend the personal one, and wait for Eli's ruling on which side changes
    (`~/.claude/rules/meta.md` § "Loading Priority Order").
-5. Re-read this skill file before the next wave.
+5. Re-read this skill file before the next pass.
 
 Within `comments-docs-and-external-writing.md`, the section holding the comment self-audit runs first
 (its question 1, "should this comment exist at all?", deletes before anything else judges wording);
 the remaining sections then run over the surviving comments.
 
-**Prove every section got a row, mechanically.** After the last wave, run:
+**Prove every section got a row in this run, mechanically.** After the last pass, run from the repo root:
 
 ```bash
-bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | while IFS= read -r f; do
-  name="$(basename "$f")"
-  grep -q '^## ' "$f" || echo "NO SECTIONS: $name"
-  grep '^## ' "$f" | sed 's/^## //' | while IFS= read -r heading; do
-    grep -qF -- "$name :: $heading" ~/.claude/tickets/<ticket-folder>/artifacts/code-complete-audit.md \
-      || echo "MISSING: $name :: $heading"
-  done
-done
+bash ~/.claude/skills/eli--code-complete-audit/section-guard.sh <ticket-folder>
 ```
 
-Any `MISSING` line fails the audit: run that wave and rerun until nothing prints. A `NO SECTIONS`
-line means a governing file has no `##` heading, so none of its rules got a wave. That is a hard
-stop: tell Eli which file.
+Any `MISSING` line fails the audit: walk that section and rerun until nothing prints. A
+`NO SECTIONS` line means a governing file has no `##` heading, so none of its rules got a verdict.
+That is a hard stop: tell Eli which file.
 
 ## 3. Terminate
 
-After the last wave, run the line-length gate (`~/.claude/scripts/Test-LineLength.ps1 -Mode branch`,
-then `-Mode local` for anything uncommitted) and re-walk any wave whose fixes touched code. Stop when a full pass records zero
-violations.
+After the last pass, run the line-length gate (`~/.claude/scripts/Test-LineLength.ps1 -Mode branch`,
+then `-Mode local` for anything uncommitted) and re-walk every section whose fixes touched code. Stop
+when a full pass records zero violations.
 
 ## 4. Output
 

@@ -8,6 +8,8 @@ New code conforms to SOLID. Existing code in scope gets refactored toward it whe
 
 An identifier (variable, property, method, parameter, field, constant, type) says what the thing holds or returns and what it is for. Verbose means every part of that meaning is in the name, not that every word is spelled out: `GetGroupRadix` fails because it leaves the meaning out, and `CalcEachElementOptIterCount` passes because it keeps all of the meaning in legible abbreviations. Abbreviate every word a reader still recognizes abbreviated. The test: read it at a use site with nothing else on screen. If it doesn't say what the thing is and what it's for, it is too short.
 
+**A name that scopes a thing to one carrier, state or product line stops fitting once another one uses it.** Move the thing to a home named for its shared meaning, and point every reader at the new name, the original owner's included. One carrier's code never reads another carrier's member (a QBE constant read by a Hadron rule). An existing read like that is a defect to fix, never a precedent for another.
+
 ## General
 
 - **We own this code. Its current shape is not a constraint on the solution.** Access modifiers, signatures, where a value is computed and how a class is split are all ours to change. Make the `private` member `protected`, widen the signature, or move the logic; never contort the approach to avoid touching existing code. Only external contracts (public APIs, on-disk and DB formats, regulatory rules) constrain, and those change with the right migration.
