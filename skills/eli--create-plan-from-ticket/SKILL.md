@@ -10,7 +10,7 @@ description: Plan a YouTrack ticket. Reads every rules file, then follows plan-m
 No ticket ID: ask for it.
 
 1. `Read` every file in `~/.claude/rules/*.md`, `plan-mode.md` included.
-2. Follow `plan-mode.md` Part A.
+2. Follow `plan-mode.md` Part A. As soon as `/eli--read-ticket` returns in its step 1, rename the chat: `python ~/.claude/scripts/rename-chat.py "SW-XXXXX <verbatim YouTrack title>"`.
 3. Before Part A step 5, the skill sends Eli only two messages: the Develop-move y/n when a hook blocks the move, and the plan-type message in step 4. Never present a discovery finding before step 5. A question from Eli gets its answer at any point.
 4. The plan-type message takes exactly this shape:
 

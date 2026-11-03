@@ -64,9 +64,20 @@ Write an intent comment on non-trivial business logic, aimed at the non-technica
 
 ## No Ambiguous References
 
-A reader must never have to guess what a word refers to. Two cases:
+A reader must never have to guess what a word refers to. Three cases:
 - **A pronoun with more than one possible antecedent.** Repeat the noun instead of "it", "this", "that", "they", "those", "which" or "whatever".
 - **"How", "why" or "what" with no object.** Write the object: "how to seed the config", not "how".
+- **Shorthand you made up.** Never rename something someone said, or something the code does, into
+  a label of your own ("the substitution", "the fallback", "the gate"). The reader has only the words
+  in front of them, and a label you invented points at nothing. Say what happens, in the source's own
+  words (Eli's message, the reviewer's comment, the ticket) or by the code identifier.
+
+  **Example.** A reviewer's PR comment said: "The rating side (`GetCommercialRoofAgeAndTypeRiskFactors`)
+  already treats any roof with a hurricane-rated covering as `HurricaneWindRated`."
+  - Wrong reply, which renames that behavior "substitution": "Hadron Commercial doesn't rate with
+    that substitution."
+  - Right reply, in the reviewer's own words: "Hadron Commercial doesn't rate a roof with a
+    hurricane-rated covering as `HurricaneWindRated`."
 
 ## Never name Eli's personal tooling in anything published
 

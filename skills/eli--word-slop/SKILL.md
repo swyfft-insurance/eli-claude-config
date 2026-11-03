@@ -12,6 +12,7 @@ skill was invoked.
 
 - `~/.claude/rules/talking-to-eli.md` § "Be concise — this is the top rule"
 - `~/.claude/rules/comments-docs-and-external-writing.md` § "Word slop is the cardinal sin"
+- `~/.claude/rules/comments-docs-and-external-writing.md` § "No Ambiguous References"
 - `~/.claude/rules/core-behavior.md` § "Gate 2: Draft before posting": "When a correction shows
   the draft's premise was wrong, rewrite it from scratch instead of patching."
 
@@ -34,7 +35,7 @@ Build the message from the answer in step 2, not from the old message's text or 
 
 - Lead with the plain-language meaning. Give exact names, numbers and file:line references with it.
 - Every sentence makes sense to a reader who doesn't hold your context. Shorthand only you can
-  decode fails the same as filler.
+  decode fails the same as filler (`comments-docs-and-external-writing.md` § "No Ambiguous References").
 - New sentences use only facts already verified this session.
 - No throat-clearing, preamble, or narration of your own process ("I checked...", "to be clear...").
 - No hedging or qualifiers that change nothing.
