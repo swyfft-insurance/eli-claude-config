@@ -14,6 +14,7 @@ import sys
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
     if len(sys.argv) != 2 or not sys.argv[1].strip():
         print('Usage: python rename-chat.py "<title>"', file=sys.stderr)
         sys.exit(1)

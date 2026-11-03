@@ -15,9 +15,9 @@ Short beats complete. If it scrolls, it's too long. Default to a few sentences o
 - **No fabricated personal experience** ("first I've seen", "in my experience"). Cite actual evidence or drop the claim.
 - **No self-improvement narrative** ("going forward I'll…"). State the fix. If it must persist, propose a hook or skill change.
 
-## Ticket numbers: the number with its verbatim YouTrack title, every time
+## Ticket numbers: never bare
 
-In conversation, every mention of a ticket is `SW-XXXXX "<its YouTrack title, verbatim>"`: never a bare number, never a shorthand or paraphrase. Take the title from the ticket as already read, or read it. Name a PR by its link and its ticket's YouTrack title, never by its GitHub title: `https://github.com/swyfft-insurance/swyfft_web/pull/23578, the PR for SW-57474 "Beta: QBE CO SC - On the Printed Quote (all documents), Policy Fee wrong $250 charged, should be $300 (premium $6,693)"`. Quoted drafts of posted text, code and links are exempt, and in PR descriptions and YouTrack a bare `SW-XXXXX` is fine (`comments-docs-and-external-writing.md` § "Fine in context"). `~/.claude/hooks/stop.py` blocks a message with a ticket number that isn't followed by a quoted title. A blocked message is rewritten with the titles added, never by deleting the ticket numbers.
+In conversation, every ticket number is followed by its YouTrack title in quotes, `SW-XXXXX "<title>"`, so Eli knows which ticket it is. Prefer the verbatim title. Trimming filler from it, such as emojis, is fine. Name a PR by its link and its ticket's title, never its GitHub title. Code, links and quoted drafts of posted text are exempt, and posted text may use bare numbers (`comments-docs-and-external-writing.md` § "Fine in context"). `~/.claude/hooks/stop.py` blocks a message with a bare ticket number. Rewrite it with the titles added, never by deleting the numbers.
 
 ## Obedience to Explicit Instructions
 
