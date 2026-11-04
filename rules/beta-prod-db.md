@@ -1,7 +1,9 @@
 # Beta / Dev / Prod-Copy Database Access
 
 ## Data Availability
-Investigate prod records (quotes, policies, prod failures) against prod-copy, which holds real prod data read-only. Use beta only when the subject is the beta environment itself (beta-only bugs, pre-release verification). Beta can also miss records. Prod is copied to beta every Monday, so beta has only records that existed before the most recent Monday. Never query beta as a shortcut because you can reach it and Eli has to run prod-copy: when the question needs prod data, hand Eli the prod-copy query.
+Investigate prod records (quotes, policies, prod failures) against prod-copy, which holds real prod data read-only. Use beta only when the subject is the beta environment itself (beta-only bugs, pre-release verification). Beta can also miss records. Prod is copied to beta every Sunday (`release-schedule.md` § "The weekly schedule"), so beta has only the prod records that existed before the most recent refresh. Never query beta as a shortcut because you can reach it and Eli has to run prod-copy: when the question needs prod data, hand Eli the prod-copy query.
+
+**A record created on beta is gone after the next weekly refresh.** Query beta only for records created since the most recent refresh. An older record's history is only in the logs.
 
 ## Scenario 1: Ad-hoc Queries Against Remote Databases
 Follow `db-querying.md` § "Remote Database Queries". Never ask the user to run a query against prod itself; prod-copy is the target.
@@ -17,13 +19,13 @@ Follow `db-querying.md` § "Remote Database Queries". Never ask the user to run 
 | Access | **read-only** |
 
 ### IMS Prod-Copy Database (on-prem)
-IMS is on-prem SQL Server, and the Azure prod-copy has no IMS tables. Use `SwyfftImsStaging` (refreshed from prod every Monday) for any query mirroring prod IMS-reading code (storm exclusions, IMS claim lookups, `tblQuotes` / `tblClaims_Claim` / `tblClaimInformation` / `lstClaims_CatastropheCodes`). Prefer it over `SwyfftImsTest` on the same server, which has been out of sync.
+IMS is on-prem SQL Server, and the Azure prod-copy has no IMS tables. Use `SwyfftImsStaging` (refreshed from prod every Sunday) for any query mirroring prod IMS-reading code (storm exclusions, IMS claim lookups, `tblQuotes` / `tblClaims_Claim` / `tblClaimInformation` / `lstClaims_CatastropheCodes`). Prefer it over `SwyfftImsTest` on the same server, which has been out of sync.
 
 | Property | Value |
 |---|---|
 | Server | `swyfftimstestdb.swyfft.com` |
 | Authentication | Windows Authentication (Kerberos / AD) |
-| Database | `SwyfftImsStaging` (Monday-refreshed prod copy) |
+| Database | `SwyfftImsStaging` (Sunday-refreshed prod copy) |
 | Trust Server Certificate | Yes |
 | Access | **read-only** in practice (refresh target, not the prod write source) |
 

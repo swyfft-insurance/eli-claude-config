@@ -11,6 +11,7 @@
 ## 3. Discovery
 
 - **Discovery finds the code that produced the reported failure and proves it with a test.**
+- **Beta evidence is read against the weekly cycle.** `beta` is cut from `development` on Tuesday and released to prod on Friday. On Sunday the refresh replaces the beta databases with copies of prod, which deletes every record created on beta (`release-schedule.md` § "The weekly schedule"). Before drawing a conclusion from a beta record or log line, place it in that cycle: which cut its code came from, and which refresh it was created after.
 
 ### Steps
 

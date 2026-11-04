@@ -19,6 +19,7 @@ Follows `bug.md`, plus:
 
 - **Beta mismatches on unlaunched configs are often expected.** An unlaunched config (no prod book, e.g. still V1) takes premium-bearing changes in place, so a beta quote bought before such a change audits as DB(bind) ≠ Excel/Recompute(now). Check that timeline before calling it a defect.
 - **A Commercial copy can be audited before its first recalculation.** `CopyActorCollection` saves the copy without recalculating (`CopyQuote`, `SaveQuote`, `UpdateQuoteDefinitionByQuoteIdOrFail`), and `CopyQuoteToActor.CopyTo` doesn't copy quote lines. If the copy is a policy's current quote, the audit can select it in that window and crash reading a required quote line (SW-53573: `LossRatio`, in `CommercialEAndSExcelRaterService.SetExcelValues`). In the quote id's logs: a `CommercialQuoteCopyService` result followed by the audit, with no `CommercialQuoteRecalculationService` result between them.
+- **A copied quote has no quote lines, on purpose.** The copy leaves them out because recalculating the copy recreates them. Never investigate why a copy has no quote lines. Investigate why the audit reached the copy before anything recalculated or removed it, starting from the audit's grace window for repriced quotes (`QuoteAuditHelpers`, SW-52308 and its RCA).
 
 ### "The errors stopped" is not a diagnosis
 

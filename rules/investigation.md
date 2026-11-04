@@ -1,5 +1,14 @@
 # Investigation
 
+## ⚠️ Read every beta record and beta log against the weekly cycle
+
+Beta runs on a weekly cycle (`release-schedule.md` § "The weekly schedule"):
+- **Tuesday:** `beta` is cut from `development`.
+- **Friday:** `beta` is released to prod.
+- **Sunday:** the refresh replaces the beta databases with copies of prod, which deletes every record created on beta.
+
+Before drawing a conclusion from a beta record or log line, place it in that cycle: which cut its code came from, and which refresh it was created after.
+
 ## What to suspect, and what to read first
 
 - **Never suspect established infrastructure.** Treat core Swyfft components (ClosedSets, DI, EF, equality operators) like Microsoft framework code: assume they work unless one is itself the subject of the feature or bug being worked on. A defect in one would fail hundreds of tests, not a handful.

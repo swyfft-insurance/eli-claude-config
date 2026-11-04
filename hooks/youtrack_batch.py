@@ -21,6 +21,7 @@ Batch JSON shape:
       {"type": "setStage",        "issue": "SW-1", "value": "Done"},
       {"type": "setReleaseStage", "issue": "SW-1", "value": "NA"},
       {"type": "setAssignee",     "issue": "SW-1", "value": "eli.koslofsky"},
+      {"type": "addTag",          "issue": "SW-1", "value": "technical debt"},
       {"type": "addFields",       "issue": "SW-1",
        "fields": {"Carrier": ["QBE"], "USState": ["NC", "NY"]}},
       {"type": "attach",          "issue": "SW-1", "file": "~/.claude/tickets/SW-1/artifacts/x.txt"},
@@ -94,6 +95,8 @@ LINK_TYPES = [
     "duplicates", "relates to", "subtask of",
     "depends on", "is duplicated by", "parent for",
 ]
+# Tags a batch may add, by name and YouTrack id, so a batch only ever adds an existing tag.
+TAG_IDS = {"technical debt": "6-77"}
 # Scoping fields an action may write, with every permitted value enumerated. The command
 # API takes a free-text query, so an unenumerated value would be a token-injection hole.
 FIELD_VALUES = {
@@ -113,7 +116,7 @@ FIELD_VALUES = {
     ],
 }
 ACTION_TYPES = [
-    "create", "comment", "link", "setStage", "setReleaseStage", "setAssignee", "addFields",
+    "create", "comment", "link", "setStage", "setReleaseStage", "setAssignee", "addTag", "addFields",
     "attach", "editComment",
 ]
 COMMENT_ID_RE = re.compile(r"^\d+-\d+$")
@@ -186,6 +189,7 @@ def validate(batch):
             "setStage": {"type", "issue", "value"},
             "setReleaseStage": {"type", "issue", "value"},
             "setAssignee": {"type", "issue", "value"},
+            "addTag": {"type", "issue", "value"},
             "addFields": {"type", "issue", "fields"},
             "attach": {"type", "issue", "file", "bytes", "sha256"},
             "editComment": {"type", "issue", "commentId", "text", "oldText"},
@@ -215,6 +219,9 @@ def validate(batch):
         elif atype == "setAssignee":
             if a.get("value") not in ASSIGNEE_VALUES:
                 errors.append(f"{where}: Assignee value {a.get('value')!r} not in {ASSIGNEE_VALUES}")
+        elif atype == "addTag":
+            if a.get("value") not in TAG_IDS:
+                errors.append(f"{where}: tag {a.get('value')!r} not in {sorted(TAG_IDS)}")
         elif atype == "addFields":
             errors.extend(_validate_fields(a.get("fields"), where))
         elif atype == "attach":
@@ -376,6 +383,8 @@ def render(actions):
             lines.append(f"{i}. {a['issue']}: set Release Stage = {a['value']}")
         elif a["type"] == "setAssignee":
             lines.append(f"{i}. {a['issue']}: set Assignee = {a['value']}")
+        elif a["type"] == "addTag":
+            lines.append(f"{i}. {a['issue']}: add tag {a['value']}")
         elif a["type"] == "addFields":
             pairs = "; ".join(
                 f"{name} = {', '.join(values)}" for name, values in sorted(a["fields"].items()))
@@ -535,9 +544,17 @@ def _resolve_refs(a, created):
     return resolved
 
 
+def _add_tag(a, token):
+    """Add the tag by id. A command query parses the tag name, and braces in it make a new tag."""
+    return _api(
+        "POST", f"{YOUTRACK_BASE}/api/issues/{a['issue']}/tags?fields=id", {"id": TAG_IDS[a["value"]]}, token)
+
+
 def _run_action(a, token):
     if a["type"] == "attach":
         return _upload_attachment(a, token)
+    if a["type"] == "addTag":
+        return _add_tag(a, token)
     if a["type"] == "editComment":
         if _fetch_comment_text(a["issue"], a["commentId"], token) != a["oldText"]:
             raise RuntimeError(f"comment {a['commentId']} changed after staging; not overwritten")

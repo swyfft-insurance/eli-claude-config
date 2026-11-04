@@ -95,3 +95,14 @@ Summarize the ticket with:
 - A tool failure is not a result to report. The reader wants the attachment's contents; why a binary
   was missing is worth nothing to them. Fix the tool or change methods until you have the content.
   Only report something as unread after exhausting the alternatives, naming what you ran.
+
+## Title-only mode
+
+```bash
+python ~/.claude/skills/eli--read-ticket/read-ticket.py --title-only <ISSUE-ID> [<ISSUE-ID> ...]
+```
+
+Prints one line per ticket, `SW-XXXXX "<title>"`, and nothing else. It exists only to put a ticket's title
+next to its number in conversation (`~/.claude/rules/talking-to-eli.md` § "Ticket numbers: never bare"). It
+is not a ticket read. Anything that needs what a ticket says (its requirement, scope, stage, comments or
+attachments) runs the full read above.

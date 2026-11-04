@@ -37,8 +37,4 @@ Flag an unexpected pattern (`SkipEachElementOptionTest = true`, disabled validat
 Ark = Hadron (legacy name). The class is named `Hsic` for FL/LA E&S.
 
 ## Branch-to-Environment Mapping
-`development` → dev, `beta` → beta, `master` → production. A PR reached prod when its commits arrived on `origin/master`, not when it merged to `development`. The first merge commit after `<commit>` (typically a beta→master PR) is the approximate prod deploy time. Derive it; never call it uncertain.
-
-```
-git log origin/master --format="%h %ai %s" --ancestry-path <commit>^..origin/master | head -5
-```
+`development` → dev, `beta` → beta, `master` → production. A PR reached prod when its commits arrived on `origin/master`, not when it merged to `development`. `release-schedule.md` § "Code already shipped" says how to date that.

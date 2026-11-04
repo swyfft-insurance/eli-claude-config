@@ -55,8 +55,8 @@ the ticket's own environment context so the choice is informed:
 - Decision guidance to include: quotes from prod errors → **prod-copy**
   (`swyfftsqleastus2.database.windows.net`, read-only, `master` branch) by default — it's real
   prod data, which is exactly what prod-copy is for. **Beta** (`beta` branch) only when the
-  ticket's errors are from the beta environment; note beta is a weekly Monday snapshot, so it
-  only has records that predate the most recent Monday copy. See
+  ticket's errors are from the beta environment; note beta is a weekly Sunday snapshot (`~/.claude/rules/release-schedule.md` § "The weekly schedule"), so it
+  only has records that predate the most recent refresh. See
   `~/.claude/rules/beta-prod-db.md` § "Data Availability".
 
 ### Repoint to the chosen environment

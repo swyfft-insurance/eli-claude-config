@@ -10,6 +10,7 @@ visibly in the transcript so Eli sees patterns in real time instead of after the
 import json
 import os
 import re
+import subprocess
 import sys
 
 # (regex, human-readable warning)
@@ -56,6 +57,22 @@ def ticket_number_rule():
     except OSError:
         return ""
     return match.group(0).strip() if match else ""
+
+
+READ_TICKET_SCRIPT = os.path.expanduser("~/.claude/skills/eli--read-ticket/read-ticket.py")
+TITLE_LOOKUP_TIMEOUT_SECONDS = 15
+
+
+def titled_ticket_lines(untitled):
+    """Each flagged ticket as `SW-XXXXX "<title>"`, from /eli--read-ticket's title-only mode."""
+    try:
+        result = subprocess.run(
+            [sys.executable, READ_TICKET_SCRIPT, "--title-only", *untitled],
+            capture_output=True, text=True, encoding="utf-8", timeout=TITLE_LOOKUP_TIMEOUT_SECONDS,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    return [line for line in result.stdout.splitlines() if line.strip()]
 
 
 def strip_exempt_regions(text):
@@ -149,7 +166,9 @@ def main():
         output["reason"] = (
             "Ticket numbers without their YouTrack title: "
             + ", ".join(untitled)
-            + ". Rewrite the message to follow talking-to-eli.md § Ticket numbers:\n\n"
+            + ".\n\nTheir titles, to paste as written:\n"
+            + "\n".join(titled_ticket_lines(untitled) or ["(lookup failed: run /eli--read-ticket --title-only)"])
+            + "\n\nRewrite the message to follow talking-to-eli.md § Ticket numbers:\n\n"
             + ticket_number_rule()
         )
     if output:

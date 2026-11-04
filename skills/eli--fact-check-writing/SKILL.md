@@ -3,6 +3,8 @@ name: eli--fact-check-writing
 description: Fact-check a piece of writing (CLAUDE.md, docs, RCA, PR description, PR review comment, Slack or YouTrack draft, plan). Confirm every claim is correct and every proposal is sound, and change ONLY what is actually incorrect. The ideal result is the text unchanged. Use when asked to fact-check or "do another pass" on written prose.
 ---
 
+> **⚠️ EXTREMELY IMPORTANT: DO NOT change anything that is actually correct. Eli runs this skill out of an abundance of caution.**
+
 # Fact-Check Writing
 
 ## The goal: confirm the text is right

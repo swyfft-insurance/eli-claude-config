@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Fetch a YouTrack ticket with description, comments, custom fields, and all attachments."""
+"""Fetch a YouTrack ticket with description, comments, custom fields, and all attachments.
+
+With --title-only, print only each ticket's title (SKILL.md § Title-only mode).
+"""
 
 import sys
 import os
@@ -20,6 +23,7 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 YOUTRACK_BASE = "https://swyfft.myjetbrains.com/youtrack"
+TITLE_ONLY_FLAG = "--title-only"
 
 # Custom fields worth extracting (skip noise like "Numeric Priority")
 RELEVANT_FIELDS = {
@@ -190,9 +194,35 @@ def resolve_images(text, image_map):
     return re.sub(r"!\[([^\]]*)\]\(([^)]+)\)(?:\{[^}]*\})?", replace_match, text)
 
 
+def print_titles(issue_ids, token):
+    """Title-only mode: one `SW-XXXXX "<title>"` line per ticket and nothing else (SKILL.md § Title-only mode).
+
+    Returns the exit code: 1 when any lookup failed, else 0.
+    """
+    exit_code = 0
+    for issue_id in issue_ids:
+        try:
+            summary = api_get(f"/api/issues/{issue_id}?fields=summary", token)["summary"]
+        except urllib.error.HTTPError as e:
+            print(f"{issue_id}: title lookup failed with HTTP {e.code}", file=sys.stderr)
+            exit_code = 1
+            continue
+        print(f'{issue_id} "{summary}"')
+    return exit_code
+
+
 def main():
+    usage = ("Usage: read-ticket.py <ISSUE-ID> [TICKET-FOLDER]\n"
+             f"       read-ticket.py {TITLE_ONLY_FLAG} <ISSUE-ID> [<ISSUE-ID> ...]")
+    if TITLE_ONLY_FLAG in sys.argv[1:]:
+        issue_ids = [arg.upper() for arg in sys.argv[1:] if arg != TITLE_ONLY_FLAG]
+        if not issue_ids:
+            print(usage, file=sys.stderr)
+            sys.exit(1)
+        sys.exit(print_titles(issue_ids, get_api_token()))
+
     if len(sys.argv) < 2:
-        print("Usage: read-ticket.py <ISSUE-ID> [TICKET-FOLDER]", file=sys.stderr)
+        print(usage, file=sys.stderr)
         sys.exit(1)
 
     issue_id = sys.argv[1].upper()

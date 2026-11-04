@@ -25,6 +25,8 @@ The script:
 - Splits ranges into single-day chunks (the API returns empty on wide ranges)
 - Paginates through all results per day
 - Writes all logs to a file in the ticket's `artifacts/solarwinds/` area (`~/.claude/tickets/<TicketFolder>/artifacts/solarwinds/`)
+- Writes each day's records to `days/<yyyy-MM-dd>.jsonl` and a line to `progress.txt` (day, log count, finish time) in that folder the moment the day finishes. The console prints only its header until every day is done.
+- To check a running search, read `progress.txt`, never the console output.
 - Prints a per-day summary to the console
 
 ## After Execution

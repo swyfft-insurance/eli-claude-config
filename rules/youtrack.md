@@ -38,6 +38,7 @@ A ticket's mechanism, technical-notes or code-pointer section is a lead to verif
 - Technical refactor and implementation tickets carry code references.
 - Use `create_issue`, never `create_draft_issue`.
 - Attach every dump, log, output and screenshot a ticket relies on when filing it. Never point at a file on a dev machine. If something can't be attached yet, the ticket isn't ready to file.
+- Name a person in a YouTrack comment or description by tagging them (`@login`), never by plain-text name.
 - Never put an `@mention` in a heading. Put it on its own line below.
 - A ticket never carries an open question. Resolve every question before drafting, from the source material, the code, a skill built for it (`/go-live-dates` turns an effective date into go-live dates), or Eli. A question only the business owner can answer goes to Eli first, and the draft waits for the answer.
 

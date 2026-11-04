@@ -117,6 +117,7 @@ Write-Host "Filter: $Filter"
 Write-Host "Range: $StartDate to $EndDate"
 Write-Host "Parallel days: $ThrottleLimit"
 Write-Host "Run at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Write-Host "Progress: $progressFile"
 
 # One work item per day. The first day's start is clamped to the parsed StartDate (allows
 # sub-day ranges like "T21:07:44Z") and the last day's end to the parsed EndDate.
