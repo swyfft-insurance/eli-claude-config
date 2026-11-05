@@ -1,5 +1,9 @@
 # Git Safety
 
+## Which repo these rules cover
+
+Everything below governs `swyfft_web`. `~/.claude` is Eli's own config repo, maintained by him alone: its commits go straight to `master`, and their messages carry no ticket ID.
+
 ## Branches and pushing
 
 - After creating a branch, `git push -u origin <my-branch>` immediately. Never leave tracking on someone else's branch or `origin/development`.
