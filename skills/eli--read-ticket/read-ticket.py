@@ -27,9 +27,9 @@ TITLE_ONLY_FLAG = "--title-only"
 
 # Custom fields worth extracting (skip noise like "Numeric Priority")
 RELEVANT_FIELDS = {
-    "Stage", "Priority", "IssueType", "Release Stage", "ProductLine",
+    "Stage", "Priority", "IssueType", "Deployed To", "ProductLine",
     "Carrier", "RatingType", "USState", "Assignee", "QA Assignee",
-    "Business Owner", "Found in Stage", "Platform", "Effort",
+    "Business Owner", "Found in Environment", "Platform", "Effort",
 }
 
 

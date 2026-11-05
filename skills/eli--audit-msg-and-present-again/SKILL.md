@@ -25,15 +25,11 @@ When the text asks Eli anything, or leaves a decision he has to make unasked, in
 
 ## 5. The artifact's own audit
 
-When the message carries one of these drafts, invoke its audit:
-- a PR description: `/eli--audit-pr-desc` (its body file must exist on disk)
-- a standup: `/eli--audit-standup-draft`
-- a plan: `/eli--plan-audit`
-- manual-QA instructions: `/eli--audit-manual-qa-instr`
+When the message carries a draft that has its own row in `~/.claude/rules/auditing.md` § "The audit skills", invoke that row's audit. Skip the audits steps 1 to 4 already ran.
 
 ## 6. Rules pass, heading by heading
 
-`Read`, with actual Read calls this turn, `~/.claude/rules/core-behavior.md`, `~/.claude/rules/talking-to-eli.md` and `~/.claude/rules/comments-docs-and-external-writing.md`. Add the topical files the content matches: `slack.md`, `youtrack.md` or `pr-creation.md` for a draft of posted text, `swyfft-domain.md` for version references, `investigation.md` for findings, and `plan-mode.md` plus the plan type's file in `~/.claude/plan-types/` for any message sent while working a ticket. Every question in such a message is checked against `plan-mode.md` § "Banned" and the type file's ban list. A dedupe notice is not a read: use the content it points to.
+`Read`, with actual Read calls this turn, `~/.claude/rules/core-behavior.md`, `~/.claude/rules/talking-to-eli.md` and `~/.claude/rules/comments-docs-and-external-writing.md`. Add the topical files the content matches: `slack.md`, `writing-tickets.md` or `pr-creation.md` for a draft of posted text, `swyfft-domain.md` for version references, `investigation.md` for findings, and `plan-mode.md` plus the plan type's file in `~/.claude/plan-types/` for any message sent while working a ticket. Every question in such a message is checked against `plan-mode.md` § "Banned" and the type file's ban list. A dedupe notice is not a read: use the content it points to.
 
 The rows are the `##` headings of those files, derived when the skill runs:
 

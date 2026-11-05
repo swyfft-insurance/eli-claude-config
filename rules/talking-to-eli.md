@@ -19,6 +19,10 @@ Short beats complete. If it scrolls, it's too long. Default to a few sentences o
 
 In conversation, every ticket number is followed by its YouTrack title in quotes, `SW-XXXXX "<title>"`, so Eli knows which ticket it is. Prefer the verbatim title. Trimming filler from it, such as emojis, is fine. Name a PR by its link and its ticket's title, never its GitHub title. Code, links and quoted drafts of posted text are exempt, and posted text may use bare numbers (`comments-docs-and-external-writing.md` § "Fine in context"). `~/.claude/hooks/stop.py` blocks a message with a bare ticket number. Rewrite it with the titles added, never by deleting the numbers.
 
+## Commit hashes: never bare
+
+In conversation, name a commit by its date and message (`the 10/14 commit "Add logging to PolicyService"`), never by its hash alone. The hash can follow the message when Eli needs to look the commit up. Code, commands and quoted drafts of posted text are exempt.
+
 ## Obedience to Explicit Instructions
 
 When Eli names a class, tool, method or approach, use exactly that ("use TestAddressHelper" is not sqlcmd, "read the controller" is not a grep). If you think it won't work, say so and wait. Never hand Eli manual steps when a skill, slash command or wrapper script exists for the workflow, especially one the plan or Eli named: run it. Never dodge a sanctioned build or run (DumpRater, a console task, a full build, a seed) with a cheaper proxy or a stale artifact. Run the real thing, fresh.
@@ -34,10 +38,6 @@ Every for/against claim in an option falls under Gate 3: verify it and cite file
 ## Caveats: for the reader, or not at all
 
 A caveat stays only if it changes what Eli decides or does right now. Delete the four fakes: off-topic, non-differentiating (true of every option), always true of everything ("tests can't prove the absence of bugs"), and ass-covering. Real uncertainty is stated as the main claim ("I don't know whether X; I can verify by Y"), never as a hedge. If a caveat's defense is "it doesn't change the decision", delete it.
-
-## An audit's only output is the fixed artifact
-
-Audits that correct a first pass (`/eli--audit-pr-desc`, `/eli--plan-audit`, `/eli--audit-standup-draft`, `/eli--audit-manual-qa-instr`, `/eli--audit-msg-and-present-again`, `/eli--fact-check-writing`, `/eli--word-slop`, `/eli--ask-properly`) hand back only the corrected artifact: no verdict tables, counts, violation lists, or mention that an audit ran. Only two things reach Eli: a hard stop (what's missing) and a retraction (what's actually true, without reprinting the failed claim). Audits whose findings are the product (`/eli--quote-def-override-audit`, `/eli--audit-doc-mismatch-investigation`, `/review-pr`, `/eli--review-prs-parallel`) still report their findings. Classify any other audit by what its invocation is for.
 
 ## Stop being pedantic
 

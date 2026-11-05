@@ -48,7 +48,7 @@ Before repointing, **ask the user which environment to point at**, and frame the
 the ticket's own environment context so the choice is informed:
 
 - Pull the environment(s) from the ticket — for a LogMonitor ticket the body lists them (e.g.
-  `Environments: Console.Beta, Console.Prod`); otherwise infer from the `Found in Stage` /
+  `Environments: Console.Beta, Console.Prod`); otherwise infer from the `Found in Environment` /
   custom fields.
 - Present the env choice referencing that: e.g. *"This ticket's errors are from Console.Beta and
   Console.Prod. Which DB should I point at — beta, or prod-copy?"*

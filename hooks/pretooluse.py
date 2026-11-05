@@ -629,7 +629,7 @@ def main():
         # attachments, field-change history, tags). A raw GET dodges it — both the by-id form
         # (/api/issues/{id}, /comments, /activities, ...) and the search/list form
         # (/api/issues?query=...&fields=description,comments(...)). Hence /api/issues[/?].
-        # Writes stay open: POST/PUT/DELETE (e.g. the /api/commands Release Stage NA call,
+        # Writes stay open: POST/PUT/DELETE (e.g. the /api/commands Deployed To NA call,
         # which isn't under /api/issues anyway) are not reads. read-ticket.py reads via Python
         # urllib, so its command ("python .../read-ticket.py") contains no /api/issues.
         is_yt_issue_read = re.search(r"youtrack[^\n]*?/api/issues[/?]", cmd)

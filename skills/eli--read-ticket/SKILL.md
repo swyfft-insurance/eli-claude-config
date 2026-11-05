@@ -7,7 +7,7 @@ description: Read a YouTrack ticket with full description, comments, all attachm
 
 Fetches a YouTrack ticket's full context: description, all comments, custom fields, linked issues, and **downloads all attachments** (images, log files, text files, etc.) so you can view them.
 
-**Read `~/.claude/rules/youtrack.md` § "A ticket is its description, comments, and attachments,
+**Read `~/.claude/rules/reading-tickets.md` § "A ticket is its description, comments, and attachments,
 together" before presenting anything.** It governs how the output below is read: the AC is often in
 a comment or an attachment, a later comment overrides the description, and comment order matters.
 

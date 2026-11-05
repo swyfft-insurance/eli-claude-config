@@ -22,4 +22,4 @@ Write the table to the ticket's `artifacts/`, or the session scratchpad when the
 
 ## 3. Hand back the corrected text
 
-Only the corrected text, per `talking-to-eli.md` § "An audit's only output is the fixed artifact". Fix tense and world splits only. Change no other words.
+Only the corrected text, per `auditing.md` § "An audit's only output is the fixed artifact". Fix tense and world splits only. Change no other words.

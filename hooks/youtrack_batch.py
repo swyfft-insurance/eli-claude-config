@@ -19,7 +19,7 @@ Batch JSON shape:
       {"type": "comment",         "issue": "SW-1", "text": "..."},
       {"type": "link",            "issue": "SW-1", "linkType": "duplicates", "target": "SW-2"},
       {"type": "setStage",        "issue": "SW-1", "value": "Done"},
-      {"type": "setReleaseStage", "issue": "SW-1", "value": "NA"},
+      {"type": "setDeployedTo", "issue": "SW-1", "value": "NA"},
       {"type": "setAssignee",     "issue": "SW-1", "value": "eli.koslofsky"},
       {"type": "addTag",          "issue": "SW-1", "value": "technical debt"},
       {"type": "addFields",       "issue": "SW-1",
@@ -71,7 +71,7 @@ STAGE_VALUES = [
     "Backlog", "Ready for Dev", "Blocked", "Develop", "Review",
     "Ready for Test", "Test", "Failed Test", "Tested", "Done",
 ]
-RELEASE_STAGE_VALUES = ["NA", "Development", "Beta", "Production"]
+DEPLOYED_TO_VALUES = ["NA", "Development", "Beta", "Production"]
 # Assignees a batch may set, enumerated so a login can never carry extra command tokens.
 ASSIGNEE_VALUES = [
     "alex.good", "chris", "chris.schenk", "dan.melson", "darius", "ehren", "eli.koslofsky",
@@ -81,6 +81,8 @@ ASSIGNEE_VALUES = [
     "carmen", "drew.house", "james.whitfield", "joshua.spink", "mahendra", "nick.fee",
     "patti.sundius", "surabhi.tiwari",
 ]
+SELF_ASSIGNEE = "eli.koslofsky"
+SELF_ASSIGNED_CREATE_STAGE = "Ready for Dev"
 # Single-value fields a create action may set, every value enumerated for the same reason.
 SINGLE_FIELD_VALUES = {
     "IssueType": ["Feature", "Bug", "Support", "Epic", "Inquiry"],
@@ -116,7 +118,7 @@ FIELD_VALUES = {
     ],
 }
 ACTION_TYPES = [
-    "create", "comment", "link", "setStage", "setReleaseStage", "setAssignee", "addTag", "addFields",
+    "create", "comment", "link", "setStage", "setDeployedTo", "setAssignee", "addTag", "addFields",
     "attach", "editComment",
 ]
 COMMENT_ID_RE = re.compile(r"^\d+-\d+$")
@@ -187,7 +189,7 @@ def validate(batch):
             "comment": {"type", "issue", "text"},
             "link": {"type", "issue", "linkType", "target"},
             "setStage": {"type", "issue", "value"},
-            "setReleaseStage": {"type", "issue", "value"},
+            "setDeployedTo": {"type", "issue", "value"},
             "setAssignee": {"type", "issue", "value"},
             "addTag": {"type", "issue", "value"},
             "addFields": {"type", "issue", "fields"},
@@ -212,10 +214,10 @@ def validate(batch):
         elif atype == "setStage":
             if a.get("value") not in STAGE_VALUES:
                 errors.append(f"{where}: Stage value {a.get('value')!r} not in {STAGE_VALUES}")
-        elif atype == "setReleaseStage":
-            if a.get("value") not in RELEASE_STAGE_VALUES:
+        elif atype == "setDeployedTo":
+            if a.get("value") not in DEPLOYED_TO_VALUES:
                 errors.append(
-                    f"{where}: Release Stage value {a.get('value')!r} not in {RELEASE_STAGE_VALUES}")
+                    f"{where}: Deployed To value {a.get('value')!r} not in {DEPLOYED_TO_VALUES}")
         elif atype == "setAssignee":
             if a.get("value") not in ASSIGNEE_VALUES:
                 errors.append(f"{where}: Assignee value {a.get('value')!r} not in {ASSIGNEE_VALUES}")
@@ -244,6 +246,10 @@ def validate(batch):
 def _is_issue_or_known_ref(value, refs):
     value = str(value)
     return bool(ISSUE_RE.match(value)) or (value.startswith("@") and value[1:] in refs)
+
+
+def _create_stage(a):
+    return SELF_ASSIGNED_CREATE_STAGE if a.get("assignee") == SELF_ASSIGNEE else None
 
 
 def _validate_create(a, where, refs):
@@ -368,6 +374,8 @@ def render(actions):
                 lines.append("Fields: " + "; ".join(fields))
             if a.get("assignee"):
                 lines.append(f"Assignee: {a['assignee']}")
+            if _create_stage(a):
+                lines.append(f"Stage: {_create_stage(a)}")
             lines.append("Description:")
             lines.append(a.get("description", ""))
             lines.append("---")
@@ -379,8 +387,8 @@ def render(actions):
             lines.append(f"{i}. {a['issue']}: link \"{a['linkType']}\" {a['target']}")
         elif a["type"] == "setStage":
             lines.append(f"{i}. {a['issue']}: set Stage = {a['value']}")
-        elif a["type"] == "setReleaseStage":
-            lines.append(f"{i}. {a['issue']}: set Release Stage = {a['value']}")
+        elif a["type"] == "setDeployedTo":
+            lines.append(f"{i}. {a['issue']}: set Deployed To = {a['value']}")
         elif a["type"] == "setAssignee":
             lines.append(f"{i}. {a['issue']}: set Assignee = {a['value']}")
         elif a["type"] == "addTag":
@@ -524,6 +532,8 @@ def _create_issue(a, project_id, token, on_created):
         f"{name} {value}" for name, values in sorted(a.get("fields", {}).items()) for value in values]
     if a.get("assignee"):
         queries.append(f"Assignee {a['assignee']}")
+    if _create_stage(a):
+        queries.append(f"Stage {_create_stage(a)}")
     for query in queries:
         status, _body = _api(
             "POST",
@@ -590,7 +600,7 @@ def _run_action(a, token):
     query = {
         "link": lambda: f"{a['linkType']} {a['target']}",
         "setStage": lambda: f"Stage {a['value']}",
-        "setReleaseStage": lambda: f"Release Stage {a['value']}",
+        "setDeployedTo": lambda: f"Deployed To {a['value']}",
         "setAssignee": lambda: f"Assignee {a['value']}",
     }[a["type"]]()
     return _api(

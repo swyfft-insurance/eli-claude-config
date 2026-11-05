@@ -72,7 +72,7 @@ Every plan file begins with this block after the title and type:
 
 First, before the pre-reads and the branch, for every ticket the plan covers, read its Stage:
 
-- **Earlier than Develop (Backlog, Ready for Dev):** move it to Develop and tell Eli. No Gate 2 approval needed, same as the post-PR move to Review (`youtrack.md`).
+- **Earlier than Develop (Backlog, Ready for Dev):** move it to Develop and tell Eli. No Gate 2 approval needed, same as the post-PR move to Review (`updating-tickets.md`).
 - **Develop or later:** leave it. Never move a ticket backward.
 - **YouTrack unreachable:** HARD STOP and ask.
 

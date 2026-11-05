@@ -14,13 +14,16 @@ Behavioral rules and detailed guidance live in `~/.claude/rules/`. Re-read the r
 |---------|------|----------------|
 | Core Behavior | `core-behavior.md` | every action |
 | Talking to Eli | `talking-to-eli.md` | composing any response |
+| Auditing | `auditing.md` | showing Eli any draft, or posting one |
 | Git Safety | `git-safety.md` | any git push, commit, branch, merge, or rebase |
 | Windows / Tooling | `windows-tooling.md` | using sed, tee, mv, printenv, or pwsh with Unix paths |
 | Coding Standards | `coding-standards.md` | writing or modifying any C# |
 | Refactoring Strategy | `refactoring.md` | changing a type, signature, member name, or access modifier |
 | Comments, Docs & External Writing | `comments-docs-and-external-writing.md` | writing comments, docs, RCAs, Slack/YouTrack, PR descriptions, or any persisted/external prose |
 | Slack | `slack.md` | sending any Slack message |
-| YouTrack | `youtrack.md` | creating, updating, or reading YouTrack issues |
+| Reading Tickets | `reading-tickets.md` | reading a YouTrack ticket or taking its AC |
+| Writing Tickets | `writing-tickets.md` | drafting a YouTrack ticket, its description or a comment |
+| Updating Tickets | `updating-tickets.md` | changing a ticket's fields or Stage, or batching YouTrack actions |
 | PR Creation | `pr-creation.md` | creating a PR |
 | Pre-PR Review | `pre-pr-review.md` | invoking `/review-pr` or launching any adversarial-review subagent |
 | PR Review (theirs) | `pr-theirs-review.md` | reviewing someone else's PR |

@@ -120,7 +120,7 @@ Every message, for an edit made on SharePoint or one handed to them, carries:
 
 ## A rater plan's AC
 
-- **The rater is the acceptance criteria (`Swyfft.Services/Premium/AGENTS.md` § "The rater is the acceptance criteria").** Every rater plan's AC includes these, whatever the ticket says, followed by the ticket's own AC (extracted per `youtrack.md`, go-live dates included):
+- **The rater is the acceptance criteria (`Swyfft.Services/Premium/AGENTS.md` § "The rater is the acceptance criteria").** Every rater plan's AC includes these, whatever the ticket says, followed by the ticket's own AC (extracted per `reading-tickets.md`, go-live dates included):
 
 - **The C# rates every new or changed config exactly as the rater does.**
 - **Every existing config rates exactly as before** (`Swyfft.Services/Premium/AGENTS.md` § "No re-rating live business").
