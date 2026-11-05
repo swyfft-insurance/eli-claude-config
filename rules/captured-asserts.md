@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Captured Assert Tests
 
 ## Running them

@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Database Querying
 
 ## sqlcmd on Windows

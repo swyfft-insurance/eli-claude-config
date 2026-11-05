@@ -1,6 +1,6 @@
 ---
 name: eli--code-complete-audit
-description: Audit a code diff against every personal coding, comment, testing and refactoring rule, the repo's root AGENTS.md, and the repo's .NET .claude/rules files, one pass per rule file with a verdict per section that names every object it governs, fixing violations in place. Hands back the corrected code.
+description: Audit a code diff against every personal rules file, the repo's root AGENTS.md, and the repo's .NET .claude/rules files, one pass per rule file with a verdict per section that names every object it governs, fixing violations in place. Hands back the corrected code.
 ---
 
 # Code-Complete Audit
@@ -32,17 +32,13 @@ approved. A violation on a line outside that diff goes to Eli and is never edite
 
 The governing files, in pass order:
 
-- `~/.claude/rules/coding-standards.md`
-- `~/.claude/rules/comments-docs-and-external-writing.md`
-- `~/.claude/rules/testing.md`
-- `~/.claude/rules/refactoring.md`
-- `~/.claude/rules/swyfft-domain.md`
+- every `~/.claude/rules/*.md` whose frontmatter `audited-by` names `code-complete`
 - the repo's root `AGENTS.md`
 - every `.claude/rules/*.md` in the repo except `frontend-*.md`, `powershell.md`, `teamcity.md`
   and `openapi-spec.md`
 
-`audit-files.sh`, beside this file, prints that list. It reads the repo's `.claude/rules/` when it
-runs, so a rule file added there is audited without editing this skill.
+`audit-files.sh`, beside this file, prints that list. It reads `~/.claude/rules/` and the repo's
+`.claude/rules/` when it runs, so a rule file added to either is audited without editing this skill.
 
 One pass per file. A file's sections are its `##` headings, derived when the skill runs, never from
 a list written here:
@@ -55,6 +51,10 @@ bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | xargs -d '\n' gr
 `.claude/rules/*.md` file's frontmatter matches a file in the diff, record one row,
 `<file name> :: no file in the diff matches its paths`, naming the globs, and skip the file. A file
 with no `paths` frontmatter always gets a pass.
+
+**Every personal rules file declares `audited-by`.** Its YAML frontmatter lists the audits that walk it
+(`audited-by: [code-complete]`, or `audited-by: []`). A `NO AUDITED-BY` line from `section-guard.sh`
+fails the audit.
 
 A conflict between a repo file and a personal rule is a hard stop (§ 2, step 4). `frontend-*.md` is left
 out because Eli does not work frontend tickets. `powershell.md`, `teamcity.md` and

@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Comments, Docs, and External Writing
 
 ## What this file governs

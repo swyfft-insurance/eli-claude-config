@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/.claude/tickets/**/plan.md"
+audited-by: [code-complete]
 ---
 # Plan Mode
 
@@ -16,7 +17,7 @@ Part A covers planning a ticket, Part B what every plan file contains, Part C ex
 
 ## Start, every type
 
-1. **Read the ticket with `/eli--read-ticket` and move it to Develop (Step 0a).** If a hook blocks the move, stop and ask for that one action as a bare y/n.
+1. **Read the ticket with `/eli--read-ticket`. If it isn't in Develop yet, ask the move-to-Develop y/n before attempting the move, and move it on the "y".**
    - **Check Eli's own open PRs for duplicate tickets.** List them (`gh pr list --author eli-swyfft --state open --limit 200 --json number,title,files`) and read each one's tickets with `/eli--read-ticket`. The step-4 message names every PR whose ticket duplicates or partly duplicates this one. Never look at other developers' open PRs.
 2. **Pick the type by heading 1 of each file in `~/.claude/plan-types/`.** The more specific type wins. Confirm it with Eli.
 3. **Read the subsystem docs, the type's file, and the ticket's existing plan if there is one.**
@@ -115,7 +116,7 @@ Every type ends with these:
 
 - **A plan adding a `HomeownerStateConfig`, `FloodStateConfig`, `CommercialStateConfig` or `DbbStateConfig` with a future prod go-live carries a seeder override for each, with concrete `NewQuotesOn` and `RenewalOn` dates, never `(YYYY,M,D)` placeholders, computed per `quote-def-dates-and-ordering.md` § "Computing a new override's dates".**
 
-- **MANDATORY: a plan adding a `HomeownerStateConfig`, `FloodStateConfig` or `DbbStateConfig` runs `/eli--quote-def-override-audit` during planning, before computing the new dates;** removing a predecessor's stale override changes the `RenewalOn` the new one must clear. Remove flagged overrides in the new overrides' product lines, or record why one stays. Leave other product lines alone. The audit doesn't cover Commercial (`quote-def-dates-and-ordering.md` § "Finding stale overrides").
+- **MANDATORY: a plan adding a `HomeownerStateConfig`, `FloodStateConfig` or `DbbStateConfig` runs `/eli--quote-def-override-audit` during planning, before computing the new dates;** removing a predecessor's stale override changes the dates the new one must clear. Remove flagged overrides in the new overrides' product lines, and move every next-version override that `quote-def-dates-and-ordering.md` § "Finding stale overrides" says moves, or record why one stays. Leave other product lines alone. The audit doesn't cover Commercial (`quote-def-dates-and-ordering.md` § "Finding stale overrides").
 
 ## State-config changes: fold-vs-stack and version doc-comments (MANDATORY, every product line)
 
@@ -245,7 +246,7 @@ Only two skips:
 
 ### Never list a test a verification skill already runs
 
-- **Before naming a test or adding a standalone `Run-DotnetTest.ps1` line, list the plan's skills' tests with `-ListTests` (`testing-execution.md` § "Listing tests") and confirm none already runs it.** `/eli--prebind-validation` runs everything tagged `TestGroup=PreBindResidentialValidationTests` across `Swyfft.Services.UnitTests`, `Swyfft.Services.IntegrationTests` and `Swyfft.Seeding.IntegrationTests`, including `EnsureConfigOrderWithDatabase` and `QuoteDefinitionsUnitTests`. A separate line is only for a test outside every skill in the plan, e.g. the ByPeril Excel validation tests in `Swyfft.Services.Excel.IntegrationTests`.
+- **Before naming a test or adding a standalone `Run-DotnetTest.ps1` line, list the plan's skills' tests with `-ListTests` (`testing-execution.md` § "Listing tests") and confirm none already runs it.** `/eli--prebind-validation` runs everything tagged `TestGroup=PreBindResidentialValidationTests` across `Swyfft.Services.UnitTests`, `Swyfft.Services.IntegrationTests` and `Swyfft.Seeding.IntegrationTests`, including `QuoteDefinitionsUnitTests`. A separate line is only for a test outside every skill in the plan, e.g. the ByPeril Excel validation tests in `Swyfft.Services.Excel.IntegrationTests`.
 
 ## A PR whose base isn't `development` gets its reviewers requested by hand (MANDATORY)
 

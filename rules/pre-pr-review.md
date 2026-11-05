@@ -1,3 +1,7 @@
+---
+audited-by: []
+---
+
 # Pre-PR Adversarial Review
 
 ## Every Agent prompt MUST include hard caps

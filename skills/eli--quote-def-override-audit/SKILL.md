@@ -1,6 +1,6 @@
 ---
 name: eli--quote-def-override-audit
-description: Audit the quote-def overrides (Homeowner Seeder.cs + Flood/DBB EnvironmentFilters) and list the ones whose configs have already gone live in prod — stale overrides that are removal candidates. Use when deciding which overrides to clean up, or as a periodic hygiene check. Report-only — it never edits Seeder.cs / EnvironmentFilters.
+description: Audit the quote-def overrides (Homeowner Seeder.cs + Flood/DBB EnvironmentFilters) and list the ones whose configs have already gone live in prod — stale overrides that are removal candidates, plus each next-version override that has to move when one is removed. Use when deciding which overrides to clean up, or as a periodic hygiene check. Report-only — it never edits Seeder.cs / EnvironmentFilters.
 ---
 
 # Quote-Def Override Audit
@@ -43,7 +43,8 @@ over static files.
    the test fails, listing each one (config + the prod date it went live). A clean pass means none —
    nothing to remove.
 2. Present the list to the user — it's the authoritative, deterministic set of removal candidates.
-   Don't hand-check it.
+   Don't hand-check which overrides are stale.
+3. **Check each flagged config's next version.** Removing a stale override puts its config back on its `QuoteDefinitions.txt` dates. For each flagged config, find the next version in its State/Carrier/RatingType family in `Seeder.cs` (or `EnvironmentFilters.cs`). If that version is not flagged and keeps an override whose `NewQuotesOn` or `RenewalOn` isn't after the flagged config's `QuoteDefinitions.txt` dates, list it under the flagged config with the dates it moves to, computed per `quote-def-dates-and-ordering.md` § "Computing a new override's dates" with the flagged config as its predecessor.
 
 **This skill audits only.** Removing the listed overrides is a separate decision the user makes — do
 NOT edit `Seeder.cs` / `EnvironmentFilters.cs` as part of running the audit.

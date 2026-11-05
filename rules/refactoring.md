@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Refactoring Strategy
 
 ## Let the compiler find call sites, not grep

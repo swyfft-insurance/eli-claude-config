@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Core Behavior
 
 ## Gate 1: Questions are not instructions

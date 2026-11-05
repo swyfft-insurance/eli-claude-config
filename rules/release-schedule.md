@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Release Schedule
 
 ## The weekly schedule

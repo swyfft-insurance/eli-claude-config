@@ -3,6 +3,10 @@
 # Kept out of SKILL.md: the skill loader replaces a dollar sign followed by 0 there with the skill's arguments.
 audit=~/.claude/tickets/"$1"/artifacts/code-complete-audit.md
 run="$(awk '/^## Run /{run=""} {run=run $0 "\n"} END{printf "%s", run}' "$audit")"
+for f in ~/.claude/rules/*.md; do
+  awk 'NR==1&&/^---/{fm=1;next} fm&&/^---/{exit} fm&&/^audited-by:/{found=1} END{exit !found}' "$f" \
+    || echo "NO AUDITED-BY: $(basename "$f")"
+done
 bash ~/.claude/skills/eli--code-complete-audit/audit-files.sh | while IFS= read -r f; do
   name="$(basename "$f")"
   grep -qF -- "$name :: no file in the diff matches its paths" <<<"$run" && continue

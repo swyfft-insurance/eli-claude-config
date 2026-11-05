@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Coding Standards
 
 ## SOLID governs the design

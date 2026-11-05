@@ -1,3 +1,7 @@
+---
+audited-by: [code-complete]
+---
+
 # Domain Reference: Swyfft Codebase
 
 ## Swyfft/Insurance Terminology
@@ -22,7 +26,7 @@ Every term below is reserved (`comments-docs-and-external-writing.md` § "Swyfft
 Eli works pre-bind (quoting). The quote owns the rating config and the policy inherits it. `Swyfft.Services.PostBind` covers post-bind automation.
 
 ## HomeownerStateConfig
-Declaration order is functional: `GetAllValuesWithSortOrder()` reads it by reflection, and `EnsureConfigOrderWithDatabase` checks it against DB order by `RenewalOn`. Add a new version at the end of its State/Carrier/RatingType group.
+Declaration order is functional: `GetAllValuesWithSortOrder()` reads it by reflection, and `HoQuoteDefs_DeclarationOrder_ShouldMatchRenewalOnOrder` checks it against the `RenewalOn` order of `QuoteDefinitions.txt` and the seeder overrides. Add a new version at the end of its State/Carrier/RatingType group.
 
 ## What identifies a config/IStateConfig
 State, carrier, calculation method and version identify a config. State, carrier and version alone are exact in practice: no Commercial configs collide, and the only Homeowner collision is ClearBlue under the deprecated Iso method, whose colliding versions were never live together.

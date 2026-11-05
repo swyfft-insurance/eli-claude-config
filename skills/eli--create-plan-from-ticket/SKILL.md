@@ -11,7 +11,7 @@ No ticket ID: ask for it.
 
 1. `Read` every file in `~/.claude/rules/*.md`, `plan-mode.md` included.
 2. Follow `plan-mode.md` Part A. As soon as `/eli--read-ticket` returns, rename the chat: `python ~/.claude/scripts/rename-chat.py "SW-XXXXX <YouTrack title>"`.
-3. Before the outline message, Eli gets only two messages: the Develop-move y/n when a hook blocks the move, and the plan-type message. Never present a discovery finding before the outline message. A question from Eli gets its answer at any point.
+3. Before the outline message, Eli gets only two messages: the Develop-move y/n when the ticket isn't in Develop yet, and the plan-type message. Never present a discovery finding before the outline message. A question from Eli gets its answer at any point.
 
 ## Plan-type message
 
