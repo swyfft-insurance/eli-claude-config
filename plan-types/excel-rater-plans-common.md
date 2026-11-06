@@ -46,8 +46,13 @@ Site `swyfft-developmentsite`, library `Shared Documents`:
 
 The flow:
 
-1. **Open each rater for Eli.** List its folder with `read_resource` (§ "Find the file yourself") for the exact filename and size, take that file's `webUrl` from `sharepoint_search`, and open it with `Start-Process`. Never open a folder page for a download. Folder pages are for the step 5 upload. He downloads it.
-2. **Take it from `~/Downloads`.** Confirm its size matches the listing. A repeat download is saved as `name (1).xlsm`. Save the edited file under the exact SharePoint filename.
+1. **Start from the newest copy already on disk.** List the rater's SharePoint folder with `read_resource` (§ "Find the file yourself") and compare its newest file with the rater in `Data/`.
+   - **Same size:** copy the `Data/` file into the ticket's `artifacts/`, named as the SharePoint file, and edit that copy. Don't download it.
+   - **Different size:** SharePoint changed after the rater was placed. Download it (step 2), place it in `Data/`, and read its baseline diff before editing.
+   - **Not in `Data/` (a new state, carrier or product):** download it (step 2).
+2. **Download through Eli.**
+   - **Open the file's own page:** take its `webUrl` from `sharepoint_search` and open it with `Start-Process`. A folder page is only for the step 5 upload.
+   - **Take it from `~/Downloads`** once Eli has downloaded it, and confirm its size matches the listing. A repeat download is saved as `name (1).xlsm`.
 3. **Edit in desktop Excel through COM** (`New-Object -ComObject Excel.Application`). No other library writes a rater.
    - **Eli approves the edit list before Excel opens:** every cell and its new content, every structural change (named range, sheet, tab name), and the `version_history` row word for word (date, analyst, text). Write only what was approved.
    - **Fill every changed cell orange (`#FFC000`) and turn every touched sheet's tab orange.** Add the `version_history` row, highlighted the same way.
@@ -63,6 +68,15 @@ The flow:
    Never remark on the name mismatch. Run `RaterFileContents_ShouldMatchCaptured` alone, by method, on one leaf per distinct rater file. The baseline diff must be the planned edits and the `version_history` row, nothing else. The diff doesn't see formatting, so read the highlights back through Excel. Any mismatch: HARD STOP.
 5. **Upload after the PR is up.** Once the PR carrying the edited rater exists, open the SharePoint folder page. Eli drags the file in, and SharePoint saves it as a new version.
 6. **Tell the actuaries, last.** The channel message goes out only after that PR exists, links it, and covers every rater edit in one message. Nothing follows it.
+
+### Rater-edit pitfalls (MANDATORY)
+
+- **Every surprise in a rater edit becomes a rule here.** When any part of the flow above does something unexpected, add it below before continuing, unless an entry already covers it.
+- **Each entry states the durable rule, never the mistake.** Write what is true and what to do ("Address every cell through `Range`"). Never narrate what went wrong ("I wrote cells through `Cells.Item` and it threw"), and never name an entry after the error just seen.
+
+Recorded:
+
+- **Address every cell through `Range("B42")`.** In PowerShell 7 COM, assigning text to `.Value2` through `Cells.Item(row, column)` throws `Unable to cast object of type 'System.String' to type 'System.Int32'`.
 
 ## What a message to the channel is for
 
@@ -134,13 +148,6 @@ Every message, for an edit made on SharePoint or one handed to them, carries:
 ## Implement the seeder first
 
 - **Implementation starts after discovery, never before the diff.** Within it the order is seeder, then a green full reseed, then premium, rater service, elements and validation. The seeder is the first layer that reads the actual sheets, so layout and opt-in breakage surface there.
-
-## New code goes where the codebase already keeps that kind of code (MANDATORY)
-
-- **Code only premium generation uses goes in the premium generator hierarchy** (the shared base, or the state and carrier generators), never an adjacent class.
-- **A small method or constant more than one subsystem uses goes in an existing static helper class.**
-
-- **A new static class is never the default.** When a plan adds one, the plan says why no existing home fits.
 
 ## Deprecated and run-off carriers are out of scope (MANDATORY step)
 

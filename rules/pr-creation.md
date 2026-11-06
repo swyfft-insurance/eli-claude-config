@@ -166,7 +166,7 @@ rm ./systems-update-attestation.png
 
 ## Every ticket the PR covers goes in the title
 
-`youtrack-update-on-merge.yml` moves ticket stages using only the `SW-XXXXX` IDs in the PR title. The title and the body's `## Ticket Link` section carry the same tickets, each in its own `[SW-XXXXX]`, however long the title gets. An epic never stands in for its children: list every child the PR delivers, and add the epic only when the PR delivers all of them. Otherwise tag the epic's Ticket Link line `(partially delivered)` and leave it out of the title. A PR delivering part of a multi-PR ticket uses `Part N` in the title, which skips the YouTrack update (`youtrack-update-on-merge.yml:44`). Enforced by `~/.claude/hooks/pretooluse.py` on `gh pr create`. No bypass.
+`youtrack-update-on-merge.yml` moves ticket stages using only the `SW-XXXXX` IDs in the PR title. The title and the body's `## Ticket Link` section carry the same tickets, each in its own `[SW-XXXXX]`, however long the title gets. An epic never stands in for its children: list every child the PR delivers, and add the epic only when the PR delivers all of them. Otherwise tag the epic's Ticket Link line `(partially delivered)` and leave it out of the title. A PR delivering part of a multi-PR ticket uses `Part N` in the title, which skips the YouTrack update (`youtrack-update-on-merge.yml`). Enforced by `~/.claude/hooks/pretooluse.py` on `gh pr create`. No bypass.
 
 ## Name the product line in the title
 

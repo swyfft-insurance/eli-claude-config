@@ -4,22 +4,43 @@ audited-by: [code-complete]
 
 # Coding Standards
 
-## SOLID governs the design
+## SOLID and DRY govern the design
 
-New code conforms to SOLID. Existing code in scope gets refactored toward it when the refactor stays small: a rename, an extracted method, a narrowed interface. When the fix would go well past what the ticket asked, stop, name the violation, say what fixing it involves, and ask Eli how much of it belongs in this work.
+New code conforms to SOLID and never repeats logic that already exists. A class the change already touches gets refactored to SOLID as part of the change: make a member `virtual` and override it, widen an access modifier, change a signature, extract a method or an interface, move logic to where it belongs. Never add a SOLID or DRY violation to avoid that refactor, such as a parallel member, a wrapper or a copy built around code that should change.
+
+Once the change works, take a separate pass over every class it touched, ask what refactor would make that code cleaner, and make it.
+
+## A static helper class only bridges unrelated class hierarchies
+
+A static helper class is only for logic whose callers share no base class. Logic whose callers share one goes on that base.
+
+## Put code in the class that already holds that kind of code
+
+Before creating a class, search the codebase for the class that already holds that kind of code, and put the code there. Create a new class only when no existing one fits, and the plan says why.
 
 ## Identifier names must be self-documenting
 
-An identifier (variable, property, method, parameter, field, constant, type) says what the thing holds or returns and what it is for. Verbose means every part of that meaning is in the name, not that every word is spelled out: `GetGroupRadix` fails because it leaves the meaning out, and `CalcEachElementOptIterCount` passes because it keeps all of the meaning in legible abbreviations. Abbreviate every word a reader still recognizes abbreviated. The test: read it at a use site with nothing else on screen. If it doesn't say what the thing is and what it's for, it is too short.
+- **Reveal intent to a reader who has never seen the code.** A name says what the thing is, what it holds or returns, and what it is for, read where it is used rather than where it is declared. Favor clarity over brevity.
+- **Never mislead.** A name that suggests the wrong kind of thing fails even with every word in place: a value named like a condition, a yes/no named like a value, a single item named like a collection.
+- **Grammar matches the kind of thing.** A method is a verb phrase. A variable, field, property, constant or type is a noun phrase or adjective. A yes/no is an affirmative phrase (`CanSeek`, never `CantSeek`), with `Is`, `Has` or `Can` only where it adds meaning. A collection is a plural phrase naming its items, never a singular word plus `List` or `Collection`.
+- **Make every distinction meaningful.** Names that sit side by side differ in a word that says how the things differ. A number series (`premium1`, `premium2`), a noise word (`PolicyInfo` beside `PolicyData`) or an age word (`New`, `Old`, `Legacy`) distinguishes nothing.
+- **One word per concept.** A concept keeps one word in every name and comment, and a word never stands for two concepts. `Fetch`, `Retrieve` and `Get` for the same operation fail.
+- **Carry the context the reader lacks, not the context already present.** A name stays clear far from its declaration: a value says which form of a concept it holds when the concept exists in several forms. A name doesn't repeat what its type or enclosing member already says. Descriptiveness grows with scope: `i` is fine as a loop counter, `Num` is not as a class constant.
+- **Use the domain's words.** A business concept takes its Swyfft term (`swyfft-domain.md` § "Swyfft/Insurance Terminology"). A technical one takes the programmer's term.
+- **Abbreviate every word a reader still recognizes abbreviated.** Verbose means every part of the meaning is in the name, not that every word is spelled out.
+- **A whole-word name past 40 characters is a violation.** A member, parameter, local or constant name that runs past 40 characters in whole words has skipped the abbreviation rule above. Class names are exempt: a class that shares a naming pattern with its sibling classes keeps it, however long.
 
 **A name that scopes a thing to one carrier, state or product line stops fitting once another one uses it.** Move the thing to a home named for its shared meaning, and point every reader at the new name, the original owner's included. One carrier's code never reads another carrier's member (a QBE constant read by a Hadron rule). An existing read like that is a defect to fix, never a precedent for another.
 
 ## General
 
-- **We own this code. Its current shape is not a constraint on the solution.** Access modifiers, signatures, where a value is computed and how a class is split are all ours to change. Make the `private` member `protected`, widen the signature, or move the logic; never contort the approach to avoid touching existing code. Only external contracts (public APIs, on-disk and DB formats, regulatory rules) constrain, and those change with the right migration.
 - Never add global usings. Add `using` to each file.
 - Prefer collection expressions (`[a, b, c]`, `[.. source]`) over `new()`, `new T[] {}`, `new List<T> {}`, `.ToList()` and `.ToArray()` wherever the target type supports them, including `TheoryData<T>`.
 - Build `TheoryData<T>` from an existing sequence with `.ToTheoryData()`, not `new TheoryData<T>()` plus `.Add(...)` in a loop. A hand-written literal set of rows can be a collection expression.
+
+## Never reinvent a Swyfft extension method
+
+When a Swyfft extension method already does what new code needs, the code calls it instead of writing the logic out by hand. At code-complete, check every method and expression the diff adds against the extension methods on its receiver's type and on every interface that type implements, and replace each hand-written equivalent with the call. Find them by searching the solution for `this <TypeName>` for each of those types.
 
 ## Line Length
 
@@ -58,7 +79,7 @@ private static IReadOnlyDictionary<County, Func<EFHomeownerQuote, decimal>> Name
 - Tests iterate the keys rather than keeping their own copy.
 - Prefer this to an `if` or `switch` chain on the key. When every member of a ClosedSet needs a result, use the generated `.Switch()`.
 
-Example: `HomeownerByPerilEngine.NamedStormMinimumByCounty` (`Swyfft.Services/QuoteEngine/Homeowner/HomeownerByPerilEngine.cs:766`).
+Example: `HomeownerByPerilEngine.NamedStormMinimumByCounty` (`Swyfft.Services/QuoteEngine/Homeowner/HomeownerByPerilEngine.cs`).
 
 ## Membership sets: named values that get special treatment
 
@@ -74,8 +95,8 @@ public static ImmutableHashSet<RoofType> DurableRoofs { get; } =
 ```
 
 - Use `{ get; } =`, never `=>`, which builds a new set on every read. A computed set calls `.ToImmutableHashSet()` once, in the same form.
-- When each subclass says where a base applies, make the set a `virtual` property carrying the base's default (`RiskRule.ApplicableWorkflows`, `Swyfft.Services/RiskSelection/RiskRule.cs:83-92`).
+- When each subclass says where a base applies, make the set a `virtual` property carrying the base's default (`RiskRule.ApplicableWorkflows`, `Swyfft.Services/RiskSelection/RiskRule.cs`).
 - Two or three values checked once can stay an inline `IsOneOf(...)`. Once they mean something or are checked in more than one place, name the set.
 - Tests iterate the set rather than keeping their own copy.
 
-Example: `QuoteConstants.DurableRoofs` (`Swyfft.Services/Common/QuoteConstants.cs:367`).
+Example: `QuoteConstants.DurableRoofs` (`Swyfft.Services/Common/QuoteConstants.cs`).
