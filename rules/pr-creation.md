@@ -4,37 +4,26 @@ audited-by: []
 
 # PR Creation
 
-## Writing and filing the PR
+## Filing the PR
 
-- **Read the ticket first**: invoke `/eli--read-ticket` on every YouTrack ticket in the branch name.
-- Write the description from two sources only: the ticket and the actual diff. Never from memory or plan files.
-- **"Actual diff" means the full content diff, read at draft time.** Pull `/eli--diff branch` fresh and read every hand-written file's hunks. A `--stat` file list is not the diff, and neither are reads from earlier in the session.
-- **Skip generated files by default.** Captured-assert expected-result files, `*Designer.cs`, `*_Generated.cs` and LFS-pointer binaries carry no intent. Read one only when its content is itself the subject.
-- Treat the branch as one combined diff, not commit by commit.
 - No Review Guide unless the commits were structured with `/logical-commits`.
-- If YouTrack is unavailable, stop and ask about VPN. Never guess a ticket's description.
 - **The body goes in a file**: write it to `~/.claude/tickets/<TicketFolder>/artifacts/pr/` and pass `--body-file`. Never a multiline `--body`, and never a scratchpad file.
 - **Request the `dev` team on every PR**: pass `--reviewer swyfft-insurance/dev` to `gh pr create`. Individual reviewers need no flag: `.github/auto_request_review.yml` (the `per_author` entry for `eli-swyfft`, plus `files` globs) and `.github/CODEOWNERS` add them, but neither requests a team. Requests are additive. That workflow skips drafts and runs only on `feature/`, `bug/`, `test/` and `tests/` branches targeting `development`. `CODEOWNERS` always applies.
 - **Link tickets, cite PRs for prior code.** Every ticket ID in the body is a link (`[SW-49577](https://swyfft.myjetbrains.com/youtrack/issue/SW-49577)`). Every reference to prior code cites the PR that introduced it as a bare auto-link (`#19959`). Cite a commit SHA (`235a80eda15`) only when the PR alone isn't enough, and then cite its PR too.
 
-## Length: the description covers what the diff cannot, and nothing else
+## Writing the PR description
 
-Budget the narrative: about 100 words for intent and blast radius together, plus up to 75 words per surprise, quotes included. Over budget means cutting content, not reflowing it.
+Read the plan in its entirety, Progress included. The plan is based on a read of the ticket and outlines exactly what we did and why, with the hurdles, key decisions and bumps along the road recorded. It is the story of the pull request.
 
-**Verification is exempt from the budget, not from brevity.** One line per suite or check: what ran, the result, and at most a clause on what it proves. No lead-in, no summary. A line that explains the code is narrative.
+The PR is the final unit. The description gives the final state of what we produced, never the intermediary steps:
+- **What we did**, explained briefly.
+- **Why**, including each key decision a reviewer needs and why it was made.
+- **Also in this PR**: smaller changes that aren't key decisions but would make a reviewer ask why, each with its why.
+- **Verification**: one line per suite or check, saying what ran and the result.
 
-The narrative holds:
+Keep it short, about 150 words before Verification, but never at the cost of meaning. Every item makes sense on its own to a reviewer who hasn't read the plan, and states its why in full.
 
-- **Intent**: what the change accomplishes, in two or three sentences.
-- **Surprises**: what would make a reviewer ask "why did they do that?" That means a deviation from the ticket, an unrelated change riding along, or a decision with a non-obvious alternative.
-- **Blast radius**: what else the change touches that its title doesn't suggest.
-
-Only when load-bearing for judging the diff:
-
-- **A verbatim quote from the ticket or Slack** that is the authority for something in the diff, cut to the sentence that does the work. When the surprise is a conflict between two sources, quote both.
-- **The one thing about existing machinery** the change's correctness rests on.
-
-Never write a section per file or component. Cut any sentence the reviewer would reach on their own from the diff, including mechanism the diff shows.
+Every claim is fact-checked against the code before the description is shown. `/eli--audit-pr-desc` runs that check.
 
 ## Audit-doc fixes: the audit re-run leads Verification
 
@@ -178,4 +167,7 @@ Enforced by the same hook. Bypass with `# no-product-line` when the PR has no pr
 
 ## "Stacked PRs" means GitHub's stacked pull requests feature
 
-Driven by the `gh stack` CLI extension (`github/gh-stack`), never a hand-built chain of PRs based on feature branches. Read before any `gh stack` command: https://docs.github.com/en/pull-requests/get-started/about-stacked-prs, https://docs.github.com/en/pull-requests/get-started/stacked-prs-quickstart, https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands, https://docs.github.com/en/pull-requests/tutorials/roll-out-stacked-prs. A stack is one linear chain: the bottom PR targets `development`, each PR above targets the branch below it, and they merge bottom-up through `development`'s merge queue. Branching stacks are not supported.
+Driven by the `gh stack` CLI extension (`github/gh-stack`), never a hand-built chain of PRs based on feature branches. Read before any `gh stack` command: https://docs.github.com/en/pull-requests/get-started/about-stacked-prs, https://docs.github.com/en/pull-requests/get-started/stacked-prs-quickstart, https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands, https://docs.github.com/en/pull-requests/tutorials/roll-out-stacked-prs. A stack is one linear chain: the PR that merges first targets `development`, each later PR targets the branch of the PR that merges just before it, and they merge in that order through `development`'s merge queue. Branching stacks are not supported.
+
+- **Describe a stack by merge order: "merges first", "merges second" and so on.** Never "bottom", "top", "above" or "below", even though GitHub's docs and `gh stack` output use them. Name each PR as `talking-to-eli.md` § "Ticket numbers: never bare" requires.
+- **In most cases, the older PR merges first.** Merging a newer PR first makes the older one wait on the newer one's review and fixes.

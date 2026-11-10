@@ -56,6 +56,7 @@ The flow:
 3. **Edit in desktop Excel through COM** (`New-Object -ComObject Excel.Application`). No other library writes a rater.
    - **Eli approves the edit list before Excel opens:** every cell and its new content, every structural change (named range, sheet, tab name), and the `version_history` row word for word (date, analyst, text). Write only what was approved.
    - **Fill every changed cell orange (`#FFC000`) and turn every touched sheet's tab orange.** Add the `version_history` row, highlighted the same way.
+   - **One `version_history` row per rater per ticket.** A later edit rewrites that row to cover every edit, with the latest edit's date.
    - **Adding a row to a lookup table.** Excel expands a referencing formula's range only when the insert lands strictly inside it: with `$6:$9`, inserting at 7, 8 or 9 gives `$6:$10`, while inserting at 6 or 10 leaves the new row outside the lookup, where it silently never matches. Insert cells shifted down, scoped to the table's own columns (name the range, e.g. `A7:L7`), never a whole row: rater sheets park second tables beside the first, so check the baseline for one. For an interior position, insert there and paste the one row. For a first or last position, insert one row in from that edge and paste two rows, the new value and the one it displaced. In the baseline diff, a referencing formula still carrying the old range means the insert was at an edge.
 4. **Verify before anything else runs.** Place the edited file in the repo `Data` folder. The delivered filename never matches the repo path (`Data/` paths carry a carrier and no date), and a carrier in the delivered name doesn't scope the delivery. The hashes under `Data/` decide which carrier files are one rater, and so which files the delivery covers:
 
@@ -91,9 +92,10 @@ Every message, for an edit made on SharePoint or one handed to them, carries:
 - **the product line and the rater file,** linked to its SharePoint copy
 - **what the rater did and why that was wrong or had to change,** in rating terms, with the sheet and cell. When the rater moved to match live C#, say so: it is not a defect in their formula.
 - **what changed, or what is being asked,** precisely enough to find
-- **the premium impact either way,** with the reason. An edit that only moves the rater to match live C# moves no premium: the C# charges, and it did not change. The config's live status matters only when what the C# charges changes.
+- **the premium impact either way,** with the reason. An edit that only moves the rater to match live C# moves no premium: the C# charges, and it did not change. The config's live status matters only when what the C# charges changes. A fix to a newly delivered rater, before anything rates on it, says what the delivered rater would have done to existing quotes, what the fix makes them do, and when the new configs go live.
 - **the `version_history` entry and the ticket link**
 
+- **One numbered item per fix.** A message with more than one fix gives each fix its own numbered item: what was broken, then what was fixed.
 - **It is not a template.** The message is as long as the reasoning needs.
 
 ### Rounding changes
@@ -228,6 +230,14 @@ Every rater plan:
 ## Versioning is mandatory, even with no live policies
 
 - **A rater change that moves premium or fees is gated so existing quotes and policies keep their values (`Swyfft.Services/Premium/AGENTS.md` § "No re-rating live business"), even where a carrier has no active book, since the ABQ re-rates historical policies.** A delivered rater with an unversioned premium-affecting factor, or real values on V1, is fixed at the rater before any C# is wired.
+
+## The premium generator switches the way the rater does
+
+- **The raters switch on the Versions-sheet cell.** A rater's `Rating_Algorithm` looks up each versioned factor by its Versions-sheet cell, which the C# writes from the config's `ByPerilVersionLookup` through `TableNameToExcelCellVersionName`. A `ByPerilVersionLookup` gate in the C# follows the same mechanism. Any other switch is a signal the rater never sees, which could lead the C# and the rater to drift apart.
+  - **Example of what NOT to do: switching on an element.** Having the premium generator run the new calculation only when the quote carries a given element, such as an override only the new configs offer, means rewriting the switch when the next `ByPerilVersionLookup` version arrives with the same element.
+- **Scope a `ByPerilVersionLookup` gate to its own raters.** E&S, Admitted and Commercial typically keep separate `ByPerilVersionLookup` hierarchies, so the same `SwyfftVersion` of a `ByPerilName` rarely means the same thing across them. `ByPerilVersionLookup` itself doesn't keep them apart: it maps each `ByPerilName` to a `SwyfftVersion` with no product line, rating type or carrier, and Homeowner and Commercial share the type.
+- **Do the scoping in the premium generator class hierarchy.** The premium generator factories pick a premium generator class by state, rating type and carrier, so a branch in those raters' premium generators, or a `virtual` on the shared base that only they override, reaches only their configs. Configs in another hierarchy never reach a gate scoped this way, so they are no reason to avoid one.
+- **Change the premium generators instead of working around them.** The premium generators are our own code, written in an object-oriented language. Never route rating through a workaround, such as the element switch above, to avoid touching the shared generator (`coding-standards.md` § "SOLID and DRY govern the design").
 
 ## A rater service's mappings describe its own rater
 

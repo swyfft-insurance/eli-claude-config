@@ -10,6 +10,8 @@ New code conforms to SOLID and never repeats logic that already exists. A class 
 
 Once the change works, take a separate pass over every class it touched, ask what refactor would make that code cleaner, and make it.
 
+- **Never be afraid to change our own code.** Our most valuable resources as C# engineers are that we code in an object-oriented language and that we control our own code. Use both: when existing code doesn't fit the change, change it, instead of coding around it.
+
 ## A static helper class only bridges unrelated class hierarchies
 
 A static helper class is only for logic whose callers share no base class. Logic whose callers share one goes on that base.

@@ -34,7 +34,7 @@ Finish this for every comment before forming any verdict or recommendation. A re
 Once per PR:
 - **The ticket, from the source.** Read every YouTrack ticket in the PR with `/eli--read-ticket`: the description, all comments, and any ticket it was scoped from. The ticket is the authority on what the change is for and what it guarantees. A plan, a summary or memory never stands in for it.
 - **The plan**, when the ticket folder has one: its scope, its decisions in Eli's words, and the paths its tests cover. A comment the plan already decided is answered with the plan's reason.
-- **The diff, fresh.** `/eli--diff branch`, every hand-written file's hunks. Skip generated files (`~/.claude/rules/pr-creation.md` § "Skip generated files by default") unless a comment targets one. A `--stat` list or an earlier read is not the diff.
+- **The diff, fresh.** `/eli--diff branch`, every hand-written file's hunks. Skip generated files (captured-assert expected-result files, `*Designer.cs`, `*_Generated.cs`, LFS-pointer binaries) unless a comment targets one. A `--stat` list or an earlier read is not the diff.
 
 Per comment:
 - **The code.** The method the comment points at, its callers and its callees, read now. Every assertion about the code rests on lines just read.

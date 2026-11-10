@@ -93,6 +93,38 @@ def find_untitled_tickets(text):
     return untitled
 
 
+PR_NUMBER_RE = re.compile(r"(?<![\w/&])#\d{4,6}(?!\w)")
+PR_TICKET_TITLE_RE = re.compile(r'[\s,:(]*SW-\d{4,6}\s*["“][^"”\n]+["”]')
+GITHUB_REPO = "swyfft-insurance/swyfft_web"
+
+
+def find_unnamed_prs(text):
+    """PR numbers not followed by a ticket number and its quoted title, in order of first appearance."""
+    checked_text = strip_exempt_regions(text)
+    unnamed = []
+    for match in PR_NUMBER_RE.finditer(checked_text):
+        if not PR_TICKET_TITLE_RE.match(checked_text, match.end()) and match.group() not in unnamed:
+            unnamed.append(match.group())
+    return unnamed
+
+
+def named_pr_lines(unnamed_prs):
+    """Each flagged PR as `#NNNNN, SW-XXXXX "<title>"`, from the ticket numbers in the PR's GitHub title."""
+    lines = []
+    for pr in unnamed_prs:
+        try:
+            result = subprocess.run(
+                ["gh", "pr", "view", pr.lstrip("#"), "--repo", GITHUB_REPO, "--json", "title", "-q", ".title"],
+                capture_output=True, text=True, encoding="utf-8", timeout=TITLE_LOOKUP_TIMEOUT_SECONDS,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        tickets = TICKET_NUMBER_RE.findall(result.stdout)
+        if tickets:
+            lines.append(f"{pr}, " + "; ".join(titled_ticket_lines(tickets)))
+    return lines
+
+
 def extract_last_assistant_text(transcript_path):
     """Return the concatenated text content of the most recent assistant turn."""
     last_text = []
@@ -161,13 +193,24 @@ def main():
             + body
             + "\n=== END AUDIT ==="
         )
+    unnamed_prs = find_unnamed_prs(text)
+    reasons = []
     if untitled:
-        output["decision"] = "block"
-        output["reason"] = (
-            "Ticket numbers without their YouTrack title: "
-            + ", ".join(untitled)
+        reasons.append(
+            "Ticket numbers without their YouTrack title: " + ", ".join(untitled)
             + ".\n\nTheir titles, to paste as written:\n"
             + "\n".join(titled_ticket_lines(untitled) or ["(lookup failed: run /eli--read-ticket --title-only)"])
+        )
+    if unnamed_prs:
+        reasons.append(
+            "PR numbers without their ticket's number and title: " + ", ".join(unnamed_prs)
+            + ".\n\nEach one, to paste as written:\n"
+            + "\n".join(named_pr_lines(unnamed_prs) or ["(lookup failed: run gh pr view <number>)"])
+        )
+    if reasons:
+        output["decision"] = "block"
+        output["reason"] = (
+            "\n\n".join(reasons)
             + "\n\nRewrite the message to follow talking-to-eli.md § Ticket numbers:\n\n"
             + ticket_number_rule()
         )

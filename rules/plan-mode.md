@@ -154,6 +154,9 @@ Only two skips:
   ```markdown
   ## Suggested instructions for manual QA
 
+  <only for a rater change: "The automated rater validation tests cover the rating calculation in this ticket's raters, across more scenarios than a tester could run. For the raters, manual QA only needs a smoke test that a quote gets a premium.">
+  <only when the ticket changes more than the raters: "Scenarios <numbers> cover changes beyond the raters and need to be tested in full.">
+
   **Before you start:** <only when the change rides new quote definitions: the reused-quote warning>
 
   ### Scenario <N>: <what the scenario proves>
@@ -174,7 +177,7 @@ Only two skips:
 
 - **A scenario names each element choice exactly as the config offers it.** Read the choices from the config's `GetDefaultElementsForState` capture, never from the ticket's wording or another carrier's element. Where one ticket term covers several choices, the scenario names the choices that exercise its condition.
 
-- **A rater change is covered by the rater validation tests in `Swyfft.Services.Excel.IntegrationTests`, which run more scenarios than a tester could.** Its comment asks manual QA only for a smoke test that a quote gets a premium, and says the validation tests cover the rest.
+- **A smoke test covers the ticket's raters only, never anything else the ticket changes.** The rater validation tests in `Swyfft.Services.Excel.IntegrationTests` run more scenarios than a tester could, so for the raters, new or updated, the comment asks manual QA only for a smoke test that a quote gets a premium. Every other change the ticket makes (an element, a decline, a fee, what a page shows) gets its own scenarios, tested in full. The comment's first lines under the heading say both, word for word, as the shape above shows.
 
 ## Mandatory sections that live in repo docs: copied VERBATIM into the plan
 
@@ -295,7 +298,7 @@ Only two skips:
 
 ## Captured Asserts: Read Every Changed File
 
-- **When a captured-assert regen produces diffs, open and assess every changed file individually before committing or moving on, however many there are.** No sampling. Here the regenerated baselines are the change under review, the inverse of `pr-creation.md` § "Skip generated files by default."
+- **When a captured-assert regen produces diffs, open and assess every changed file individually before committing or moving on, however many there are.** No sampling.
 
 ## Code-complete audit
 

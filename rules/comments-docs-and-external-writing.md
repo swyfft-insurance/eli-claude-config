@@ -137,6 +137,7 @@ Every clause describes one world. A sentence that needs two worlds becomes two s
 | Behavior after the change (what the PR ships) | Simple present, with "now" to mark the change | "The quote page now hides the sliders." |
 | A durable fact the change doesn't touch | Simple present, in its own sentence | "`SupportedConfigs` gates every risk rule." |
 | Deterministic behavior of shipped code under a scenario | Zero conditional: when/if + present, then present | "When the agent answers No, the quote soft-declines." |
+| A practice described in general, to follow or to avoid (a rule, a doc, a pattern's example) | Gnomic present, with a gerund phrase naming the practice as the subject | "Logging the full request body sends every secret in it to SolarWinds." |
 | A future event (go-live, deploy, effect of an unmerged fix) | Future ("will"), with the trigger or date named | "Once the configs go live 8/22, new quotes will land on FL.QBE.ByPeril.EAndS.V13." |
 | A design under consideration now, not built | Conditional ("would") | "A conditional filter would add logic and would diverge from the quote page." |
 | A design that was considered and abandoned | Past counterfactual ("would have"), every clause of the scenario | "The filter would have hidden the confirmed years, and the confirmation page would have stopped rendering them." |

@@ -40,7 +40,7 @@ An `@copilot` mention anywhere in a posted body, quoted text included, spawns a 
 
 ## The PR description is a snapshot of the PR as opened
 
-The description and its Verification section describe the PR as opened. A fix made after that changes the description only when it changes the intent, adds a surprise (`pr-creation.md` § "Length"), changes the blast radius, or makes a sentence in the description false. A fix that only adds tests or changes a count leaves the description alone: its commit and thread reply carry it.
+The description and its Verification section describe the PR as opened. A fix made after that changes the description only when it changes what was done or why, adds a key decision a reviewer needs (`pr-creation.md` § "Writing the PR description"), or makes a sentence in the description false. A fix that only adds tests or changes a count leaves the description alone: its commit and thread reply carry it.
 
 A fix that does change the description gets a bullet in a `### After review` section, below Verification and a horizontal rule (`---`, with a blank line above it): the commit, what it changed, and the tests it ran. A sentence the fix makes false is struck through in place (`~~...~~`), never deleted, and its replacement follows it, so a reader still sees what the PR said before.
 
