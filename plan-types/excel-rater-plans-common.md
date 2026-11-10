@@ -30,7 +30,7 @@ Site `swyfft-developmentsite`, library `Shared Documents`:
 
 - **The listing gives each file's name, size and `file:///` URI.** `sharepoint_search` gives a `webUrl` but not who modified the file; the delivering actuary comes from the channel post. Never ask Eli where a rater is.
 
-- **Eli moves files; the agent opens the pages.** No agent route reaches a rater's bytes: the connector won't open `.xlsm`, Graph file access needs tenant admin approval, and Playwright can't reach SharePoint (`Scripts/AgentHooks/validate-browser-url.ps1`).
+- **The agent downloads a rater itself; Eli uploads.** Opening a file's direct path with `Start-Process` makes Eli's default browser, which is signed in to SharePoint, save the file to `~/Downloads`. No other route reaches a rater's bytes: the connector won't open `.xlsm`, Graph file access needs tenant admin approval, and Playwright can't reach SharePoint (`Scripts/AgentHooks/validate-browser-url.ps1`). Uploading still goes through Eli (step 5).
 
 ### Who to tag in the channel
 
@@ -50,9 +50,9 @@ The flow:
    - **Same size:** copy the `Data/` file into the ticket's `artifacts/`, named as the SharePoint file, and edit that copy. Don't download it.
    - **Different size:** SharePoint changed after the rater was placed. Download it (step 2), place it in `Data/`, and read its baseline diff before editing.
    - **Not in `Data/` (a new state, carrier or product):** download it (step 2).
-2. **Download through Eli.**
-   - **Open the file's own page:** take its `webUrl` from `sharepoint_search` and open it with `Start-Process`. A folder page is only for the step 5 upload.
-   - **Take it from `~/Downloads`** once Eli has downloaded it, and confirm its size matches the listing. A repeat download is saved as `name (1).xlsm`.
+2. **Download it yourself.**
+   - **Open the file's direct path with `Start-Process`, so the browser downloads it:** `https://swyfft2.sharepoint.com/sites/swyfft-developmentsite/Shared%20Documents/<folder path>/<file name>`. Never open a sharing link (`/:x:/r/…?…&web=1`), such as one in a Slack delivery post: it opens the file in Excel for the web instead. A folder page is only for the step 5 upload.
+   - **Take it from `~/Downloads` right after,** and confirm its size matches the listing. Never ask Eli to download it, or whether it has downloaded. A repeat download is saved as `name (1).xlsm`.
 3. **Edit in desktop Excel through COM** (`New-Object -ComObject Excel.Application`). No other library writes a rater.
    - **Eli approves the edit list before Excel opens:** every cell and its new content, every structural change (named range, sheet, tab name), and the `version_history` row word for word (date, analyst, text). Write only what was approved.
    - **Fill every changed cell orange (`#FFC000`) and turn every touched sheet's tab orange.** Add the `version_history` row, highlighted the same way.
@@ -166,7 +166,7 @@ Every rater plan:
 - **Steps 1 to 4 are discovery, done before any plan exists.** Step 5 is the plan, written from the diff.
 
 1. **Branch.**
-2. **Place the rater(s).** Find each on SharePoint (§ "Find the file yourself") and open its `webUrl` for Eli to download. Take it from `~/Downloads`, overwrite the canonical rater under `Data/`, propagate it byte-identical to every in-scope carrier file, and hash-verify.
+2. **Place the rater(s).** Find each on SharePoint (§ "Find the file yourself") and download it (§ "Rater edits — when warranted, and the SharePoint flow" step 2). Take it from `~/Downloads`, overwrite the canonical rater under `Data/`, propagate it byte-identical to every in-scope carrier file, and hash-verify.
 3. **Scoping checkpoint.** Build once with `pwsh ~/.claude/scripts/Build-Solution.ps1`. Then run the three tests below in parallel, one background `Run-DotnetTest.ps1` call each through the PowerShell tool (it takes one `-FilterMethod`). None of them rates a premium.
 
    - **`RaterFileContents_ShouldMatchCaptured`** regenerates the baselines. The `ExpectedResults/` diff is what the delivery changed.
