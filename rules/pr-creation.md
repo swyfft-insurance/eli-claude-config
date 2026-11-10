@@ -18,7 +18,7 @@ Read the plan in its entirety, Progress included. The plan is based on a read of
 The PR is the final unit. The description gives the final state of what we produced, never the intermediary steps:
 - **What we did**, explained briefly.
 - **Why**, including each key decision a reviewer needs and why it was made.
-- **Also in this PR**: smaller changes that aren't key decisions but would make a reviewer ask why, each with its why.
+- **Also in this PR** (optional): smaller changes that aren't key decisions but would make a reviewer ask why, each with its why. A PR with no such changes has no Also in this PR section.
 - **Verification**: one line per suite or check, saying what ran and the result.
 
 Keep it short, about 150 words before Verification, but never at the cost of meaning. Every item makes sense on its own to a reviewer who hasn't read the plan, and states its why in full.

@@ -165,7 +165,13 @@ Only two skips:
   - **Assert:** <the expected result>
   ```
 
-- **Use the fewest scenarios that prove the change.** One scenario covers every input that should produce the same result: its Setup lists the alternatives as sub-bullets under an opener that says the subject is in any one of them ("A quote with any one of these roofs:"). Each alternative is one state the subject can start in. The Act is the action whose result the scenario checks, in numbered steps when the action takes more than one. The Assert is the result. A scenario can start from the subject an earlier scenario left, named by its number ("The quote from Scenario 1, with Roof Age 15.").
+- **Use the fewest scenarios that prove the change.** One scenario covers every input that should produce the same result.
+
+- **Alternatives go in the Setup as sub-bullets.** They sit under an opener that says the subject is in any one of them ("A quote with any one of these roofs:"). Each alternative is a distinct state the subject can start in. A span of values, such as an age or a dollar amount, is one condition, written as its span.
+
+- **The Act is the action the scenario checks, and the Assert is its result.** The Act takes numbered steps when the action takes more than one.
+
+- **A scenario can start where an earlier one left off.** Name the earlier scenario by its number ("The quote from Scenario 1, with Roof Age 15.").
 
 - **A lone scenario is unnumbered.** When the comment has one scenario, its heading is `### Scenario: <what the scenario proves>`.
 
