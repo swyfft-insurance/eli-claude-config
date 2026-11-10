@@ -25,7 +25,7 @@ Optional flags after the mode:
 
 ## Run
 
-Run it through the PowerShell tool. The pretooluse hook blocks pwsh and `.ps1` invocations through the Bash tool.
+Run it through the PowerShell tool.
 
 ```powershell
 & "$HOME/.claude/scripts/Git-Diff.ps1" -Mode <local|branch|all> # via-diff-skill

@@ -576,23 +576,6 @@ def main():
             )
             sys.exit(2)
 
-        # BLOCK: pwsh/powershell/.ps1 invocations through Bash — use the PowerShell tool instead.
-        # CLAUDE_CODE_USE_POWERSHELL_TOOL is set, so the PowerShell tool is available.
-        # Append "# via-bash-pwsh" to bypass for the rare case bash semantics are required.
-        if tool_name == "Bash" and "# via-bash-pwsh" not in cmd:
-            pwsh_at_start = re.search(r"^\s*(pwsh|powershell)(\.exe)?\s", cmd)
-            ps1_invocation = re.search(r"^\s*[&.]?\s*['\"]?[^'\"\s]*\.ps1\b", cmd)
-            if pwsh_at_start or ps1_invocation:
-                print(
-                    "BLOCKED: Do not invoke pwsh, powershell, or .ps1 scripts through the Bash tool. "
-                    "Use the PowerShell tool directly — it runs commands in native pwsh on Windows.\n\n"
-                    "Example with the PowerShell tool:\n"
-                    "  command: & \"$HOME/.claude/scripts/Build-Solution.ps1\"\n\n"
-                    "If bash semantics are genuinely required, append \"# via-bash-pwsh\" to the command.",
-                    file=sys.stderr,
-                )
-                sys.exit(2)
-
         # BLOCK: PowerShell here-strings (@'...'@ / @"..."@) in a Bash command. Bash does not
         # parse them, so the @ delimiters land inside the payload. This has silently corrupted
         # git commit messages more than once.
@@ -1012,12 +995,6 @@ def check_bash_warnings(cmd):
     """Return list of warning messages for known Bash footguns."""
     warnings = []
 
-    if re.search(r"\|\s*tee\s", cmd):
-        warnings.append(
-            "REMINDER: bash tee crashes on Windows. "
-            "Use: pwsh -NoProfile -Command \"... 2>&1 | Tee-Object -FilePath 'C:\\...\\output.txt'\""
-        )
-
     if re.search(r"git\s+checkout\s+--", cmd):
         warnings.append(
             "REMINDER: git checkout -- destroys uncommitted changes. "
@@ -1028,12 +1005,6 @@ def check_bash_warnings(cmd):
         warnings.append(
             "REMINDER: printenv silently truncates values containing '='. "
             "Use: powershell -NoProfile -Command \"[System.Environment]::GetEnvironmentVariable('VAR_NAME', 'User')\""
-        )
-
-    if re.search(r"\bmv\s+", cmd):
-        warnings.append(
-            "WARNING: mv silently fails on Windows. Use the safe pattern: "
-            "cp source dest && ls dest && rm source"
         )
 
     if re.search(r"git\s+add\s+(-A|--all|\.)\b", cmd):
