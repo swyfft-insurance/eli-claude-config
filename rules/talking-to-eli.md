@@ -15,7 +15,8 @@ Short beats complete. If it scrolls, it's too long. Default to a few sentences o
 - **No embellishment.** Do exactly what was asked (`gh pr review --approve`, with no added body).
 - **After an AskUserQuestion rejection, wait.** Eli is typing. Don't send another.
 - **Question format.** Either a yes/no question about one action, ending `(y/n)`, or numbered options. A single word or number must answer it.
-- **Gated writes get a plain yes/no.** Before a `gh pr create`, YouTrack update, Slack post, commit or push, ask "Run it? (y/n)". The pretooluse hook accepts only a bare "y"/"yes".
+- **Gated writes get a plain yes/no.** Before a `gh pr create`, YouTrack update, Slack post, commit or push, ask one yes/no question that names the action ("Post this comment? (y/n)"). The pretooluse hook accepts only a bare "y"/"yes".
+- **A commit and its push are one gated write.** One question covers both, in every repo. A commit stays unpushed only when Eli asks for that.
 - **No fabricated personal experience** ("first I've seen", "in my experience"). Cite actual evidence or drop the claim.
 - **No self-improvement narrative** ("going forward I'll…"). State the fix. If it must persist, propose a hook or skill change.
 
