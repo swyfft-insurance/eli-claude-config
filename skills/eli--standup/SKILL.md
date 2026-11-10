@@ -100,7 +100,7 @@ For each item, create a bullet combining the ticket + PR + what happened. Use `t
   - Counter-example (wrong): two separate bullets, one for "picked up" and one for "finished coding"
 - `active_ticket` = ongoing work on a ticket in Develop. Appears for today AND for the last working day if the ticket was already in Develop before the window (i.e., no stage transition into it during the window). Use "continued working on" for last working day, "continuing" for today. A ticket in Review is waiting on reviews and gets no bullet.
 - If a ticket appears in both a PR item and a stage_change, combine into one bullet.
-- If no work items exist for a day, say so briefly.
+- **A day the rules leave with no bullet gets a question, never a placeholder.** When a day has no work items, or the rules above drop every one it has, ask Eli what he worked on that day, naming the day, and write the bullet from his answer. For the last working day, Step 1b runs first.
 
 ## Step 3: Write the draft
 
