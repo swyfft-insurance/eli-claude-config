@@ -140,6 +140,8 @@ Every clause describes one world. A sentence that needs two worlds becomes two s
 | A practice described in general, to follow or to avoid (a rule, a doc, a pattern's example) | Gnomic present, with a gerund phrase naming the practice as the subject | "Logging the full request body sends every secret in it to SolarWinds." |
 | A future event (go-live, deploy, effect of an unmerged fix) | Future ("will"), with the trigger or date named | "Once the configs go live 8/22, new quotes will land on FL.QBE.ByPeril.EAndS.V13." |
 | A design under consideration now, not built | Conditional ("would") | "A conditional filter would add logic and would diverge from the quote page." |
+| A step the work will take, in a plan or its outline | Imperative | "Price each transition once." |
+| What a test proves, in a plan, an outline or a PR | Simple present | "The twelve renewals price without throwing." |
 | A design that was considered and abandoned | Past counterfactual ("would have"), every clause of the scenario | "The filter would have hidden the confirmed years, and the confirmation page would have stopped rendering them." |
 | Events of the work itself (edits, reverts, test runs) | Simple past | "We started the filter and reverted it." |
 | Two past events in sequence | Past perfect ("had") for the earlier one | "The quote had already been purchased when the audit ran." |

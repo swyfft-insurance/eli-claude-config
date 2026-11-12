@@ -10,6 +10,7 @@ audited-by: [code-complete]
 - **Unit tests prove the behavior.** A test goes up a level only when unit tests alone can't prove the code works end to end, and the plan gives that reason.
 - **Most wiring is already proven.** Most changes plug into a flow that existing tests already prove is wired, and those changes get unit tests only. A new or changed risk rule is the standing case: unit tests of its logic plus its product line's `*AllRisksTests` captured assert, which records which configs run it (`CommercialAllRisksTests` → `Data/Commercial/CommercialRules.txt`). An integration test that creates a quote to watch the rule fire re-proves the risk pipeline, which is established infrastructure.
 - **Unproven wiring gets one integration test.** It runs one scenario through the wired-up code to make sure the full flow ties together as expected: the behavior the change adds, or the scenario a bug failed. It doesn't repeat the unit tests' cases.
+- **An integration test calls the entry point of the production flow it covers.** It never rebuilds the flow from the flow's own steps: a test built that way keeps passing when the flow adds, drops or reorders a step. A test may call the steps one at a time only when Eli agrees. Each step call then copies production: the test calls it only for the cases where production calls it, and passes it what production passes it. A comment above each call says which production flow it copies and why the test calls it only for those cases.
 - **Some code starts at integration.** When the code's behavior can only be proven wired up, testing starts with integration tests, and they cover the cases. Two examples: a query whose SQL translation a unit test can't run, and a bug inside a real service that a mocked unit test can't reach. Unit tests that mock that path add no value and aren't written.
 - **Acceptance tests are very rare.**
 
@@ -30,6 +31,10 @@ A test earns its place by failing when behavior is wrong. Never write these, and
 - **Tautological tests**: the expected value comes from the code under test.
 
 Captured asserts are the exception: they detect change on purpose, and the diff review is the check.
+
+## A test's responsibility decides what it checks
+
+Every test has a responsibility: what it exists to prove. Before adding a step to a test, or acting on one of its failures, say what that responsibility is. A failure belongs to the test only when it falls within that responsibility, and another test already covering the scenario is a sign it doesn't. Separately, check whether production can reach the scenario at all. A comment in the test says what it covers, what it leaves to other tests, and why.
 
 ## Investigation & TDD
 - A root cause is a hypothesis, labeled as one, until a test reproduces it.

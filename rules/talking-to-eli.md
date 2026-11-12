@@ -22,7 +22,7 @@ Short beats complete. If it scrolls, it's too long. Default to a few sentences o
 
 ## Ticket numbers: never bare
 
-In conversation, every ticket number is followed by its YouTrack title in quotes, `SW-XXXXX "<title>"`, so Eli knows which ticket it is. Prefer the verbatim title. Trimming filler from it, such as emojis, is fine. Name a PR by its number and its ticket's number and title, `#24190, SW-58764 "<title>"`, never by its GitHub title. Code, links and quoted drafts of posted text are exempt, and posted text may use bare numbers (`comments-docs-and-external-writing.md` § "Fine in context"). `~/.claude/hooks/stop.py` blocks a message with a bare ticket or PR number. Rewrite it with the titles added, never by deleting the numbers.
+In conversation, every ticket number is followed by its YouTrack title in quotes, `SW-XXXXX "<title>"`, so Eli knows which ticket it is. Prefer the verbatim title. Trimming filler from it, such as emojis, is fine. Name a PR by its number and its ticket's number and title, `#24190, SW-58764 "<title>"`, never by its GitHub title. Name a `gh stack` by the PRs in it, each named that way, never by the stack's own number. Code, links and quoted drafts of posted text are exempt, and posted text may use bare numbers (`comments-docs-and-external-writing.md` § "Fine in context"). Putting a bare ticket or PR number in backticks, or any other formatting, to get it past the hook is banned. `~/.claude/hooks/stop.py` blocks a message with a bare ticket or PR number. Rewrite it with the titles added, never by deleting the numbers.
 
 ## Commit hashes: never bare
 

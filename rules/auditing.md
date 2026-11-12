@@ -11,6 +11,7 @@ In the flow state you write slop no matter how many rules are in context, and th
 - A draft with an audit skill goes through that skill.
 - A draft with no audit skill gets the separate run against the rules file that governs it.
 - A kind of draft that keeps coming back wrong gets its own audit skill. Every new audit skill gets a row in § "The audit skills" when it is created.
+- When more than one audit runs on a draft, `/eli--word-slop` runs last.
 
 ## The audit skills
 
