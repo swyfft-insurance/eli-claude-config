@@ -15,7 +15,10 @@ param(
     [string]$Mode,
 
     [Parameter(Mandatory = $true)]
-    [string]$TicketFolder
+    [string]$TicketFolder,
+
+    # A database seed skips the agent sync from IMS and the test-account setup unless this is set.
+    [switch]$SyncAgents
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,9 +48,21 @@ if (-not (Test-Path -LiteralPath $script)) {
     exit 1
 }
 
+# A database that has never been seeded has no test accounts, and only the agent step creates them.
+function Test-HasTestAccounts {
+    $count = & sqlcmd -S localhost -d SwyfftCore -E -C -h -1 -W `
+        -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM EFAgents WHERE UserId = 'testbucket@swyfft.com'" 2>$null
+    return $LASTEXITCODE -eq 0 -and "$count".Trim() -eq '1'
+}
+
+$skipAgents = $Mode -eq 'database' -and -not $SyncAgents -and (Test-HasTestAccounts)
+
 Write-Host "Seed mode: $Mode"
 Write-Host "Log:       $logPath"
 Write-Host "Running:   $script"
+if ($Mode -eq 'database') {
+    Write-Host "Agents:    $(if ($skipAgents) { 'skipped (pass -SyncAgents to run them)' } else { 'synced' })"
+}
 Write-Host ""
 
 # The seed scripts assume the repo root is the working directory.
@@ -57,7 +72,20 @@ try {
     # terminating error arrives as text rather than an exception, so $? and $LASTEXITCODE are the only
     # signals left. Seed a sentinel so a script that never runs cannot look like a clean exit 0.
     $global:LASTEXITCODE = 0
-    & $script *>&1 | Tee-Object -FilePath $logPath
+    if ($skipAgents) {
+        # Seed-Database-Local.ps1 has no switch to skip agents, so this runs its secrets and build steps,
+        # then the no-build script, which does.
+        & {
+            & ./Get-Developer-Secrets.ps1
+            . ./_Common.ps1
+            . ./_Build.ps1
+            BuildConsole -config Debug -runAnalyzers $false
+            & ./Seed-Database-Local-NoBuild.ps1 -disableSeedAgents $true
+        } *>&1 | Tee-Object -FilePath $logPath
+    }
+    else {
+        & $script *>&1 | Tee-Object -FilePath $logPath
+    }
     $seedSucceeded = $?
     $seedExitCode = $LASTEXITCODE
 } finally {
