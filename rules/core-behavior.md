@@ -26,3 +26,4 @@ Never write a bare "V1"/"V2". Use the full rater filename, the class-prefixed co
 - Anything that can run more than a few seconds runs in the background.
 - "Stop" means zero more tool calls.
 - When corrected, read `meta.md` before changing anything.
+- Every Agent prompt carries a time budget and an output cap, in these words: "Spend no more than N minutes. If approaching the limit, stop and report what you have." and "Report under N words." A `/review-pr` agent also carries the rest of the caps in `pre-pr-review.md`.

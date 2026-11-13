@@ -33,7 +33,7 @@ Part A covers planning a ticket, Part B what every plan file contains, Part C ex
    - **Design against `development` plus Eli's open PRs.** Their code isn't on `development` yet and merges soon. When one changes code the design touches, the plan stacks on that PR instead of writing a second copy of its code.
    - **Post-bind work, or work that straddles the line, is Eli's call to do or hand off.**
    - **A question goes to Eli only when the ticket's words support two readings that produce different code, or the ticket conflicts with the code or a rule.**
-5. **One message to Eli:** what the ticket asks for, what discovery found, the outline, and the tests, one line each (the behavior in plain words; unit, integration or acceptance; the test class). Not grouped by AC; build, audits and review left out. It ends with a go-ahead.
+5. **One message to Eli:** what the ticket asks for, what discovery found, the outline, and the tests, one line each (new, changed or run only; the behavior in plain words; unit, integration or acceptance; the test class). Not grouped by AC; build, audits and review left out. It ends with a go-ahead.
 6. **Write the plan from the outline Eli approved in step 5, run `/eli--plan-audit`, and ask "Execute now?"**
 
 ## Banned
@@ -210,6 +210,8 @@ Only two skips:
 ### Captured asserts to regenerate
 
 - **List the expected diffs by file, including the files that must show zero diff.** The `/eli--prebind-validation` run lives in the execution sequence (`~/.claude/rules/captured-asserts.md`). For go-live dates, seeder overrides or new `QuoteDefinitions.txt` rows, use `~/.claude/rules/quote-def-dates-and-ordering.md`; don't re-derive.
+
+- **An element change reaches every carrier's capture in its state and rating type.** Each `GetDefaultElementsForState` capture includes a Comparison Quote Element Ordering section that merges, by display name, the elements of every carrier in the same state and rating type (`Swyfft.Services/Elements/AGENTS.md` § "Element OrderBy and Display Ordering"). A change that adds, removes, reorders or renames an element therefore changes that section in the capture of every carrier in each state and rating type the change touches, and the plan's expected diffs list those captures too. A change to constraint codes alone doesn't reach that section, which shows display names only.
 
 ### Existing tests as regression checks
 

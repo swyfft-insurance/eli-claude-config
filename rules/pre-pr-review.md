@@ -18,7 +18,11 @@ This overrides `/review-pr`'s "Fill in the values and change nothing else": its 
 
 Never use these phrases in an Agent prompt: "Be thorough", "Trace 2-3 levels up and down", "Look hard for them", "Read enough surrounding context", or "Question your assumptions" without a scope limit.
 
+`~/.claude/hooks/pretooluse.py` blocks a `/review-pr` agent whose prompt lacks any of these sentences. It reads them from this section, so keep each cap a bullet with its sentence in double quotes.
+
 ## If a delegated review runs over
+
+A capped `/review-pr` run takes at most 10 minutes: 5 for the reviewer, then 5 for the claim-verifiers, which run in parallel. That is the estimate given before the run starts, and 15 minutes is where it is abandoned.
 
 Past 1.5x your estimated upper bound, abandon it with TaskStop immediately, without asking. Never stretch the estimate after the fact: if you said "3–8 minutes" and it's at 12, the estimate was wrong; say so and act on the real elapsed time. A runaway subagent burns tokens against Eli's session budget while producing nothing. Offer to abandon as soon as time slips.
 

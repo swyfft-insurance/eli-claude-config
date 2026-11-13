@@ -26,6 +26,36 @@ except Exception:  # a broken import must not disable every other rule here
 
 RULES_DIR = os.path.expanduser("~/.claude/rules")
 
+REVIEW_AGENT_PROMPT = re.compile(r"/review-pr|references/(reviewer|claim-verifier)\.md")
+
+
+def missing_review_caps(prompt):
+    """The hard-cap sentences from pre-pr-review.md that a /review-pr agent prompt leaves out."""
+    try:
+        with open(os.path.join(RULES_DIR, "pre-pr-review.md"), encoding="utf-8-sig") as f:
+            rules = f.read()
+    except FileNotFoundError:
+        return []
+    section = re.search(
+        r"^## Every Agent prompt MUST include hard caps\n(.*?)(?=^## |\Z)", rules, re.S | re.M)
+    if not section:
+        return []
+    caps = re.findall(r'^- \*\*[^*]+\*\*: "([^"]+)"', section.group(1), re.M)
+    return [cap for cap in caps if cap not in prompt]
+
+
+AGENT_TIME_BUDGET = re.compile(r"Spend no more than \d+ minutes")
+AGENT_OUTPUT_CAP = re.compile(r"Report under \d+ words")
+
+
+def agent_cap_rule():
+    """The core-behavior.md bullet that requires every Agent prompt to carry caps."""
+    try:
+        with open(os.path.join(RULES_DIR, "core-behavior.md"), encoding="utf-8-sig") as f:
+            return next((line.strip() for line in f if "Every Agent prompt" in line), "")
+    except FileNotFoundError:
+        return ""
+
 # Branches never force-pushed, whatever the gh stack catalog says.
 PROTECTED_PUSH_BRANCHES = {"development", "beta", "master", "main"}
 
@@ -104,9 +134,18 @@ GATED_POST_TOOLS = {
     "mcp__slack__slack_send_message",
 }
 
+# A command quoted inside another command's argument text (a Progress entry, a commit message)
+# never runs, so these checks match only where a shell command starts: the beginning of the text,
+# after ; & | ( { ` or a newline (which covers &&, || and $( ), or at the quote opening a -c or
+# -Command argument. VAR=value prefixes and a path to the executable may come before the command.
+COMMAND_START = (
+    r"(?:^|[;&|({`\n]|(?<![\w-])(?i:-(?:c|command))\s+[\"'])"
+    r"\s*(?:\w+=\S*\s+)*(?:\S*[/\\])?"
+)
+
 GATED_POST_COMMAND_PATTERNS = (
-    (r"\bgh\s+pr\s+(create|comment|edit|review)\b", "gh pr create/comment/edit/review"),
-    (r"\bgh\s+issue\s+(create|comment|edit)\b", "gh issue create/comment/edit"),
+    (COMMAND_START + r"gh\s+pr\s+(create|comment|edit|review)\b", "gh pr create/comment/edit/review"),
+    (COMMAND_START + r"gh\s+issue\s+(create|comment|edit)\b", "gh issue create/comment/edit"),
     (r"\bcurl\b[^|;]*\b(POST|PUT)\b[^|;]*youtrack", "curl POST/PUT to the YouTrack API"),
     (r"\bcurl\b[^|;]*youtrack[^|;]*\b(POST|PUT)\b", "curl POST/PUT to the YouTrack API"),
     (r"\bgit\b[^|;&]*\bworktree\s+add\b", "git worktree add"),
@@ -433,7 +472,7 @@ def covered_tickets(body):
 
 def check_pr_create_title(cmd):
     """Block `gh pr create` when the title omits a covered ticket or the product line."""
-    if not re.search(r"\bgh\s+pr\s+create\b", cmd) or "--help" in cmd:
+    if not re.search(COMMAND_START + r"gh\s+pr\s+create\b", cmd) or "--help" in cmd:
         return None
 
     title = extract_flag_value(cmd, "--title")
@@ -554,6 +593,27 @@ def main():
     if tool_name == "AskUserQuestion":
         for warning in check_askuserquestion_warnings(tool_input):
             messages.append(f"⚠️ ASKUSERQUESTION WARNING: {warning}")
+
+    # BLOCK: an Agent call without a time budget and an output cap, and a /review-pr agent
+    # without pre-pr-review.md's full set of hard caps.
+    if tool_name == "Agent":
+        prompt = tool_input.get("prompt", "")
+        if not (AGENT_TIME_BUDGET.search(prompt) and AGENT_OUTPUT_CAP.search(prompt)):
+            print(
+                "BLOCKED: this Agent prompt has no time budget or no output cap.\n" + agent_cap_rule(),
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if REVIEW_AGENT_PROMPT.search(prompt):
+            missing = missing_review_caps(prompt)
+            if missing:
+                print(
+                    "BLOCKED: this /review-pr agent prompt is missing the hard caps from "
+                    "pre-pr-review.md. Append each sentence below verbatim and retry:\n"
+                    + "\n".join(f"- {cap}" for cap in missing),
+                    file=sys.stderr,
+                )
+                sys.exit(2)
 
     if tool_name in ("Bash", "PowerShell"):
         cmd = tool_input.get("command", "")
@@ -879,7 +939,7 @@ def main():
         # Writes only: `gh pr review`, `gh pr comment`, and `gh api` POSTs that CREATE a
         # review/comment. Reads are deliberately left alone — `gh pr view --json
         # reviews,comments`, any `gh api ... GET`, and the script's own read-back all pass.
-        gh_pr_write = re.search(r"\bgh\s+pr\s+(review|comment)\b", cmd)
+        gh_pr_write = re.search(COMMAND_START + r"gh\s+pr\s+(review|comment)\b", cmd)
         gh_api_create = (
             re.search(r"\bgh\s+api\b", cmd)
             and re.search(r"pulls/\d+/(reviews|comments)\b", cmd)

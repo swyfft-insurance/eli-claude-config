@@ -39,6 +39,8 @@ Before creating a class, search the codebase for the class that already holds th
 - Never add global usings. Add `using` to each file.
 - Prefer collection expressions (`[a, b, c]`, `[.. source]`) over `new()`, `new T[] {}`, `new List<T> {}`, `.ToList()` and `.ToArray()` wherever the target type supports them, including `TheoryData<T>`.
 - Build `TheoryData<T>` from an existing sequence with `.ToTheoryData()`, not `new TheoryData<T>()` plus `.Add(...)` in a loop. A hand-written literal set of rows can be a collection expression.
+- An `if` condition carries as few negations as possible. Inverting the `if` and swapping its branches negates every term (`!a || !b || c` becomes `a && b && !c`), so an `if` whose terms are mostly negated is inverted. `if (!a || !b || c)` flips to `if (a && b && !c)`; `if (a || !b || c)` stays, since flipping it gives `!a && b && !c`.
+- A tuple of more than two values is a `record` with named properties, wherever it appears: a theory row, a return type, a local, a collection element. `(HomeownerStateConfig Source, HomeownerStateConfig Target, MigrationFlow Flow)` becomes `record MigrationCase(HomeownerStateConfig Source, HomeownerStateConfig Target, MigrationFlow Flow)`.
 
 ## Never reinvent a Swyfft extension method
 

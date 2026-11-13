@@ -41,7 +41,7 @@ Write it to `~/.claude/tickets/<ticket-folder>/artifacts/plan-messages/outline.m
     **Change:**
     - <one sentence per thing the plan adds to Asks: how the code meets it, or work beyond it; never a restatement of Asks>
     **Tests:**
-    - <one sentence per test: the behavior it proves, its level, and `<TestClass>`>
+    - <one sentence per test: new, changed or run only, the behavior it proves, its level, and `<TestClass>`>
 
     <only a question `plan-mode.md` Part A step 4 allows, as its own numbered question with lettered options>
     <N>. Is the outline above approved?

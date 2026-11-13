@@ -52,6 +52,10 @@ When a fix can't reach the tests that already passed, report one passing result 
 - One screenshot per surface the change touches, showing enough of the screen to see where the change sits, usually its section of the page. Never crop to the element alone.
 - Playwright MCP writes files only under the repo. Capture into `demos/` (gitignored), then copy to the ticket's `artifacts/pr/`.
 
+#### Build the subject with a throwaway test
+
+A throwaway integration test creates the record a screenshot shows and saves it to the local database in the state the screenshot needs. The test prints each record's page URL, which is the page to capture. The test is never committed.
+
 #### Web page (Playwright MCP)
 
 1. Sign in, so agent-only elements render:

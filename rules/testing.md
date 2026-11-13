@@ -12,6 +12,7 @@ audited-by: [code-complete]
 - **Unproven wiring gets one integration test.** It runs one scenario through the wired-up code to make sure the full flow ties together as expected: the behavior the change adds, or the scenario a bug failed. It doesn't repeat the unit tests' cases.
 - **An integration test calls the entry point of the production flow it covers.** It never rebuilds the flow from the flow's own steps: a test built that way keeps passing when the flow adds, drops or reorders a step. A test may call the steps one at a time only when Eli agrees. Each step call then copies production: the test calls it only for the cases where production calls it, and passes it what production passes it. A comment above each call says which production flow it copies and why the test calls it only for those cases.
 - **Some code starts at integration.** When the code's behavior can only be proven wired up, testing starts with integration tests, and they cover the cases. Two examples: a query whose SQL translation a unit test can't run, and a bug inside a real service that a mocked unit test can't reach. Unit tests that mock that path add no value and aren't written.
+- **Tests never go down the pyramid.** Testing starts at the lowest level that can prove the behavior. Once it starts higher, for the reason the plan gives, no test is added below that level for the same behavior.
 - **Acceptance tests are very rare.**
 
 ## FIRST principles govern every test
